@@ -230,11 +230,16 @@ if ( $test ) {
   exit;
 }
 
+my $editor = "textpad";
 my $output = lc $drive;
 $output =~ s/://g;
 $output =~ s![/\\]!-!g;
-$output = $ENV{TEMP} . "\\$output-comments.bat";
-print " textpad $output\n\n";
+
+$output = $ENV{TEMP} . "\\$output-comments.bat" unless ( $^O eq "darwin" or $^O eq "linux" );
+$output = $ENV{HOME} . "/$output-comments.sh" if ( $^O eq "darwin" or $^O eq "linux" );
+$editor = "emacs" if ( $^O eq "darwin" or $^O eq "linux" );
+
+print " $editor $output\n\n";
 
 my $cmts;
 if ( open( $cmts, ">$output" ) ) {

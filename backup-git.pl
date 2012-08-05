@@ -11,13 +11,16 @@ if ( $curDir =~ /^(.):/ ) {
 elsif ( $curDir =~ /^\/cygdrive\/(.)/ ) {
   $root = "/cygdrive/$1";
 }
+elsif ( $^O eq "darwin" ) {
+  $root = ".";
+}
 elsif ( $curDir =~ /^\/(.)/ ) {
   $root = "/$1";
 }
 
 print "curDir: $curDir\n";
 
-
+my $prefix = "tc";
 my $mnp;
 if ( open(BUILDNO, "$root/topclass/oracle/topclass/sources/buildno.h") ) {
   while ( <BUILDNO> ) {
@@ -26,6 +29,26 @@ if ( open(BUILDNO, "$root/topclass/oracle/topclass/sources/buildno.h") ) {
       last;
     }
   }
+  close(BUILDNO);
+}
+elsif ( open(BUILDNO, "$root/java/acc/src/org/eweb/cpp/AppInfo.java") ) {
+  $prefix = "wacc";
+  my ($m, $n, $p, $b);
+  while ( <BUILDNO> ) {
+    if ( /public static final int MAJOR = ([0-9]+);/ ) {
+      $m = $1;
+    }
+    if ( /public static final int MINOR = ([0-9]+);/ ) {
+      $n = $1;
+    }
+    if ( /public static final int POINT = ([0-9]+);/ ) {
+      $p = $1;
+    }
+    if ( /public static final int BUILD = ([0-9]+);/ ) {
+      $b = $1;
+    }
+  }
+  $mnp = "$m$n$p";
   close(BUILDNO);
 }
 
@@ -57,11 +80,14 @@ if ( $mnp eq "" ) {
 print "mnp: $mnp\n";
 
 my $backups = "/cygdrive/c/backups/";
+if ( $^O eq "darwin" ) {
+  $backups = $ENV{HOME} . "/backups/";
+}
 
 my ($sec, $min, $hour, $day, $mon, $year) = localtime(time);
 
 my $date = sprintf( "%04d-%02d-%02d", ($year + 1900), ($mon + 1), $day );
 
-my $cmd = "tar -czvf ${backups}tc${mnp}-git-${date}.tar.gz $root/.git";
+my $cmd = "tar -czvf ${backups}${prefix}${mnp}-git-${date}.tar.gz $root/.git";
 print "cmd: $cmd\n";
 system( $cmd );

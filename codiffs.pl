@@ -1,30 +1,46 @@
+#!/usr/bin/env perl
 #
 # File: codiffs.pl
 # Author: eweb
-# Copyright WBT Systems, 2003-2011
-# Contents: Perl script to do diffs of cheked out files
+# Copyright eweb, 2003-2012
+# Contents: Perl script to do diffs of checked out files
 #
 # Date:          Author:  Comments:
-# 21st Sep 2007  eweb     #00008 Adapted for p4 and escc.
-#  8th Apr 2009  eweb     #00008 Handle existing comments.
-# 16th Apr 2009  eweb     #00008 Quote filenames
-# 28th May 2009  eweb     #00008 p4 & git
-#  2nd Nov 2009  eweb     #00008 git before escc
-#  4th Dec 2009  eweb     #00008 Tidy up
-# 18th Mar 2010  eweb     #00008 Subversion
-# 29th Mar 2010  eweb     #00008 Better handling of multi line comments
-#  6th May 2010  eweb     #00008 Don't output auto directory comments
-# 31st May 2010  eweb     #00008 Missing last checkout if it has multi-line comment
-#  8th Aug 2010  eweb     #00008 Options, first determine scc then set cmds etc
-# 19th Aug 2010  eweb     #00008 git options
-#  6th Jan 2011  eweb     #00008 Name the identical file
-#  7th Feb 2011  eweb     #00008 Handle git new files
-# 29th Mar 2011  eweb     #00008 -f filter
+# 21st Sep 2007  eweb     #0008 Adapted for p4 and escc.
+#  8th Apr 2009  eweb     #0008 Handle existing comments.
+# 16th Apr 2009  eweb     #0008 Quote filenames
+# 28th May 2009  eweb     #0008 p4 & git
+#  2nd Nov 2009  eweb     #0008 git before escc
+#  4th Dec 2009  eweb     #0008 Tidy up
+# 18th Mar 2010  eweb     #0008 Subversion
+# 29th Mar 2010  eweb     #0008 Better handling of multi line comments
+#  6th May 2010  eweb     #0008 Don't output auto directory comments
+# 31st May 2010  eweb     #0008 Missing last checkout if it has multi-line comment
+#  8th Aug 2010  eweb     #0008 Options, first determine scc then set cmds etc
+# 19th Aug 2010  eweb     #0008 git options
+#  6th Jan 2011  eweb     #0008 Name the identical file
+#  7th Feb 2011  eweb     #0008 Handle git new files
+# 29th Mar 2011  eweb     #0008 -f filter
+#  8th Aug 2011  eweb     #0008 Second name pattern
+#  8th Aug 2011  eweb     #0008 Substitution
+# 12th Aug 2011  eweb     #0008 Second name pattern
+# 12th Aug 2011  eweb     #0008 Substitution
+#  2nd Sep 2011  eweb     #0008 -i uncheckount idents -n no diffs
+# 10th Oct 2011  eweb     #0008 Editor
+# 11th Jan 2012  eweb     #0007 Perl critic
+# 24th Jan 2012  eweb     #0008 Exclude filter
+#  3rd May 2012  eweb     #0008 Files that should be checked in
+#  5th May 2012  eweb     #0008 Need full path for mkelem
+# 29th May 2012  eweb     #0008 Added to git
+#  4th Aug 2012  eweb     #0008 Shebang, aquamacs
 #
 
 use strict;
 use Cwd;
 use Getopt::Std;
+use File::Basename;
+
+sub CheckIn($$);
 
 my $cctool1 = "cleartool"; # info gathering
 my $cctool2 = "cleartool"; # easily reversable
@@ -40,34 +56,38 @@ my $namepatt2;
 my $skipline;
 #$namepatt = '^(.*topclass.js)$';
 
-my $listIdents = "N";
-#$listIdents = "Y";
-my $verbose;
-#$verbose = 1;
-my $nodiffs;
-#$nodiffs = 1;
 my $startline;
 my $stopline;
-my $filter;
 my $substPattern;
 my $substSubst;
-my $editor = "textpad";
-
-my $cwd = getcwd();
-
-print "cwd: $cwd\n" if ($verbose);
 
 my %opts = ( v => undef(),
              o => undef(),
              s => undef(),
              b => undef(),
              f => undef(),
+             x => undef(),
+             i => undef(),
+             n => undef(),
+             e => undef(),
            );
 
-if ( !getopts("v:o:s:bf:", \%opts) or @ARGV > 1 ) {
+if ( !getopts("v:o:s:bf:x:i:n:e:", \%opts) or @ARGV > 1 ) {
   print STDERR "Unknown arg $ARGV[0]\n" if @ARGV > 0;
   #Usage();
   exit;
+}
+
+my $dos = $^O eq "MSWin32";
+sub osify($) {
+  my ($path) = @_;
+  if ( $dos ) {
+    $path =~ s!/!\\!g;
+  }
+  else {
+    $path =~ s!\\!/!g;
+  }
+  return $path;
 }
 
 my $ignorespace = $opts{b};
@@ -75,6 +95,14 @@ my $verbose = $opts{v};
 my $scc = $opts{s};
 my $options = $opts{o};
 my $filter = $opts{f};
+my $exclude = $opts{x};
+my $uncoIdents = uc $opts{i};
+my $nodiffs = uc $opts{n};
+my $editor = $opts{e};
+
+my $cwd = getcwd();
+
+print "cwd: $cwd\n" if ($verbose);
 
 $scc = "clearcase" unless ( $scc );
 
@@ -166,21 +194,25 @@ else {
     print "unknown scc $scc\n";
 }
 
-if ( $output eq "" ) {
-    if ( $^O eq "darwin" ) {
-      $output = $ENV{HOME} . "/$drive-codiffs.txt";
-      $cosout = $ENV{HOME} . "/$drive-cos.sh";
-      $editor = "emacs";
-    }
-    else {
-      $output = "c:\\temp\\$drive-codiffs.txt";
-      $cosout = "c:\\temp\\$drive-cos.bat";
-    }
-    print " $editor $output $cosout\n";
+if ( $^O eq "darwin" ) {
+  $output = osify( $ENV{HOME} . "/$drive-codiffs.txt" );
+  $cosout = osify( $ENV{HOME} . "/$drive-cos.sh" );
+  $editor = "aquamacs" unless ( $editor );
 }
+elsif ( $^O eq "cygwin" ) {
+  $output = osify( $ENV{tmp} . "/$drive-codiffs.txt" );
+  $cosout = osify( $ENV{tmp} . "/$drive-cos.bat" );
+  $editor = "textpad" unless ( $editor );
+}
+else {
+  $output = osify( $ENV{TEMP} . "/$drive-codiffs.txt" );
+  $cosout = osify( $ENV{TEMP} . "/$drive-cos.bat" );
+  $editor = "textpad" unless ( $editor );
+}
+print " $editor $output $cosout\n";
 
 if ( $output eq "" ) {
-    $output = "-";
+  $output = "-";
 }
 
 open( OUT, ">$output" );
@@ -190,6 +222,18 @@ if ( $cosout ne "" ) {
 }
 
 my $addcomment = "addcomment.pl";
+
+if ( open( PRIVS, "chkprivs.pl |" ) ) {
+    while ( <PRIVS> ) {
+      chomp;
+      my $path = $_;
+      my ($file, $parent) = fileparse($path);
+      $parent =~ s!\\$!!;
+      print COSOUT "REM cleartool co -nc \"$parent\"\n";
+      print COSOUT "REM cleartool mkelem -nc \"$path\"\n";
+    }
+    close( PRIVS );
+}
 
 if ( open( COS, "$lsco 2>&1 |" ) ) {
     my $skip;
@@ -243,6 +287,9 @@ if ( open( COS, "$lsco 2>&1 |" ) ) {
         if ( $filter && $file !~ /$filter/ ) {
           next;
         }
+        if ( $exclude && $file =~ /$exclude/ ) {
+          next;
+        }
         if ( $comments ) {
             # for each line of comments...
             my @clines = split( /[\n\r]+/, $comments );
@@ -281,7 +328,7 @@ if ( open( COS, "$lsco 2>&1 |" ) ) {
                     s/[\r\n]+$//;
                     if ( /^Files are identical$/ or /^Directories are identical$/ ) {
                         print OUT "$file: $_\n";
-                        if ( $listIdents eq "Y" ) {
+                        if ( $uncoIdents eq "Y" ) {
                             print OUT "$file\n";
                             CheckIn( $file, "" );
                         }
@@ -289,12 +336,10 @@ if ( open( COS, "$lsco 2>&1 |" ) ) {
                             last;
                         }
                     }
-                    elsif ( /^old mode/ or /^new mode/ ) {
-                    }
                     else {
                         if ( $_ ne "" ) {
                             print OUT "$_\n";
-                        }                        
+                        }
                     }
                 }
                 close( DIFF );
@@ -304,7 +349,7 @@ if ( open( COS, "$lsco 2>&1 |" ) ) {
     close( COS );
 }
 
-if ( $listIdents eq "Y" and $diff1 ne $diff2 ) {
+if ( $uncoIdents eq "Y" and $diff1 ne $diff2 ) {
     if ( open( COS, "$lsco 2>&1 |" ) ) {
         while ( <COS> ) {
             chomp;
@@ -314,10 +359,10 @@ if ( $listIdents eq "Y" and $diff1 ne $diff2 ) {
                 }
                 elsif ( open( DIFF, "$diff2 $file 2>&1 |" ) ) {
                     while ( <DIFF> ) {
-                        if ( $listIdents eq "Y" ) {
+                        if ( $uncoIdents eq "Y" ) {
                             if ( /^Files are identical$/ ) {
                                 print OUT "$file\n";
-                                CheckIn( $file, "#????? White space" );
+                                CheckIn( $file, "#00007 White space" );
                             }
                             else {
                                 last;
