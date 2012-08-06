@@ -22,10 +22,8 @@
 # 17th Jan 2008  eweb     #0008 Need to quotemeta on pattern.
 #  9th May 2008  eweb     #0008 template comments go before the vars
 # 18th Jun 2008  eweb     #0008 Map fictional 80000 bug numbers.
-# 18th Jul 2008  eweb     #0008 Lisa's username is too long.
 # 24th Jul 2008  eweb     #0008 Restrict changes to history section
 # 19th Sep 2008  eweb     #0008 handle html and css
-# 24th Sep 2008  eweb     #0008 Roman's username
 #  2nd Oct 2008  eweb     #0008 Preserve format of updateConfig
 #  2nd Oct 2008  eweb     #0008 Not yet handling html
 # 21st Nov 2008  eweb     #0008 Handle jsp(f), htm(l) and xml
@@ -60,7 +58,6 @@
 # 29th Sep 2010  eweb     #0008 Handle .tld files
 #  1st Nov 2010  eweb     #0008 Preserve bom
 # 30th Nov 2010  eweb     #0008 Detect extended characters
-# 30th Nov 2010  eweb     #0008 bhendrick is barry
 #  9th Dec 2010  eweb     #0008 Call chevent, start year from version 0
 # 17th Dec 2010  eweb     #0008 addcomment: chevent when not handled, -E to just chevent
 #  6th Jan 2011  eweb     #0008 Ignore extended chars in foreign resource files
@@ -71,10 +68,8 @@
 # 17th Jun 2011  eweb     #0008 Escape comment when searching
 # 27th Jul 2011  eweb     #0008 check comments
 # 12th Aug 2011  eweb     #0008 Ruby scripts
-# 30th Sep 2011  lisa     #0008 pflanagan is paulf
 # 27th Oct 2011  eweb     #0008 NeoLogic Copyright
 #  3rd Nov 2011  eweb     #0008 Handle .properties.default
-# 29th Nov 2011  lisa     #0008 mziccardi is marco
 #  6th Jan 2012  eweb     #0008 Update version in header
 #  6th Feb 2012  eweb     #0008 No Dodgy character warning in utf-8 files
 #  6th Feb 2012  eweb     #0008 File type detection
@@ -84,6 +79,8 @@
 # 19th Jul 2012  eweb     #0008 Handle shebang line
 # 19th Jul 2012  eweb     #0008 Eoln messages dependant on os
 #  5th Aug 2012  eweb     #0008 Retains permissions
+#  6th Aug 2012  eweb     #0008 Find git
+#  6th Aug 2012  eweb     #0008 Reverse sort git commit message
 #
 
 # DONE change event if comment not present.
@@ -142,7 +139,7 @@ my $ValidateComments = 1;
 my $stripTrailingSpaces = 1;
 
 my %bug_map = (
-);
+              );
 
 my @nameExceptions = qw/schemaupgrade incrementalupgrade revisionnumber databaseversion baseschema topclassusername/;
 my @dataExceptions = qw/incrementalupgrade revisionnumber databaseversion topclassusername/;
@@ -163,51 +160,69 @@ my %opts = ( a => undef(),
              S => undef(),
              v => undef(),
              x => undef(),
+             t => undef(),
            );
 
 # Was anything other than the defined option entered on the command line?
-if ( !getopts("c:a:A:C:D:Eiom:n:p:b:k:S:v:x:", \%opts) or @ARGV > 1 ) {
-    print STDERR "Unknown arg $ARGV[0]\n" if @ARGV > 0;
-    #Usage();
-    exit;
+if ( !getopts("c:a:A:C:D:Eiom:n:p:b:k:S:v:x:t", \%opts) or @ARGV > 1 ) {
+  print STDERR "Unknown arg $ARGV[0]\n" if @ARGV > 0;
+  #Usage();
+  exit;
 }
 
-
-  if ( -d ".git" ) {
-    $scc = "git";
+my $git_root = ".";
+if ( find_git() ) {
+  $scc = "git";
+}
+else {
+  my $cwd = getcwd();
+  if ( $cwd =~ /p4clients/ ) {
+    $scc = "p4";
   }
-  else {
-    my $cwd = getcwd();
-    if ( $cwd =~ /p4clients/ ) {
-      $scc = "p4";
+}
+
+sub find_git() {
+  my $dir = getcwd();
+  while ( !-d "$dir/.git" ) {
+    my $parent = "$dir/..";
+    if ( Cwd::realpath($dir) eq Cwd::realpath($parent) ) {
+      last;
     }
+    $dir = $parent;
   }
-
+  $dir = Cwd::realpath($dir);
+  if ( -d "$dir/.git" ) {
+    print "Found git at $dir\n" if ( $verbose );
+    $git_root = $dir;
+    return 1;
+  }
+  return undef;
+}
 
 sub verifyClearcase() {
-    if ( $VerifiedClearcase eq "N" and $UseClearcase eq "Y" ) {
-        $cctool = "cleartool";
-        my $topclassVob = "/topclass";
-        if ( $^O eq "linux" ) {
-          $topclassVob = "/vobs$topclassVob";
-        }
-        my $desc = `$cctool desc -fmt "[%m]" "$topclassVob"`;
-        if ( $desc eq "[**null meta type**]" ) {
-            print "Not a clearcase drive\n";
-            $cctool = "";
-            $UseClearcase = "N";
-        }
-        elsif ( $desc eq "[directory version]" ) {
-            print "Is a clearcase drive\n";
-            $UseClearcase = "Y";
-        }
-        elsif ( $desc eq "" ) {
-            print "Looks like we don't have cleartool\n";
-            $cctool = "";
-            $UseClearcase = "N";
-        }
-        $VerifiedClearcase = "Y";
+  if ( $VerifiedClearcase eq "N" and $UseClearcase eq "Y" ) {
+    $cctool = "cleartool";
+    my $topclassVob = "/topclass";
+    if ( $^O eq "linux" ) {
+      $topclassVob = "/vobs$topclassVob";
     }
+    my $desc = `$cctool desc -fmt "[%m]" "$topclassVob"`;
+    if ( $desc eq "[**null meta type**]" ) {
+      print "Not a clearcase drive\n";
+      $cctool = "";
+      $UseClearcase = "N";
+    }
+    elsif ( $desc eq "[directory version]" ) {
+      print "Is a clearcase drive\n";
+      $UseClearcase = "Y";
+    }
+    elsif ( $desc eq "" ) {
+      print "Looks like we don't have cleartool\n";
+      $cctool = "";
+      $UseClearcase = "N";
+    }
+    $VerifiedClearcase = "Y";
+  }
 }
 
 sub GetBuildNumber( $;$ ) {
@@ -215,48 +230,48 @@ sub GetBuildNumber( $;$ ) {
 
   my $BuildNoFile = "$drive/topclass/oracle/topclass/sources/buildno.h";
   if ( ! -e $BuildNoFile ) {
-      my $VersionInfoFile = "$drive/topclass/oracle/topclass/sources/versioninfo.h";
-      if ( -e $VersionInfoFile ) {
-          $BuildNoFile = $VersionInfoFile;
+    my $VersionInfoFile = "$drive/topclass/oracle/topclass/sources/versioninfo.h";
+    if ( -e $VersionInfoFile ) {
+      $BuildNoFile = $VersionInfoFile;
+    }
+    else {
+      my $NeoBuildNoFile = "$drive/topclass/neo/sources/buildno.h";
+      if ( -e $NeoBuildNoFile ) {
+        $BuildNoFile = $NeoBuildNoFile;
       }
       else {
-          my $NeoBuildNoFile = "$drive/topclass/neo/sources/buildno.h";
-          if ( -e $NeoBuildNoFile ) {
-              $BuildNoFile = $NeoBuildNoFile;
-          }
-          else {
-              my $VersionInfoFile = "$drive/topclass/neo/sources/versioninfo.h";
-              if ( -e $VersionInfoFile ) {
-                  $BuildNoFile = $VersionInfoFile;
-              }
-          }
+        my $VersionInfoFile = "$drive/topclass/neo/sources/versioninfo.h";
+        if ( -e $VersionInfoFile ) {
+          $BuildNoFile = $VersionInfoFile;
+        }
       }
+    }
   }
 
   #print "$BuildNoFile\n";
 
   if ( !open (BUILDNO, $BuildNoFile) ) {
-      if ( $fileType eq "sql" && "$Major$Minor$Point$Build$Package" eq "" ) {
-          print "**** Cannot open file $BuildNoFile for reading\n";
-      }
-      return;
+    if ( $fileType eq "sql" && "$Major$Minor$Point$Build$Package" eq "" ) {
+      print "**** Cannot open file $BuildNoFile for reading\n";
+    }
+    return;
   }
 
   while ( <BUILDNO> ) {
-      if ( /\#define BUILDNUMBER +([0-9]+)/ ) {
-          $Build = $1;
-          #$Build++;
-          #$Build--;
-      }
-      elsif ( /\#define MAJORREVISION +([0-9]+)/ ) {
-          $Major = $1;
-      }
-      elsif ( /\#define MINORREVISION +([0-9]+)/ ) {
-          $Minor = $1;
-      }
-      elsif ( /\#define POINTREVISION +([0-9]+)/ ) {
-          $Point = $1;
-      }
+    if ( /\#define BUILDNUMBER +([0-9]+)/ ) {
+      $Build = $1;
+      #$Build++;
+      #$Build--;
+    }
+    elsif ( /\#define MAJORREVISION +([0-9]+)/ ) {
+      $Major = $1;
+    }
+    elsif ( /\#define MINORREVISION +([0-9]+)/ ) {
+      $Minor = $1;
+    }
+    elsif ( /\#define POINTREVISION +([0-9]+)/ ) {
+      $Point = $1;
+    }
   }
   close BUILDNO;
   $Build = sprintf( "%03d", $Build );
@@ -265,47 +280,47 @@ sub GetBuildNumber( $;$ ) {
 }
 
 sub CheckIn($$) {
-    my ($file, $comment) = @_;
+  my ($file, $comment) = @_;
 
-    my $cmd = "$cctool ci -c \"$comment\" $file";
-    print "$cmd\n";
-    my $results = `$cmd 2>&1`;
+  my $cmd = "$cctool ci -c \"$comment\" $file";
+  print "$cmd\n";
+  my $results = `$cmd 2>&1`;
 
-    if ( $results =~ /Error: By default, won\'t create version with data identical to predecessor./ ) {
-        # hasn't changed so undo the check out.
-        $cmd = "$cctool unco -rm $file";
-        $results = $results . "\n" . $cmd . "\n" . `$cmd 2>&1`;
-    }
-    elsif ( $results =~ /Error: Not an element:/ ) {
-        # Not an element
-    }
-    elsif ( $results =~ /Error:/ ) {
-        # Not an element
-    }
-    else {
-        # Not an element
-    }
-    print "$results\n";
+  if ( $results =~ /Error: By default, won\'t create version with data identical to predecessor./ ) {
+    # hasn't changed so undo the check out.
+    $cmd = "$cctool unco -rm $file";
+    $results = $results . "\n" . $cmd . "\n" . `$cmd 2>&1`;
+  }
+  elsif ( $results =~ /Error: Not an element:/ ) {
+    # Not an element
+  }
+  elsif ( $results =~ /Error:/ ) {
+    # Not an element
+  }
+  else {
+    # Not an element
+  }
+  print "$results\n";
 }
 
 sub CheckOut($$) {
-    my ($file, $comment) = @_;
+  my ($file, $comment) = @_;
 
-    my $cmd = "$cctool co -c \"$comment\" $file";
+  my $cmd = "$cctool co -c \"$comment\" $file";
 
-    print "$cmd\n";
+  print "$cmd\n";
 
-    my $results = `$cmd 2>&1`;
+  my $results = `$cmd 2>&1`;
 
-    if ( $results =~ /Error: Element "(.+)" is already checked out to view "(.+)"/ ) {
-    }
-    elsif ( $results =~ /Error: Not a vob object:/ ) {
-        # Not an element
-    }
-    elsif ( $results =~ /Error: / ) {
-    }
+  if ( $results =~ /Error: Element "(.+)" is already checked out to view "(.+)"/ ) {
+  }
+  elsif ( $results =~ /Error: Not a vob object:/ ) {
+    # Not an element
+  }
+  elsif ( $results =~ /Error: / ) {
+  }
 
-    print "$results\n";
+  print "$results\n";
 }
 
 sub chevent($$) {
@@ -335,27 +350,7 @@ sub chevent($$) {
     }
   }
   elsif ( $scc eq "git" ) {
-    my $add = 1;
-    my $gitmsg = "./.git/GITGUI_MSG";
-    if ( open( CMT, $gitmsg ) ) {
-      while ( <CMT> ) {
-        print "GITGUI_MSG: $_" if ( $verbose > 3 );
-        if ( /$comment/ ) {
-          $add = 0;
-        }
-      }
-      close( CMT );
-    }
-    if ( $add ) {
-      print "Adding $comment to commit message\n" if ( $verbose > 2 );
-      if ( open( CMT, ">>$gitmsg" ) ) {
-        print CMT "$comment\n";
-        close( CMT );
-      }
-      else {
-        print "Error: failed to open $gitmsg $!\n" if ( $verbose > 2 );
-      }
-    }
+    add_to_git_commit_msg( $comment );
   }
   elsif ( $scc eq "p4" ) {
     my $found = 0;
@@ -462,124 +457,124 @@ sub formatDate($$$) {
 $infile = $ARGV[0];
 
 if ( defined( $opts{c} ) ) {
-    $Comments = $opts{c};
+  $Comments = $opts{c};
 }
 
 if ( defined( $opts{a} ) ) {
-    $Author = $opts{a};
+  $Author = $opts{a};
 }
 
 if ( defined( $opts{A} ) ) {
-    $OrigAuthor = $opts{A};
+  $OrigAuthor = $opts{A};
 }
 
 if ( defined( $opts{E} ) ) {
-    $JustChangeEvent = 1;
+  $JustChangeEvent = 1;
 }
 
 if ( defined( $opts{D} ) ) {
-    if ( $opts{D} =~ /([0-9]+)-(...)-([0-9]+)/ ) {
-      $Date = formatDate($3,$2,$1)
-    }
-    else {
-      print "ERROR invalid date $opts{D} should be in form yyyy-mmm-dd e.g. 2011-Aug-12\n";
-    }
+  if ( $opts{D} =~ /([0-9]+)-(...)-([0-9]+)/ ) {
+    $Date = formatDate($3,$2,$1)
+  }
+  else {
+    print "ERROR invalid date $opts{D} should be in form yyyy-mmm-dd e.g. 2011-Aug-12\n";
+  }
 }
 
 if ( defined( $opts{C} ) ) {
-    $Company = $opts{C};
-    $CompanyX = $opts{C};
+  $Company = $opts{C};
+  $CompanyX = $opts{C};
 }
 
 if ( defined( $opts{i} ) ) {
-    $checkIn = "Y";
+  $checkIn = "Y";
 }
 
 if ( defined( $opts{x} ) ) {
-    $changeEvent = uc $opts{x};
+  $changeEvent = uc $opts{x};
 }
 
 $verbose = $opts{v};
 
 if ( defined( $opts{o} ) ) {
-    $checkOut = "Y";
+  $checkOut = "Y";
 }
 
 if ( defined( $opts{m} ) ) {
-    $Major = $opts{m};
+  $Major = $opts{m};
 }
 if ( defined( $opts{n} ) ) {
-    $Minor = $opts{n};
+  $Minor = $opts{n};
 }
 if ( defined( $opts{p} ) ) {
-    $Point = $opts{p};
+  $Point = $opts{p};
 }
 if ( defined( $opts{b} ) ) {
-    $Build = $opts{b};
+  $Build = $opts{b};
 }
 if ( defined( $opts{k} ) ) {
-    $Package = $opts{k};
+  $Package = $opts{k};
 }
 if ( defined( $opts{S} ) ) {
-    $StartYear = $opts{S};
+  $StartYear = $opts{S};
 }
 
 my $abs_path = File::Spec->rel2abs( $infile ) ;
 my $drive;
 if ( $abs_path =~ /^(.:)/ ) {
-    $drive = $1;
+  $drive = $1;
 }
 
 my $outfile = "$infile.new";
 
 my %usernameMap = (
-);
+                  );
 
 if ( $Author eq "" ) {
-    $Author = lc $ENV{USER} unless ( $Author );
-    $Author = lc $ENV{USERNAME} unless ( $Author );
-    if ( $usernameMap{$Author} ne "" ) {
-        $Author = $usernameMap{$Author};
-    }
+  $Author = lc $ENV{USER} unless ( $Author );
+  $Author = lc $ENV{USERNAME} unless ( $Author );
+  if ( $usernameMap{$Author} ne "" ) {
+    $Author = $usernameMap{$Author};
+  }
 }
 if ( $OrigAuthor eq "" and $scc eq "clearcase" ) {
-    $OrigAuthor = `cleartool desc -fmt "%u" $infile\@\@/main/0`;
-    if ( $usernameMap{$OrigAuthor} ne "" ) {
-        $OrigAuthor = $usernameMap{$OrigAuthor};
-    }
+  $OrigAuthor = `cleartool desc -fmt "%u" $infile\@\@/main/0`;
+  if ( $usernameMap{$OrigAuthor} ne "" ) {
+    $OrigAuthor = $usernameMap{$OrigAuthor};
+  }
 }
 if ( $OrigAuthor eq "" ) {
-    $OrigAuthor = $Author;
+  $OrigAuthor = $Author;
 }
 elsif ( $OrigAuthor eq "." ) {
-    $OrigAuthor = "";
+  $OrigAuthor = "";
 }
 
 if ( $Company eq "" ) {
-    if ( $scc eq "git" ) {
-        my $email = `git config --get user.email`;
-        if ( $email =~ /wbtsystems.com/ ) {
-            $Company = "WBT Systems";
-        }
-        if ( $email =~ /qstream.com/ ) {
-            $Company = "QStream";
-        }
+  if ( $scc eq "git" ) {
+    my $email = `git config --get user.email`;
+    if ( $email =~ /wbtsystems.com/ ) {
+      $Company = "WBT Systems";
     }
-    $Company = "eweb" unless ( $Company );
+    if ( $email =~ /qstream.com/ ) {
+      $Company = "QStream";
+    }
+  }
+  $Company = "eweb" unless ( $Company );
 }
 if ( $StartYear eq "" and $scc eq "clearcase" ) {
-    my $date = `cleartool desc -fmt "%Nd" $infile\@\@/main/0`;
-    if ( $date =~ /(^[0-9]{4})/ ) {
-      $StartYear = $1;
-    }
+  my $date = `cleartool desc -fmt "%Nd" $infile\@\@/main/0`;
+  if ( $date =~ /(^[0-9]{4})/ ) {
+    $StartYear = $1;
+  }
 }
 if ( $StartYear eq "" ) {
-    if ( $Company eq "WBT Systems" ) {
-        $StartYear = "1995";
-    }
-    else {
-        $StartYear = $Year;
-    }
+  if ( $Company eq "WBT Systems" ) {
+    $StartYear = "1995";
+  }
+  else {
+    $StartYear = $Year;
+  }
 }
 
 if ( $infile =~ m!(/|\\)yui\1! ) {
@@ -587,6 +582,9 @@ if ( $infile =~ m!(/|\\)yui\1! ) {
   #$OrigAuthor = "-";
 }
 
+if ( $infile eq "" ) {
+  die "No file given\n";
+}
 # determine filename and immediate parent
 my ($File, $path) = fileparse($infile);
 
@@ -606,139 +604,150 @@ $Comments =~ s/^\s+//;
 $Comments =~ s/\s+$//;
 
 if ( $ValidateComments ) {
-    if ( $Comments =~ /^\#[0-9]{4,5} .+/ ||
-         $Comments =~ /^\#[A-Z]+-[0-9]{3,5} .+/ ) {
-      $Comments = join( ' ', split( / +/, $Comments ) );
-    }
-    elsif ( $Comments eq "" ) {
-       print "Empty comment\n";
-    }
-    elsif ( $Comments =~ /^\#\?+/ ) {
-       die "ERROR: Invalid comment\n";
-    }
-    else {
-       die "ERROR: Invalid comment\n";
-    }
+  if ( $Comments =~ /^\#[0-9]{4,5} .+/ ||
+       $Comments =~ /^\#[A-Z]+-[0-9]{3,5} .+/ ) {
+    $Comments = join( ' ', split( / +/, $Comments ) );
+  }
+  elsif ( $Comments eq "" ) {
+    print "Empty comment\n";
+  }
+  elsif ( $Comments =~ /^\#\?+/ ) {
+    die "ERROR: Invalid comment\n";
+  }
+  else {
+    die "ERROR: Invalid comment\n";
+  }
 }
 
-    if ( $JustChangeEvent ) {
-        chevent($infile, $Comments );
-        exit;
-    }
-    elsif ( $File =~ /\.dsw$/ or
-            $File =~ /\.dsp$/ or
-            $File =~ /\.dat$/ ) {
-        print "Unhandled file type $File\n";
-        if ( $changeEvent eq "Y" ) {
-          chevent($infile, $Comments );
-        }
-        exit;
-    }
-    elsif ( $File =~ /\.cpp$/ or
-            $File =~ /\.h$/ or
-            $File =~ /\.rh$/ or
-            $File =~ /\.inc$/ or
-            $File =~ /\.js$/ or
-            $File =~ /\.c$/ or
-            $File =~ /\.rc$/ or
-            $File =~ /\.rc2$/ or
-            $File =~ /\.lnt$/ or
-            $File =~ /\.css$/ or
-            $File =~ /\.rul$/ or
-            $File =~ /\.g$/ or
-            $File =~ /\.java$/ or
-            $File =~ /\.idl$/ ) {
-        $fileType = "c++";
-        $MultiLineStart = "/*";
-        $MultiLineEnd = "*/";
-        $MultiLinePrefix = "  ";
-    }
-    elsif ( $File =~ /\.xml$/ or $File =~ /\.xslt$/ or $File =~ /\.dtd$/ or $File =~ /\.jmx$/ or $File =~ /\.tld$/ or $File =~ /\.xsd$/ or $File =~ /\.jrxml/ ) {
-        $fileType = "xml";
-        $MultiLineStart = "<!--";
-        $MultiLineEnd = "-->";
-        $MultiLinePrefix = "  ";
-        $VeryFirstLine = "<?xml.*>";
-        #die "Unhandled file type $File\n";
-    }
-    elsif ( $File =~ /\.sql$/ ) {
-        $fileType = "sql";
-        $SingleLine = "--";
-        #die "Unhandled file type $File\n";
-    }
-    elsif ( $File =~ /\.rb$/ or
-            $File =~ /\.pl$/ or
-            $File =~ /\.properties$/ or
-            $File =~ /\.properties.default$/ ) {
-        $fileType = "pl";
-        $SingleLine = "#";
-        $VeryFirstLine = "#!";
-        #die "Unhandled file type $File\n";
-    }
-    elsif ( $File =~ /\.tmpl$/ ) {
-        $fileType = "tmpl";
-        $SingleLine = "#";
-        #die "Unhandled file type $File\n";
-    }
-    elsif ( $File =~ /\.lsp$/ ) {
-        $fileType = "lsp";
-        $MultiLineStart = "#|";
-        $MultiLineEnd = "|#";
-        $MultiLinePrefix = "  ";
-        #$SingleLine = ";";
-        #die "Unhandled file type $File\n";
-    }
-    elsif ( $File =~ /\.bat$/ or $File =~ /\.cmd$/ ) {
-        $fileType = "bat";
-        $SingleLine = "::";
-        #die "Unhandled file type $File\n";
-    }
-    elsif ( $File =~ /\.def$/ or $File =~ /\.cmd$/ ) {
-        $fileType = "def";
-        $SingleLine = ";";
-        #die "Unhandled file type $File\n";
-    }
-    elsif ( $File =~ /\.jsp$/ or $File =~ /\.jspf$/ ) {
-        $fileType = "jsp";
-        $MultiLineStart = "<%/*";
-        $MultiLineEnd = "*/%>";
-        $MultiLinePrefix = "  ";
-        #die "Unhandled file type $File\n";
-    }
-    elsif ( $File =~ /\.html$/ or $File =~ /\.htm$/ ) {
-        $fileType = "html";
-        $MultiLineStart = "<!--";
-        $MultiLineEnd = "-->";
-        $MultiLinePrefix = "  ";
-        $VeryFirstLine = "<!DOCTYPE.*>";
-        #die "Unhandled file type $File\n";
-    }
-    elsif ( $File =~ /\.asp$/ ) {
-        $fileType = "asp";
-        $MultiLineStart = "<%";
-        $MultiLineEnd = "%>";
-        $MultiLinePrefix = "' ";
-        #die "Unhandled file type $File\n";
-    }
-    elsif ( $File =~ /\.bas$/ or $File =~ /\.vb$/ ) {
-        $fileType = "bas";
-        $SingleLine = "'";
-        #die "Unhandled file type $File\n";
-    }
-    elsif ( -d $infile ) {
-        print "Don't comment directories\n";
-        if ( $changeEvent eq "Y" ) {
-          chevent($infile, $Comments );
-        }
-        exit;
-    }
-    else {
-        print "Unhandled file type $File\n";
-        if ( $changeEvent eq "Y" ) {
-          chevent($infile, $Comments );
-        }
-        exit;
-    }
+if ( $opts{t} ) {
+  add_to_git_commit_msg( $Comments );
+  exit;
+}
+
+if ( $JustChangeEvent ) {
+  chevent($infile, $Comments );
+  exit;
+}
+elsif ( $File =~ /\.dsw$/ or
+          $File =~ /\.dsp$/ or
+          $File =~ /\.dat$/ ) {
+  print "Unhandled file type $File\n";
+  if ( $changeEvent eq "Y" ) {
+    chevent($infile, $Comments );
+  }
+  exit;
+}
+elsif ( $File =~ /\.cpp$/ or
+        $File =~ /\.h$/ or
+        $File =~ /\.rh$/ or
+        $File =~ /\.inc$/ or
+        $File =~ /\.js$/ or
+        $File =~ /\.c$/ or
+        $File =~ /\.rc$/ or
+        $File =~ /\.rc2$/ or
+        $File =~ /\.lnt$/ or
+        $File =~ /\.css$/ or
+        $File =~ /\.rul$/ or
+        $File =~ /\.g$/ or
+        $File =~ /\.java$/ or
+        $File =~ /\.idl$/ ) {
+  $fileType = "c++";
+  $MultiLineStart = "/*";
+  $MultiLineEnd = "*/";
+  $MultiLinePrefix = "  ";
+}
+elsif ( $File =~ /\.xml$/ or
+        $File =~ /\.xslt$/ or
+        $File =~ /\.dtd$/ or
+        $File =~ /\.jmx$/ or
+        $File =~ /\.tld$/ or
+        $File =~ /\.xsd$/ or
+        $File =~ /\.jrxml/ ) {
+  $fileType = "xml";
+  $MultiLineStart = "<!--";
+  $MultiLineEnd = "-->";
+  $MultiLinePrefix = "  ";
+  $VeryFirstLine = "<?xml.*>";
+  #die "Unhandled file type $File\n";
+}
+elsif ( $File =~ /\.sql$/ ) {
+  $fileType = "sql";
+  $SingleLine = "--";
+  #die "Unhandled file type $File\n";
+}
+elsif ( $File =~ /\.rb$/ or
+          $File =~ /\.pl$/ or
+          $File =~ /\.properties$/ or
+          $File =~ /\.properties.default$/ ) {
+  $fileType = "pl";
+  $SingleLine = "#";
+  $VeryFirstLine = "#!";
+  #die "Unhandled file type $File\n";
+}
+elsif ( $File =~ /\.tmpl$/ ) {
+  $fileType = "tmpl";
+  $SingleLine = "#";
+  #die "Unhandled file type $File\n";
+}
+elsif ( $File =~ /\.lsp$/ ) {
+  $fileType = "lsp";
+  $MultiLineStart = "#|";
+  $MultiLineEnd = "|#";
+  $MultiLinePrefix = "  ";
+  #$SingleLine = ";";
+  #die "Unhandled file type $File\n";
+}
+elsif ( $File =~ /\.bat$/ or $File =~ /\.cmd$/ ) {
+  $fileType = "bat";
+  $SingleLine = "::";
+  #die "Unhandled file type $File\n";
+}
+elsif ( $File =~ /\.def$/ or $File =~ /\.cmd$/ ) {
+  $fileType = "def";
+  $SingleLine = ";";
+  #die "Unhandled file type $File\n";
+}
+elsif ( $File =~ /\.jsp$/ or $File =~ /\.jspf$/ ) {
+  $fileType = "jsp";
+  $MultiLineStart = "<%/*";
+  $MultiLineEnd = "*/%>";
+  $MultiLinePrefix = "  ";
+  #die "Unhandled file type $File\n";
+}
+elsif ( $File =~ /\.html$/ or $File =~ /\.htm$/ ) {
+  $fileType = "html";
+  $MultiLineStart = "<!--";
+  $MultiLineEnd = "-->";
+  $MultiLinePrefix = "  ";
+  $VeryFirstLine = "<!DOCTYPE.*>";
+  #die "Unhandled file type $File\n";
+}
+elsif ( $File =~ /\.asp$/ ) {
+  $fileType = "asp";
+  $MultiLineStart = "<%";
+  $MultiLineEnd = "%>";
+  $MultiLinePrefix = "' ";
+  #die "Unhandled file type $File\n";
+}
+elsif ( $File =~ /\.bas$/ or $File =~ /\.vb$/ ) {
+  $fileType = "bas";
+  $SingleLine = "'";
+  #die "Unhandled file type $File\n";
+}
+elsif ( -d $infile ) {
+  print "Don't comment directories\n";
+  if ( $changeEvent eq "Y" ) {
+    chevent($infile, $Comments );
+  }
+  exit;
+}
+else {
+  print "Unhandled file type $File\n";
+  if ( $changeEvent eq "Y" ) {
+    chevent($infile, $Comments );
+  }
+  exit;
+}
 
 #print "Will try to open $infile\n";
 open (INPUT,$infile) or die "can't open $infile\n";
@@ -828,29 +837,29 @@ sub writeLine() {
 }
 
 sub map_ids($$$) {
-    my ($line, $changed, $found80000) = @_;
-    #print "line: $line\n";
-    #print "changed: $$changed\n";
-    #print "found80000: $$found80000\n";
+  my ($line, $changed, $found80000) = @_;
+  #print "line: $line\n";
+  #print "changed: $$changed\n";
+  #print "found80000: $$found80000\n";
 
-    foreach ( $line =~ /#([0-9]{4,5})[^0-9]/g ) {
-        #print "[$1] [$_]\n";
-        if ( $1 eq "80000" ) {
-            $$found80000 = 1;
-        }
-        #print "[$1] [$_]\n";
-        my $old_id = $1;
-        my $new_id = $bug_map{$old_id};
-        if ( $new_id ne "" ) {
-            print "changing from $old_id to $new_id\n";
-            $$changed = 1;
-            $line =~ s/#$old_id/#$new_id/g;
-        }
+  foreach ( $line =~ /#([0-9]{4,5})[^0-9]/g ) {
+    #print "[$1] [$_]\n";
+    if ( $1 eq "80000" ) {
+      $$found80000 = 1;
     }
-    #print "line: $line\n";
-    #print "changed: $$changed\n";
-    #print "found80000: $$found80000\n";
-    return $line;
+    #print "[$1] [$_]\n";
+    my $old_id = $1;
+    my $new_id = $bug_map{$old_id};
+    if ( $new_id ne "" ) {
+      print "changing from $old_id to $new_id\n";
+      $$changed = 1;
+      $line =~ s/#$old_id/#$new_id/g;
+    }
+  }
+  #print "line: $line\n";
+  #print "changed: $$changed\n";
+  #print "found80000: $$found80000\n";
+  return $line;
 }
 
 ($Major, $Minor, $Point, $Build) = GetBuildNumber( $drive, $fileType );
@@ -878,454 +887,454 @@ sub quoteChar($) {
 }
 
 while ( <INPUT> ) {
-    my $thisLine = $_;
+  my $thisLine = $_;
 
-    if ( $Line == 0 and $thisLine =~ /\x{ef}\x{bb}\x{bf}/ ) {
-      $bom = 1;
-    }
-    if ( $Line == 0 and $thisLine =~ /<\?xml .+encoding='(.+)'.*\?>/ ) {
-      $encoding = $1;
-    }
-    if ( $Line == 0 and $VeryFirstLine ne "" && /$VeryFirstLine/ ) {
-       $FirstLine = $thisLine;
-    }
+  if ( $Line == 0 and $thisLine =~ /\x{ef}\x{bb}\x{bf}/ ) {
+    $bom = 1;
+  }
+  if ( $Line == 0 and $thisLine =~ /<\?xml .+encoding='(.+)'.*\?>/ ) {
+    $encoding = $1;
+  }
+  if ( $Line == 0 and $VeryFirstLine ne "" && /$VeryFirstLine/ ) {
+    $FirstLine = $thisLine;
+  }
 
-    $Line++;
+  $Line++;
 
-    print "$Line: $thisLine" if ( $verbose > 4 );
-    if ( $thisLine =~ /[^\r\n]*([\r\n]+)$/ ) {
-      my $eoln = $1;
-      if ( $eoln ne $lineType ) {
-        if ( $Line > 1 ) {
-          print STDERR "ERROR: Mixed line endings at line $Line\n";
-        }
-        my @chars = map ord($_), split( "", $eoln );
-        #print STDERR "eoln: [@chars]\n";
-
-        if ( $eoln eq "\r\n" ) {
-          print STDERR "ERROR: Dos line end [@chars] at line $Line\n" unless ( $^O eq "MSWin32" );
-        }
-        elsif ( $eoln eq "\n" ) {
-          print STDERR "ERROR: Unix line end [@chars] at line $Line\n" if ( $^O eq "MSWin32" );
-        }
-        elsif ( $eoln eq "\r" ) {
-          print STDERR "ERROR: Mac line end [@chars] at line $Line\n";
-        }
-        elsif ( $eoln eq "\r\r\n" ) {
-          print STDERR "ERROR: Netscape line end [@chars] at line $Line\n";
-        }
-        else {
-          print STDERR "ERROR: Odd line end [@chars] at line $Line\n";
-        }
+  print "$Line: $thisLine" if ( $verbose > 4 );
+  if ( $thisLine =~ /[^\r\n]*([\r\n]+)$/ ) {
+    my $eoln = $1;
+    if ( $eoln ne $lineType ) {
+      if ( $Line > 1 ) {
+        print STDERR "ERROR: Mixed line endings at line $Line\n";
       }
-      $lineType = $eoln;
-      $thisLine =~ s![\r\n]+$!!;
-      $thisLine = "$thisLine\n";
-    }
-    else {
-        print STDERR "No eoln at eof $Line\n";
-    }
+      my @chars = map ord($_), split( "", $eoln );
+      #print STDERR "eoln: [@chars]\n";
 
-    if ( $thisLine =~ /\t/ ) {
-        print STDERR "TABS!!! Tabs found at line $Line\n";
-    }
-    if ( $thisLine =~ /[ \t][\r\n]/ ) {
-        if ( $stripTrailingSpaces ) {
-            print STDERR "Space! Trailing space removed from line $Line\n";
-            $thisLine =~ s![ \t]+$!!;
-            $changed = 1;
-        }
-        else {
-          print STDERR "SPACE!!! Trailing space found at line $Line\n";
-        }
-    }
-    if ( $thisLine =~ /[^\x20-\x7f\t\n\r]/ ) {
-        if ( $bom ) {
-        }
-        elsif ( $encoding eq "utf-8" ) {
-        }
-        elsif ( $infile =~ /resources_..\.properties/ ) {
-        }
-        elsif ( $infile =~ /_.+\.dat/ and $infile !~ /english/ ) {
-        }
-        else {
-            print STDERR "`!!! extended character found at line $Line\n";
-        }
-    }
-    my $bugchanged = 0;
-    my $found80000 = 0;
-    my $newline = map_ids( $thisLine, \$bugchanged, \$found80000 );
-    if ( $bugchanged ) {
-        #print "mapped bug_id\n";
-        $thisLine = $newline;
-        $changed = 1;
-    }
-    if ( $thisLine =~ /#8[0-9?]{4}/ && !/\[addcomment\.pl don\'t change\]/ ) {  # [addcomment.pl don't change]
-        print STDERR "$thisLine\n";
-    }
-    $_ = $thisLine;
-    if ( $MultiLineStart ne "" && /\Q$MultiLineStart\E/ ) {
-      #print "Found start of multiline\n$_" if ( $verbose > 2 );
-      $incomment = 1;
-      $commentStart = $_;
-      #chomp($commentStart);
-      $commentStart =~ s![\r\n]+$!!;
-    }
-    elsif ( $MultiLineEnd ne "" && /\Q$MultiLineEnd\E/ ) {
-      #print "Found end of multiline\n$_" if ( $verbose > 2 );
-      $incomment = undef;
-      $commentEnd = $_;
-      #chomp($commentEnd);
-      $commentEnd =~ s![\r\n]+$!!;
-
-      if ( $hasBanner and !$pastBanner ) {
-        $pastBanner = 1;
-        if ( $commentEnd ne $MultiLineEnd ) {
-          print "$Line: dodgy end of banner\n[$commentEnd]\n[$MultiLineEnd]\n";# if ( $verbose > 2 );
-          $dodgyBanner = 1;
-        }
+      if ( $eoln eq "\r\n" ) {
+        print STDERR "ERROR: Dos line end [@chars] at line $Line\n" unless ( $^O eq "MSWin32" );
+      }
+      elsif ( $eoln eq "\n" ) {
+        print STDERR "ERROR: Unix line end [@chars] at line $Line\n" if ( $^O eq "MSWin32" );
+      }
+      elsif ( $eoln eq "\r" ) {
+        print STDERR "ERROR: Mac line end [@chars] at line $Line\n";
+      }
+      elsif ( $eoln eq "\r\r\n" ) {
+        print STDERR "ERROR: Netscape line end [@chars] at line $Line\n";
+      }
+      else {
+        print STDERR "ERROR: Odd line end [@chars] at line $Line\n";
       }
     }
-    elsif ( $SingleLine ne "" and /^\Q$SingleLine\E/ ) {
-      $incomment = 1;
-    }
-    elsif ( $SingleLine ne "" ) {
-      $incomment = undef;
-    }
+    $lineType = $eoln;
+    $thisLine =~ s![\r\n]+$!!;
+    $thisLine = "$thisLine\n";
+  }
+  else {
+    print STDERR "No eoln at eof $Line\n";
+  }
 
-    if ( !$pastHistory and /(.*)Copyright(.*)(\w+)(.*)([0-9][0-9]+)-([0-9][0-9]+)(.*)/ && !/\[addcomment\.pl don\'t change\]/ ) { # [addcomment.pl don't change]
-        print "Found copyright1\n$_" if ( $verbose > 2 );
-        if ( !$incomment ) {
-            print "Found copyright out of comment line\n$_";
-            print OUTPUT "$_";
-        }
-        elsif ( /Yahoo! Inc./ ) {
-            print "Found Yahoo copyright\n$_" if ( $verbose > 2 );
-            $OrigAuthor = "-";
-            print "Not updating, $_";
-            print "1: $1 2: $2 3: $3 4: $4 5: $5 6: $6 7: $7\n" if ( $verbose > 2 );
-            $hasBanner = 1;
-            print OUTPUT "$_";
-        }
-        elsif ( $OrigAuthor eq "-" ) {
-            print "Found copyright but OrigAuthor is -\n$_" if ( $verbose > 2 );
-            print "Found copyright but not updating\n$_";
-            print "1: $1 2: $2 3: $3 4: $4 5: $5 6: $6 7: $7\n" if ( $verbose > 2 );
-            $hasBanner = 1;
-            print OUTPUT "$_";
-        }
-        else {
-            print "Found copyright line\n$_" if ( $verbose > 2 );
-            print "1: $1 2: $2 3: $3 4: $4 5: $5 6: $6 7: $7\n" if ( $verbose > 2 );
-            $hasBanner = 1;
-            my ($x1, $x2, $x3, $x4, $x5, $x6, $x7) = ($1, $2, $3, $4, $5, $6, $7);
-            my $scannedYear = $6;
-            my $correctYear = $Year;
-            if ( /NeoLogic/ ) {
-              $correctYear = 1997;
-            }
-            if ( $scannedYear ne $correctYear ) {
-              $changed = 1;
-            }
-            print OUTPUT "${x1}Copyright${x2}${x3}${x4}${x5}-$correctYear${x7}\n";
-            if ( $MultiLineStart ne "" and $commentStart ne $MultiLineStart ) {
-              print "$Line: dodgy start of banner\n[$commentStart]\n[$MultiLineStart]\n";# if ( $verbose > 2 );
-              $dodgyBanner = 1;
-            }
-        }
-    }
-    elsif ( !$pastHistory and /(.*)Copyright(.*)(\w+)(.*)([0-9][0-9]+)(.*)/ && !/\[addcomment\.pl don\'t change\]/ ) { # [addcomment.pl don't change]
-        print "Found copyright2\n$_" if ( $verbose > 2 );
-        if ( !$incomment ) {
-            print "Found copyright out of comment line\n$_";
-            print OUTPUT "$_";
-        }
-        elsif ( /Yahoo! Inc./ ) {
-            $OrigAuthor = "-";
-            print "Not updating, $_";
-            #print "1: $1 2: $2 3: $3 4: $4 5: $5 6: $6\n";
-            $hasBanner = 1;
-            print OUTPUT "$_";
-        }
-        elsif ( $OrigAuthor eq "-" ) {
-            print "Found copyright but not updating\n$_";
-            print "1: $1 2: $2 3: $3 4: $4 5: $5 6: $6\n" if ( $verbose > 2 );
-            $hasBanner = 1;
-            print OUTPUT "$_";
-        }
-        else {
-            print "Found copyright line\n$_" if ( $verbose > 2 );
-            print "1: $1 2: $2 3: $3 4: $4 5: $5 6: $6\n" if ( $verbose > 2 );
-            $hasBanner = 1;
-            my $scannedYear = $5;
-            my $correctYear = $Year;
-            if ( /NeoLogic/ ) {
-              $correctYear = 1997;
-            }
-            if ( $scannedYear ne $correctYear ) {
-              $changed = 1;
-            }
-            print OUTPUT "$1Copyright$2$3$4$5-$correctYear$6\n";
-            if ( $MultiLineStart ne "" and $commentStart ne $MultiLineStart ) {
-              print "$Line: dodgy start of banner\n[$commentStart]\n[$MultiLineStart]\n";# if ( $verbose > 2 );
-              $dodgyBanner = 1;
-            }
-        }
-    }
-    elsif ( !$pastHistory and /Date.*Author.*/ && !/\[addcomment\.pl don\'t change\]/ ) { # [addcomment.pl don't change]
-        # found start of history...
-        #print "Found start of history\n";
-        $inHistory = 1;
-        $hasHistory = 1;
-        writeDAC();
-    }
-    elsif ( !$pastHistory and /date.*author.*comment.*/ and !/\[addcomment\.pl don\'t change\]/ ) { # [addcomment.pl don't change]
-        # found start of history...
-        #print "Found start of history (2)\n";
-        $inHistory = 1;
-        $hasHistory = 1;
-        $changed = 1;
-        writeDAC();
-    }
-    elsif ( !$pastHistory and /-- Revision History/ and !/\[addcomment\.pl don\'t change\]/ ) { # [addcomment.pl don't change]
-        print "Found 'Revision History' line\n$_" if ( $verbose > 2 );
-        $inHistory = 1;
-        $hasHistory = 1;
-        $changed = 1;
-        writeDAC();
-    }
-    elsif ( !$pastHistory and /$commentPattern/ ) {
-        print "Found commentpattern\n$_" if ( $verbose > 2 );
-        if ( $inHistory == 1 ) {
-            # already commented
-            $hasComment = 1;
-        }
-        print OUTPUT "$_";
-    }
-    elsif ( !$pastHistory and / File\s*:\s*([^\s]+)/ and !/\[addcomment\.pl don\'t change\]/ ) {# [addcomment.pl don't change] '
-        my $file = $1;
-        print "Found File: $file\n$_" if ( $verbose > 2 );
-        if ( /use File::/ ) {
-          print OUTPUT "$_";
-        }
-        elsif ( $file eq $File ) {
-          print OUTPUT "$_";
-        }
-        elsif ( $file eq "$Parent/$File" ) {
-          print OUTPUT "$_";
-        }
-        elsif ( $file =~ /^%.+%$/ ) {
-          print OUTPUT "$_";
-        }
-        elsif ( ($file =~ /\// or $file =~ /\\/ ) and $file ne "$Parent/$File" ) {
-          # but is it equal to directory/file?
-          print "******* ERROR: $file ne $Parent/$File\n";
-          $thisLine =~ s!\Q$file\E!$Parent/$File!;
-          print OUTPUT $thisLine;
-          $changed = 1;
-        }
-        elsif ( $file ne $File ) {
-          # but is it equal to directory/file?
-          print "******* ERROR: $file ne $File\n";
-          $thisLine =~ s/$file/$File/;
-          print OUTPUT $thisLine;
-          $changed = 1;
-        }
-        else {
-          print OUTPUT "$_";
-        }
-    }
-    elsif ( !$pastHistory and / Version\s*:\s*([^\s]+)/ and !/\[addcomment\.pl don\'t change\]/ ) {# [addcomment.pl don't change] '
-        my $version = $1;
-        print "Found Version: $version\n$_" if ( $verbose > 2 );
-        my $MNPB = "$Major.$Minor.$Point.$Build";
-        if ( $version eq $MNPB ) {
-          print OUTPUT "$_";
-        }
-        elsif ( $version ne $MNPB ) {
-          print "******* ERROR: $version ne $MNPB\n";
-          $thisLine =~ s/$version/$MNPB/;
-          print OUTPUT $thisLine;
-          $changed = 1;
-        }
-        else {
-          print OUTPUT "$_";
-        }
-    }
-#    elsif ( !$pastHistory and /<\?xml/ && $fileType eq "xml" ) {
-#        print "Found '<?xml..> line\n$_" if ( $verbose > 2 );
-#        #print "Found ?xml\n";
-#        $preBanner = $_;
-#    }
-    elsif ( !$pastHistory and
-            ( ( $fileType eq "tmpl" and /^##var/ ) ||
-              ( $MultiLineEnd ne "" and /\Q$MultiLineEnd\E/ ) ||
-              ( $SingleLine ne "" and /^\Q$SingleLine\E$/ ) ||
-              ( $SingleLine ne "" and /^$/ ) ||
-              ( $SingleLine ne "" and ! /^\Q$SingleLine\E/ ) ) ) {
-        if ( $nComments < 2 ) {
-            print "found end of comments: $_" if ( $verbose > 2 );
-        }
-        $nComments++;
-        # end of comment?
-        if ( $inHistory == 1 && $hasComment == 0 ) {
-            print "were in history and hasComment is false\n$_" if ( $verbose > 2 );
-            $changed = 1;
-            writeLine();
-            $inHistory = 0;
-            $pastHistory = 1;
-            $commented = 1;
-            #$hasComment = 1;
-        }
-        elsif ( $inHistory == 1 && $hasComment == 1 && $commented ne 1 ) {
-            print "were in history and hasComment is true\n$_" if ( $verbose > 2 );
-            $commented = 1;
-            $pastHistory = 1;
-        }
-        elsif ( $inHistory == 1 ) {
-            print "were in history and hasComment but $commented\n$_"; # if ( $verbose > 2 );
-            #$commented = 1;
-            #$pastHistory = 1;
-        }
-        else {
-            print "were not in history\n$_" if ( $verbose > 2 );
-            if ( $SingleLine ne "" and $nComments > 3 ) {
-              print "ERROR: no history\n$_"; # if ( $verbose > 2 );
-              $pastHistory = 1;
-            }
-        }
-        print OUTPUT "$_";
-    }
-    elsif ( $fileType eq "sql" && /updateConfig\s*\(\s*'(.+)',\s*'([.0-9]+)'\s*\)/i ) {
-        # oracle call
-        my $shouldBe = "$Major.$Minor.$Point.$Build$Package";
-        my $name = $1;
-        my $num = $2;
-
-        my $FileName = $File;
-        if ( $FileName =~ /(.+)_s\.sql/ ) {
-            $FileName = $1;
-        }
-        elsif ( $FileName =~ /(.+)_b\.sql/ ) {
-            $FileName = $1;
-        }
-        elsif ( $FileName =~ /(.+)\.sql/ ) {
-            $FileName = $1;
-        }
-
-        # No filename keys for updateConfig
-        #schemaupgrade
-        #incrementalupgrade
-        #revisionnumber
-        #databaseversion
-        #baseschema
-        #topclassusername
-        my $lcname = lc $name;
-        if ( $lcname eq lc "IncrementalUpgrade" ) {
-            print OUTPUT "$_";
-        }
-        else {
-            if ( grep( /^$lcname$/, @nameExceptions ) ) {
-            }
-            elsif ( $lcname ne lc $FileName ) {
-                print "****** ERROR: UpdateConfig $name ne $FileName\n";
-            }
-            if ( grep( /^$lcname$/, @dataExceptions ) ) {
-                print OUTPUT "$_";
-            }
-            elsif ( $num ne $shouldBe and $shouldBe ne "..." ) {
-                print "call to updateConfig( '$name', '$num' )\n";
-                print "shouldBe updateConfig( '$name', '$shouldBe' )\n";
-                #print OUTPUT "  updateConfig( '$name', '$shouldBe' );\n";
-                $thisLine =~ s/$num/$shouldBe/;
-                print OUTPUT $thisLine;
-                $changed = 1;
-            }
-            else {
-                print OUTPUT "$_";
-            }
-        }
-    }
-    elsif ( $fileType eq "sql" && /updateConfig\s*(N?)'(.+)',\s*(N?)'([.0-9]+)'\s*/i ) {
-        #EXECUTE updateConfig N'HELPER_VIEWS_PRE', N'7.3.0.008';
-        # sql server call
-        my $shouldBe = "$Major.$Minor.$Point.$Build$Package";
-        my $name = $2;
-        my $num = $4;
-        my $n1 = $1;
-        my $n2 = $3;
-
-        my ($FileName) = $File =~ /(.+)\.sql/;
-
-        my $lcname = lc $name;
-
-        if ( $lcname eq lc "IncrementalUpgrade" ) {
-            print OUTPUT "$_";
-        }
-        else {
-            if ( grep( /^$lcname$/, @nameExceptions ) ) {
-                #print "Found $lcname in \@nameExceptions\n";
-            }
-            elsif ( $lcname ne lc $FileName ) {
-                print "****** ERROR: UpdateConfig $name ne $FileName\n";
-            }
-            if ( grep( /^$lcname$/, @dataExceptions ) ) {
-                #print "Found $lcname in \@dataExceptions\n";
-                print OUTPUT "$_";
-            }
-            elsif ( $num ne $shouldBe and $shouldBe ne "..." ) {
-                print "call to updateConfig( $n1'$name', $n2'$num' )\n";
-                print "shouldBe updateConfig( $n1'$name', $n2'$shouldBe' )\n";
-                #print OUTPUT "  EXECUTE updateConfig $n1'$name', $n2'$shouldBe';\n";
-                $thisLine =~ s/$num/$shouldBe/;
-                print OUTPUT $thisLine;
-                $changed = 1;
-            }
-            else {
-                print OUTPUT "$_";
-            }
-        }
+  if ( $thisLine =~ /\t/ ) {
+    print STDERR "TABS!!! Tabs found at line $Line\n";
+  }
+  if ( $thisLine =~ /[ \t][\r\n]/ ) {
+    if ( $stripTrailingSpaces ) {
+      print STDERR "Space! Trailing space removed from line $Line\n";
+      $thisLine =~ s![ \t]+$!!;
+      $changed = 1;
     }
     else {
-        #print "lala\n";
-        if ( $inHistory == 1 and !$pastHistory ) {
-            if ( /\s+([0-9]+)(st|nd|rd|th)?\s+([A-Za-z]+)\s([0-9]+)\s+([a-zA-Z']+)\s+(.*)$/ ) { #'
-                my ($d, $th, $m, $y, $u, $c ) = ($1, $2, $3, $4, $5, $6);
-                $c =~ s!^(#\?{5}?) Lint!#00007 Lint!i;
-                $c =~ s!^(#\?{4}?) Lint!#0007 Lint!i;
-                $c =~ s!^Lint!#0007 Lint!i;
-                $c =~ s!^(#\?+) MSVC 8!#10544 MSVC 8!i;
-                $c =~ s!^(#\?+) CUpdater!#9528 CUpdater!i;
-                $c =~ s!^(#\?+) [- :]+!$1 !i;
-                my $date = formatDate($d, $m, $y);
-                my $newcomment = getCommentLine($date, $u, $c);
-                if ( $_ ne $newcomment ) {
-                  print "Old:$_" if ( $verbose > 2 );
-                  print "new:$newcomment" if ( $verbose > 2 );
-                  $_ = $newcomment;
-                }
-            }
-            elsif ( /(\s{10,})(.+)$/ ) {
-                my $c = $2;
-                $c =~ s!^(#\?{5}?) Lint!#00007 Lint!i;
-                $c =~ s!^(#\?{4}?) Lint!#0007 Lint!i;
-                $c =~ s!^Lint!#0007 Lint!i;
-                $c =~ s!^(#\?+) MSVC 8!#10544 MSVC 8!i;
-                $c =~ s!^(#\?+) CUpdater!#9528 CUpdater!i;
-                $c =~ s!^(#\?+) [- :]+!$1 !i;
-                my $newcomment = getCommentLine("", "", $c);
-                if ( $_ ne $newcomment ) {
-                  print "Old:$_" if ( $verbose > 2 );
-                  print "new:$newcomment" if ( $verbose > 2 );
-                  $_ = $newcomment;
-                }
-            }
-            else {
-                print "Comment:$_"; # if ( $verbose > 2 );
-            }
-        }
-        print OUTPUT "$_";
+      print STDERR "SPACE!!! Trailing space found at line $Line\n";
     }
+  }
+  if ( $thisLine =~ /[^\x20-\x7f\t\n\r]/ ) {
+    if ( $bom ) {
+    }
+    elsif ( $encoding eq "utf-8" ) {
+    }
+    elsif ( $infile =~ /resources_..\.properties/ ) {
+    }
+    elsif ( $infile =~ /_.+\.dat/ and $infile !~ /english/ ) {
+    }
+    else {
+      print STDERR "`!!! extended character found at line $Line\n";
+    }
+  }
+  my $bugchanged = 0;
+  my $found80000 = 0;
+  my $newline = map_ids( $thisLine, \$bugchanged, \$found80000 );
+  if ( $bugchanged ) {
+    #print "mapped bug_id\n";
+    $thisLine = $newline;
+    $changed = 1;
+  }
+  if ( $thisLine =~ /#8[0-9?]{4}/ && !/\[addcomment\.pl don\'t change\]/ ) { # [addcomment.pl don't change]
+    print STDERR "$thisLine\n";
+  }
+  $_ = $thisLine;
+  if ( $MultiLineStart ne "" && /\Q$MultiLineStart\E/ ) {
+    #print "Found start of multiline\n$_" if ( $verbose > 2 );
+    $incomment = 1;
+    $commentStart = $_;
+    #chomp($commentStart);
+    $commentStart =~ s![\r\n]+$!!;
+  }
+  elsif ( $MultiLineEnd ne "" && /\Q$MultiLineEnd\E/ ) {
+    #print "Found end of multiline\n$_" if ( $verbose > 2 );
+    $incomment = undef;
+    $commentEnd = $_;
+    #chomp($commentEnd);
+    $commentEnd =~ s![\r\n]+$!!;
+
+    if ( $hasBanner and !$pastBanner ) {
+      $pastBanner = 1;
+      if ( $commentEnd ne $MultiLineEnd ) {
+        print "$Line: dodgy end of banner\n[$commentEnd]\n[$MultiLineEnd]\n"; # if ( $verbose > 2 );
+        $dodgyBanner = 1;
+      }
+    }
+  }
+  elsif ( $SingleLine ne "" and /^\Q$SingleLine\E/ ) {
+    $incomment = 1;
+  }
+  elsif ( $SingleLine ne "" ) {
+    $incomment = undef;
+  }
+
+  if ( !$pastHistory and /(.*)Copyright(.*)(\w+)(.*)([0-9][0-9]+)-([0-9][0-9]+)(.*)/ && !/\[addcomment\.pl don\'t change\]/ ) { # [addcomment.pl don't change]
+    print "Found copyright1\n$_" if ( $verbose > 2 );
+    if ( !$incomment ) {
+      print "Found copyright out of comment line\n$_";
+      print OUTPUT "$_";
+    }
+    elsif ( /Yahoo! Inc./ ) {
+      print "Found Yahoo copyright\n$_" if ( $verbose > 2 );
+      $OrigAuthor = "-";
+      print "Not updating, $_";
+      print "1: $1 2: $2 3: $3 4: $4 5: $5 6: $6 7: $7\n" if ( $verbose > 2 );
+      $hasBanner = 1;
+      print OUTPUT "$_";
+    }
+    elsif ( $OrigAuthor eq "-" ) {
+      print "Found copyright but OrigAuthor is -\n$_" if ( $verbose > 2 );
+      print "Found copyright but not updating\n$_";
+      print "1: $1 2: $2 3: $3 4: $4 5: $5 6: $6 7: $7\n" if ( $verbose > 2 );
+      $hasBanner = 1;
+      print OUTPUT "$_";
+    }
+    else {
+      print "Found copyright line\n$_" if ( $verbose > 2 );
+      print "1: $1 2: $2 3: $3 4: $4 5: $5 6: $6 7: $7\n" if ( $verbose > 2 );
+      $hasBanner = 1;
+      my ($x1, $x2, $x3, $x4, $x5, $x6, $x7) = ($1, $2, $3, $4, $5, $6, $7);
+      my $scannedYear = $6;
+      my $correctYear = $Year;
+      if ( /NeoLogic/ ) {
+        $correctYear = 1997;
+      }
+      if ( $scannedYear ne $correctYear ) {
+        $changed = 1;
+      }
+      print OUTPUT "${x1}Copyright${x2}${x3}${x4}${x5}-$correctYear${x7}\n";
+      if ( $MultiLineStart ne "" and $commentStart ne $MultiLineStart ) {
+        print "$Line: dodgy start of banner\n[$commentStart]\n[$MultiLineStart]\n"; # if ( $verbose > 2 );
+        $dodgyBanner = 1;
+      }
+    }
+  }
+  elsif ( !$pastHistory and /(.*)Copyright(.*)(\w+)(.*)([0-9][0-9]+)(.*)/ && !/\[addcomment\.pl don\'t change\]/ ) { # [addcomment.pl don't change]
+    print "Found copyright2\n$_" if ( $verbose > 2 );
+    if ( !$incomment ) {
+      print "Found copyright out of comment line\n$_";
+      print OUTPUT "$_";
+    }
+    elsif ( /Yahoo! Inc./ ) {
+      $OrigAuthor = "-";
+      print "Not updating, $_";
+      #print "1: $1 2: $2 3: $3 4: $4 5: $5 6: $6\n";
+      $hasBanner = 1;
+      print OUTPUT "$_";
+    }
+    elsif ( $OrigAuthor eq "-" ) {
+      print "Found copyright but not updating\n$_";
+      print "1: $1 2: $2 3: $3 4: $4 5: $5 6: $6\n" if ( $verbose > 2 );
+      $hasBanner = 1;
+      print OUTPUT "$_";
+    }
+    else {
+      print "Found copyright line\n$_" if ( $verbose > 2 );
+      print "1: $1 2: $2 3: $3 4: $4 5: $5 6: $6\n" if ( $verbose > 2 );
+      $hasBanner = 1;
+      my $scannedYear = $5;
+      my $correctYear = $Year;
+      if ( /NeoLogic/ ) {
+        $correctYear = 1997;
+      }
+      if ( $scannedYear ne $correctYear ) {
+        $changed = 1;
+      }
+      print OUTPUT "$1Copyright$2$3$4$5-$correctYear$6\n";
+      if ( $MultiLineStart ne "" and $commentStart ne $MultiLineStart ) {
+        print "$Line: dodgy start of banner\n[$commentStart]\n[$MultiLineStart]\n"; # if ( $verbose > 2 );
+        $dodgyBanner = 1;
+      }
+    }
+  }
+  elsif ( !$pastHistory and /Date.*Author.*/ && !/\[addcomment\.pl don\'t change\]/ ) { # [addcomment.pl don't change]
+    # found start of history...
+    #print "Found start of history\n";
+    $inHistory = 1;
+    $hasHistory = 1;
+    writeDAC();
+  }
+  elsif ( !$pastHistory and /date.*author.*comment.*/ and !/\[addcomment\.pl don\'t change\]/ ) { # [addcomment.pl don't change]
+    # found start of history...
+    #print "Found start of history (2)\n";
+    $inHistory = 1;
+    $hasHistory = 1;
+    $changed = 1;
+    writeDAC();
+  }
+  elsif ( !$pastHistory and /-- Revision History/ and !/\[addcomment\.pl don\'t change\]/ ) { # [addcomment.pl don't change]
+    print "Found 'Revision History' line\n$_" if ( $verbose > 2 );
+    $inHistory = 1;
+    $hasHistory = 1;
+    $changed = 1;
+    writeDAC();
+  }
+  elsif ( !$pastHistory and /$commentPattern/ ) {
+    print "Found commentpattern\n$_" if ( $verbose > 2 );
+    if ( $inHistory == 1 ) {
+      # already commented
+      $hasComment = 1;
+    }
+    print OUTPUT "$_";
+  }
+  elsif ( !$pastHistory and / File\s*:\s*([^\s]+)/ and !/\[addcomment\.pl don\'t change\]/ ) { # [addcomment.pl don't change] '
+    my $file = $1;
+    print "Found File: $file\n$_" if ( $verbose > 2 );
+    if ( /use File::/ ) {
+      print OUTPUT "$_";
+    }
+    elsif ( $file eq $File ) {
+      print OUTPUT "$_";
+    }
+    elsif ( $file eq "$Parent/$File" ) {
+      print OUTPUT "$_";
+    }
+    elsif ( $file =~ /^%.+%$/ ) {
+      print OUTPUT "$_";
+    }
+    elsif ( ($file =~ /\// or $file =~ /\\/ ) and $file ne "$Parent/$File" ) {
+      # but is it equal to directory/file?
+      print "******* ERROR: $file ne $Parent/$File\n";
+      $thisLine =~ s!\Q$file\E!$Parent/$File!;
+      print OUTPUT $thisLine;
+      $changed = 1;
+    }
+    elsif ( $file ne $File ) {
+      # but is it equal to directory/file?
+      print "******* ERROR: $file ne $File\n";
+      $thisLine =~ s/$file/$File/;
+      print OUTPUT $thisLine;
+      $changed = 1;
+    }
+    else {
+      print OUTPUT "$_";
+    }
+  }
+  elsif ( !$pastHistory and / Version\s*:\s*([^\s]+)/ and !/\[addcomment\.pl don\'t change\]/ ) { # [addcomment.pl don't change] '
+    my $version = $1;
+    print "Found Version: $version\n$_" if ( $verbose > 2 );
+    my $MNPB = "$Major.$Minor.$Point.$Build";
+    if ( $version eq $MNPB ) {
+      print OUTPUT "$_";
+    }
+    elsif ( $version ne $MNPB ) {
+      print "******* ERROR: $version ne $MNPB\n";
+      $thisLine =~ s/$version/$MNPB/;
+      print OUTPUT $thisLine;
+      $changed = 1;
+    }
+    else {
+      print OUTPUT "$_";
+    }
+  }
+  #elsif ( !$pastHistory and /<\?xml/ && $fileType eq "xml" ) {
+  #  print "Found '<?xml..> line\n$_" if ( $verbose > 2 );
+  #  #print "Found ?xml\n";
+  #  $preBanner = $_;
+  #}
+  elsif ( !$pastHistory and
+          ( ( $fileType eq "tmpl" and /^##var/ ) ||
+            ( $MultiLineEnd ne "" and /\Q$MultiLineEnd\E/ ) ||
+            ( $SingleLine ne "" and /^\Q$SingleLine\E$/ ) ||
+            ( $SingleLine ne "" and /^$/ ) ||
+            ( $SingleLine ne "" and ! /^\Q$SingleLine\E/ ) ) ) {
+    if ( $nComments < 2 ) {
+      print "found end of comments: $_" if ( $verbose > 2 );
+    }
+    $nComments++;
+    # end of comment?
+    if ( $inHistory == 1 && $hasComment == 0 ) {
+      print "were in history and hasComment is false\n$_" if ( $verbose > 2 );
+      $changed = 1;
+      writeLine();
+      $inHistory = 0;
+      $pastHistory = 1;
+      $commented = 1;
+      #$hasComment = 1;
+    }
+    elsif ( $inHistory == 1 && $hasComment == 1 && $commented ne 1 ) {
+      print "were in history and hasComment is true\n$_" if ( $verbose > 2 );
+      $commented = 1;
+      $pastHistory = 1;
+    }
+    elsif ( $inHistory == 1 ) {
+      print "were in history and hasComment but $commented\n$_"; # if ( $verbose > 2 );
+      #$commented = 1;
+      #$pastHistory = 1;
+    }
+    else {
+      print "were not in history\n$_" if ( $verbose > 2 );
+      if ( $SingleLine ne "" and $nComments > 3 ) {
+        print "ERROR: no history\n$_"; # if ( $verbose > 2 );
+        $pastHistory = 1;
+      }
+    }
+    print OUTPUT "$_";
+  }
+  elsif ( $fileType eq "sql" && /updateConfig\s*\(\s*'(.+)',\s*'([.0-9]+)'\s*\)/i ) {
+    # oracle call
+    my $shouldBe = "$Major.$Minor.$Point.$Build$Package";
+    my $name = $1;
+    my $num = $2;
+
+    my $FileName = $File;
+    if ( $FileName =~ /(.+)_s\.sql/ ) {
+      $FileName = $1;
+    }
+    elsif ( $FileName =~ /(.+)_b\.sql/ ) {
+      $FileName = $1;
+    }
+    elsif ( $FileName =~ /(.+)\.sql/ ) {
+      $FileName = $1;
+    }
+
+    # No filename keys for updateConfig
+    #schemaupgrade
+    #incrementalupgrade
+    #revisionnumber
+    #databaseversion
+    #baseschema
+    #topclassusername
+    my $lcname = lc $name;
+    if ( $lcname eq lc "IncrementalUpgrade" ) {
+      print OUTPUT "$_";
+    }
+    else {
+      if ( grep( /^$lcname$/, @nameExceptions ) ) {
+      }
+      elsif ( $lcname ne lc $FileName ) {
+        print "****** ERROR: UpdateConfig $name ne $FileName\n";
+      }
+      if ( grep( /^$lcname$/, @dataExceptions ) ) {
+        print OUTPUT "$_";
+      }
+      elsif ( $num ne $shouldBe and $shouldBe ne "..." ) {
+        print "call to updateConfig( '$name', '$num' )\n";
+        print "shouldBe updateConfig( '$name', '$shouldBe' )\n";
+        #print OUTPUT "  updateConfig( '$name', '$shouldBe' );\n";
+        $thisLine =~ s/$num/$shouldBe/;
+        print OUTPUT $thisLine;
+        $changed = 1;
+      }
+      else {
+        print OUTPUT "$_";
+      }
+    }
+  }
+  elsif ( $fileType eq "sql" && /updateConfig\s*(N?)'(.+)',\s*(N?)'([.0-9]+)'\s*/i ) {
+    #EXECUTE updateConfig N'HELPER_VIEWS_PRE', N'7.3.0.008';
+    # sql server call
+    my $shouldBe = "$Major.$Minor.$Point.$Build$Package";
+    my $name = $2;
+    my $num = $4;
+    my $n1 = $1;
+    my $n2 = $3;
+
+    my ($FileName) = $File =~ /(.+)\.sql/;
+
+    my $lcname = lc $name;
+
+    if ( $lcname eq lc "IncrementalUpgrade" ) {
+      print OUTPUT "$_";
+    }
+    else {
+      if ( grep( /^$lcname$/, @nameExceptions ) ) {
+        #print "Found $lcname in \@nameExceptions\n";
+      }
+      elsif ( $lcname ne lc $FileName ) {
+        print "****** ERROR: UpdateConfig $name ne $FileName\n";
+      }
+      if ( grep( /^$lcname$/, @dataExceptions ) ) {
+        #print "Found $lcname in \@dataExceptions\n";
+        print OUTPUT "$_";
+      }
+      elsif ( $num ne $shouldBe and $shouldBe ne "..." ) {
+        print "call to updateConfig( $n1'$name', $n2'$num' )\n";
+        print "shouldBe updateConfig( $n1'$name', $n2'$shouldBe' )\n";
+        #print OUTPUT "  EXECUTE updateConfig $n1'$name', $n2'$shouldBe';\n";
+        $thisLine =~ s/$num/$shouldBe/;
+        print OUTPUT $thisLine;
+        $changed = 1;
+      }
+      else {
+        print OUTPUT "$_";
+      }
+    }
+  }
+  else {
+    #print "lala\n";
+    if ( $inHistory == 1 and !$pastHistory ) {
+      if ( /\s+([0-9]+)(st|nd|rd|th)?\s+([A-Za-z]+)\s([0-9]+)\s+([a-zA-Z']+)\s+(.*)$/ ) { #'
+        my ($d, $th, $m, $y, $u, $c ) = ($1, $2, $3, $4, $5, $6);
+        $c =~ s!^(#\?{5}?) Lint!#00007 Lint!i;
+        $c =~ s!^(#\?{4}?) Lint!#0007 Lint!i;
+        $c =~ s!^Lint!#0007 Lint!i;
+        $c =~ s!^(#\?+) MSVC 8!#10544 MSVC 8!i;
+        $c =~ s!^(#\?+) CUpdater!#9528 CUpdater!i;
+        $c =~ s!^(#\?+) [- :]+!$1 !i;
+        my $date = formatDate($d, $m, $y);
+        my $newcomment = getCommentLine($date, $u, $c);
+        if ( $_ ne $newcomment ) {
+          print "Old:$_" if ( $verbose > 2 );
+          print "new:$newcomment" if ( $verbose > 2 );
+          $_ = $newcomment;
+        }
+      }
+      elsif ( /(\s{10,})(.+)$/ ) {
+        my $c = $2;
+        $c =~ s!^(#\?{5}?) Lint!#00007 Lint!i;
+        $c =~ s!^(#\?{4}?) Lint!#0007 Lint!i;
+        $c =~ s!^Lint!#0007 Lint!i;
+        $c =~ s!^(#\?+) MSVC 8!#10544 MSVC 8!i;
+        $c =~ s!^(#\?+) CUpdater!#9528 CUpdater!i;
+        $c =~ s!^(#\?+) [- :]+!$1 !i;
+        my $newcomment = getCommentLine("", "", $c);
+        if ( $_ ne $newcomment ) {
+          print "Old:$_" if ( $verbose > 2 );
+          print "new:$newcomment" if ( $verbose > 2 );
+          $_ = $newcomment;
+        }
+      }
+      else {
+        print "Comment:$_";     # if ( $verbose > 2 );
+      }
+    }
+    print OUTPUT "$_";
+  }
 }
 
 close INPUT;
@@ -1335,197 +1344,197 @@ print "changed: $changed inHistory: $inHistory pastHistory: $pastHistory nCommen
 
 # had neither a banner nor a history
 if ( $changed == 0 && $hasBanner == 0 && $hasHistory == 0 ) {
-    open (INPUT,$infile) or die "can't open $infile\n";
-    #print "Will try to open $outfile\n";
-    open (OUTPUT,">$outfile") or die "can't open $outfile\n";
-    if ( $FirstLine ne "" ) {
-        print OUTPUT $FirstLine;
+  open (INPUT,$infile) or die "can't open $infile\n";
+  #print "Will try to open $outfile\n";
+  open (OUTPUT,">$outfile") or die "can't open $outfile\n";
+  if ( $FirstLine ne "" ) {
+    print OUTPUT $FirstLine;
+  }
+  elsif ( $bom ) {
+    print OUTPUT "\x{ef}\x{bb}\x{bf}";
+  }
+  writeBanner();
+  writeHistory();
+  my $line = 0;
+  while ( <INPUT> ) {
+    if ( $line eq 0 ) {
+      s/\x{ef}\x{bb}\x{bf}//g;
     }
-    elsif ( $bom ) {
-        print OUTPUT "\x{ef}\x{bb}\x{bf}";
+    if ( $FirstLine eq "" or $line > 0 ) {
+      print OUTPUT;
     }
-    writeBanner();
-    writeHistory();
-    my $line = 0;
-    while ( <INPUT> ) {
-        if ( $line eq 0 ) {
-            s/\x{ef}\x{bb}\x{bf}//g;
-        }
-        if ( $FirstLine eq "" or $line > 0 ) {
-            print OUTPUT;
-        }
-        $line++;
-    }
-    close INPUT;
-    close OUTPUT;
+    $line++;
+  }
+  close INPUT;
+  close OUTPUT;
 }
 
 # neither a history nor a banner but we updated something else?
 
 elsif ( $changed == 1 && $hasBanner == 0 && $hasHistory == 0 ) {
-    rename $outfile, "$outfile.tmp";
-    open (INPUT,"$outfile.tmp") or die "can't open $outfile.tmp\n";
-    #print "Will try to open $outfile\n";
-    open (OUTPUT,">$outfile") or die "can't open $outfile\n";
-    if ( $FirstLine ne "" ) {
-        print OUTPUT $FirstLine;
+  rename $outfile, "$outfile.tmp";
+  open (INPUT,"$outfile.tmp") or die "can't open $outfile.tmp\n";
+  #print "Will try to open $outfile\n";
+  open (OUTPUT,">$outfile") or die "can't open $outfile\n";
+  if ( $FirstLine ne "" ) {
+    print OUTPUT $FirstLine;
+  }
+  elsif ( $bom ) {
+    print OUTPUT "\x{ef}\x{bb}\x{bf}";
+  }
+  writeBanner();
+  writeHistory();
+  my $line = 0;
+  while ( <INPUT> ) {
+    if ( $line eq 0 ) {
+      s/\x{ef}\x{bb}\x{bf}//g;
     }
-    elsif ( $bom ) {
-        print OUTPUT "\x{ef}\x{bb}\x{bf}";
+    if ( $FirstLine eq "" or $line > 0 ) {
+      print OUTPUT;
     }
-    writeBanner();
-    writeHistory();
-    my $line = 0;
-    while ( <INPUT> ) {
-        if ( $line eq 0 ) {
-            s/\x{ef}\x{bb}\x{bf}//g;
-        }
-        if ( $FirstLine eq "" or $line > 0 ) {
-            print OUTPUT;
-        }
-        $line++;
-    }
-    close INPUT;
-    close OUTPUT;
-    unlink "$outfile.tmp";
+    $line++;
+  }
+  close INPUT;
+  close OUTPUT;
+  unlink "$outfile.tmp";
 }
 
 # had a history which we updated but no banner
 
 elsif ( $changed == 1 && $hasBanner == 0 && $hasHistory == 1 ) {
-    rename $outfile, "$outfile.tmp";
-    open (INPUT,"$outfile.tmp") or die "can't open $outfile.tmp\n";
-    #print "Will try to open $outfile\n";
-    open (OUTPUT,">$outfile") or die "can't open $outfile\n";
-    if ( $FirstLine ne "" ) {
-        print OUTPUT $FirstLine;
+  rename $outfile, "$outfile.tmp";
+  open (INPUT,"$outfile.tmp") or die "can't open $outfile.tmp\n";
+  #print "Will try to open $outfile\n";
+  open (OUTPUT,">$outfile") or die "can't open $outfile\n";
+  if ( $FirstLine ne "" ) {
+    print OUTPUT $FirstLine;
+  }
+  elsif ( $bom ) {
+    print OUTPUT "\x{ef}\x{bb}\x{bf}";
+  }
+  writeBanner();
+  my $line = 0;
+  while ( <INPUT> ) {
+    if ( $line eq 0 ) {
+      s/\x{ef}\x{bb}\x{bf}//g;
     }
-    elsif ( $bom ) {
-        print OUTPUT "\x{ef}\x{bb}\x{bf}";
+    if ( $FirstLine eq "" or $line > 0 ) {
+      print OUTPUT;
     }
-    writeBanner();
-    my $line = 0;
-    while ( <INPUT> ) {
-        if ( $line eq 0 ) {
-            s/\x{ef}\x{bb}\x{bf}//g;
-        }
-        if ( $FirstLine eq "" or $line > 0 ) {
-            print OUTPUT;
-        }
-        $line++;
-    }
-    close INPUT;
-    close OUTPUT;
-    unlink "$outfile.tmp";
+    $line++;
+  }
+  close INPUT;
+  close OUTPUT;
+  unlink "$outfile.tmp";
 }
 
 # had a banner but no history
 
 elsif ( $hasBanner == 1 && $hasHistory == 0 ) {
-    print "Found hasBanner == 1 && hasHistory == 0\n" if ( $verbose > 2 );
-    rename $outfile, "$outfile.tmp";
-    open (INPUT,"$outfile.tmp") or die "can't open $outfile.tmp\n";
-    #print "Will try to open $outfile\n";
-    open (OUTPUT,">$outfile") or die "can't open $outfile\n";
-    #writeBanner();
-    my $comments = 0;
-    my $writenHistory = 0;
-    while ( <INPUT> ) {
-        if ( ( $MultiLineEnd ne "" and /^ *\Q$MultiLineEnd\E *$/ ) ||
-             ( $SingleLine ne "" and /^ *\Q$SingleLine\E *$/ ) ) {
-            #print "end of comments\n";
-            $comments++;
-            # end of comment?
-            print OUTPUT "$_";
-            if ( $writenHistory == 0 ) {
-                if ( $SingleLine eq "" or $comments eq 2 ) {
-                  writeHistory();
-                  $writenHistory = 1;
-                }
-            }
+  print "Found hasBanner == 1 && hasHistory == 0\n" if ( $verbose > 2 );
+  rename $outfile, "$outfile.tmp";
+  open (INPUT,"$outfile.tmp") or die "can't open $outfile.tmp\n";
+  #print "Will try to open $outfile\n";
+  open (OUTPUT,">$outfile") or die "can't open $outfile\n";
+  #writeBanner();
+  my $comments = 0;
+  my $writenHistory = 0;
+  while ( <INPUT> ) {
+    if ( ( $MultiLineEnd ne "" and /^ *\Q$MultiLineEnd\E *$/ ) ||
+         ( $SingleLine ne "" and /^ *\Q$SingleLine\E *$/ ) ) {
+      #print "end of comments\n";
+      $comments++;
+      # end of comment?
+      print OUTPUT "$_";
+      if ( $writenHistory == 0 ) {
+        if ( $SingleLine eq "" or $comments eq 2 ) {
+          writeHistory();
+          $writenHistory = 1;
         }
-        else {
-            print OUTPUT "$_";
-        }
+      }
     }
-    close INPUT;
-    close OUTPUT;
-    unlink "$outfile.tmp";
+    else {
+      print OUTPUT "$_";
+    }
+  }
+  close INPUT;
+  close OUTPUT;
+  unlink "$outfile.tmp";
 }
 
 # had a dodgy banner
 
 elsif ( $dodgyBanner == 1 ) {
-    print "Fixing dodgy banner\n"; # if ( $verbose > 2 );
-    $changed = 1;
-    rename $outfile, "$outfile.tmp";
-    open (INPUT,"$outfile.tmp") or die "can't open $outfile.tmp\n";
-    #print "Will try to open $outfile\n";
-    open (OUTPUT,">$outfile") or die "can't open $outfile\n";
-    #writeBanner();
-    my $past = 0;
-    while ( <INPUT> ) {
-      if ( $past ) {
-          print OUTPUT "$_";
+  print "Fixing dodgy banner\n"; # if ( $verbose > 2 );
+  $changed = 1;
+  rename $outfile, "$outfile.tmp";
+  open (INPUT,"$outfile.tmp") or die "can't open $outfile.tmp\n";
+  #print "Will try to open $outfile\n";
+  open (OUTPUT,">$outfile") or die "can't open $outfile\n";
+  #writeBanner();
+  my $past = 0;
+  while ( <INPUT> ) {
+    if ( $past ) {
+      print OUTPUT "$_";
+    }
+    elsif ( $MultiLineStart ne "" and /^\Q$MultiLineStart\E/ ) {
+      print OUTPUT "$MultiLineStart\n";
+      print "start of comments\n" if ( $verbose > 2 );
+    }
+    elsif ( $MultiLineEnd ne "" and /\Q$MultiLineEnd\E$/ ) {
+      print OUTPUT "$MultiLineEnd\n";
+      $past = 1;
+      print "end of comments\n" if ( $verbose > 2 );
+    }
+    else {
+      if ( /^$ *$/ ) {
+        #print OUTPUT "$MultiLinePrefix File: $1\n";
       }
-      elsif ( $MultiLineStart ne "" and /^\Q$MultiLineStart\E/ ) {
-        print OUTPUT "$MultiLineStart\n";
-        print "start of comments\n" if ( $verbose > 2 );
+      elsif ( /^\Q$MultiLineEnd\E *File: (.+)/ ) {
+        print OUTPUT "$MultiLinePrefix File: $1\n";
       }
-      elsif ( $MultiLineEnd ne "" and /\Q$MultiLineEnd\E$/ ) {
-        print OUTPUT "$MultiLineEnd\n";
-        $past = 1;
-        print "end of comments\n" if ( $verbose > 2 );
+      elsif ( /^\Q$MultiLineEnd\E *Author: (.+)/ ) {
+        print OUTPUT "$MultiLinePrefix Author: $1\n";
+      }
+      elsif ( /^\Q$MultiLineEnd\E *Contents: (.+)/ ) {
+        print OUTPUT "$MultiLinePrefix Contents: $1\n";
+      }
+      elsif ( /^\Q$MultiLineEnd\E *Contents:/ ) {
+        print OUTPUT "$MultiLinePrefix Contents:\n";
+      }
+      elsif ( /^\Q$MultiLineEnd\E *Copyright (.+), (.+)/ ) {
+        print OUTPUT "$MultiLinePrefix Copyright $1, $2\n";
+      }
+      elsif ( /^\Q$MultiLinePrefix\E( ?)(.+)/ ) {
+        print OUTPUT "$MultiLinePrefix $2\n";
       }
       else {
-        if ( /^$ *$/ ) {
-          #print OUTPUT "$MultiLinePrefix File: $1\n";
-        }
-        elsif ( /^\Q$MultiLineEnd\E *File: (.+)/ ) {
-          print OUTPUT "$MultiLinePrefix File: $1\n";
-        }
-        elsif ( /^\Q$MultiLineEnd\E *Author: (.+)/ ) {
-          print OUTPUT "$MultiLinePrefix Author: $1\n";
-        }
-        elsif ( /^\Q$MultiLineEnd\E *Contents: (.+)/ ) {
-          print OUTPUT "$MultiLinePrefix Contents: $1\n";
-        }
-        elsif ( /^\Q$MultiLineEnd\E *Contents:/ ) {
-          print OUTPUT "$MultiLinePrefix Contents:\n";
-        }
-        elsif ( /^\Q$MultiLineEnd\E *Copyright (.+), (.+)/ ) {
-          print OUTPUT "$MultiLinePrefix Copyright $1, $2\n";
-        }
-        elsif ( /^\Q$MultiLinePrefix\E( ?)(.+)/ ) {
-          print OUTPUT "$MultiLinePrefix $2\n";
-        }
-        else {
-          print OUTPUT "$_";
-        }
+        print OUTPUT "$_";
       }
     }
-    close INPUT;
-    close OUTPUT;
-    unlink "$outfile.tmp";
+  }
+  close INPUT;
+  close OUTPUT;
+  unlink "$outfile.tmp";
 }
 
 if ( $changed == 0 && $commented == 1 ) {
-    print "No change\n" if ( $verbose > 2 );
-    unlink $outfile;
+  print "No change\n" if ( $verbose > 2 );
+  unlink $outfile;
 }
 else {
-    print "Changed\n" if ( $verbose > 2 );
-    if ( $checkOut eq "Y" ) {
-        CheckOut( $infile, $Comments );
-    }
-    my $perm = (stat $infile)[2] & 07777;
-    rename $infile, $infile . ".old";
-    rename $outfile, $infile;
-    chmod($perm, $infile);
-    $perm = (stat $infile)[2] & 07777;
-    if ( $checkIn eq "Y" ) {
-        CheckIn( $infile, $Comments );
-    }
+  print "Changed\n" if ( $verbose > 2 );
+  if ( $checkOut eq "Y" ) {
+    CheckOut( $infile, $Comments );
+  }
+  my $perm = (stat $infile)[2] & 07777;
+  rename $infile, $infile . ".old";
+  rename $outfile, $infile;
+  chmod($perm, $infile);
+  $perm = (stat $infile)[2] & 07777;
+  if ( $checkIn eq "Y" ) {
+    CheckIn( $infile, $Comments );
+  }
 }
 
 if ( $changeEvent eq "Y" ) {
@@ -1549,3 +1558,28 @@ sub runCmd($) {
   }
 }
 
+sub add_to_git_commit_msg($) {
+  my ($comment) = @_;
+  my $add = 1;
+  my $gitmsg = "${git_root}/.git/GITGUI_MSG";
+  my @comments;
+  if ( open( CMT, $gitmsg ) ) {
+    @comments = <CMT>;
+    close( CMT );
+    chomp @comments;
+  }
+  unless ( grep( /\Q$comment\E/, @comments ) ) {
+    print "Adding $comment to commit message\n" if ( $verbose > 2 );
+    @comments = (@comments, $comment);
+    @comments = sort @comments;
+    if ( open( CMT, ">$gitmsg" ) ) {
+      foreach ( reverse @comments ) {
+        print CMT "$_\n";
+      }
+      close( CMT );
+    }
+    else {
+      print "Error: failed to open $gitmsg $!\n" if ( $verbose > 2 );
+    }
+  }
+}

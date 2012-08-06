@@ -10,6 +10,7 @@
 #  5th Aug 2012  eweb     #0008 Write codiffs.txt
 #  5th Aug 2012  eweb     #0008 Include git add commands
 #  5th Aug 2012  eweb     #0008 git add only for untracked files
+#  6th Aug 2012  eweb     #0008 Make cos.sh executable
 #
 
 def find_git( where = "." )
@@ -116,6 +117,8 @@ if changed_files.length
       end
     end
   end
+  mode = File.stat( script_file ).mode & 0777
+  File.chmod( mode | 0400, script_file )
   if true
     puts "# File: #{script_file}"
     system "cat #{script_file}"
