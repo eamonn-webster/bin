@@ -1,15 +1,27 @@
 #! /usr/bin/env perl
+#
+# File: synchmusic.pl
+# Author: eweb
+# Copyright eweb, 2012-2012
+# Contents:
+#
+# Date:          Author:  Comments:
+# 10th Sep 2012  eweb     #0008 Detect backup volume
+#
 
 use strict;
 
-my $src = "/Users/eweb/Music/iTunes";
-my $dst;
+my $drive;
 if ( -d "/Volumes/IOMEGA0" ) {
-  $dst = "/Volumes/IOMEGA0/iTunes"
+  $drive = "IOMEGA0";
 }
 elsif ( -d "/Volumes/iomega1" ) {
-  $dst = "/Volumes/iomega1/iTunes"
+  $drive = "iomega1";
 }
+
+my $src = "/Users/eweb/Music/iTunes";
+my $dst = "/Volumes/$drive/iTunes";
+
 
 my $rsyncflags = "rt";
 # r recursive
@@ -24,9 +36,5 @@ my $cmd = "rsync -rtvi $src/ $dst";
 print "$cmd\n";
 system ( $cmd );
 
-chdir( "/Volumes/IOMEGA0/projects/wacc" );
+chdir( "/Volumes/$drive/projects/wacc" );
 system( "git fetch --all");
-
-chdir( "/Volumes/iomega1/projects/wacc" );
-system( "git fetch --all");
-

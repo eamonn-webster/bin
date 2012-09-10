@@ -81,6 +81,7 @@
 #  5th Aug 2012  eweb     #0008 Retains permissions
 #  6th Aug 2012  eweb     #0008 Find git
 #  6th Aug 2012  eweb     #0008 Reverse sort git commit message
+# 10th Sep 2012  eweb     #0008 Treate .feature files as ruby
 #
 
 # DONE change event if comment not present.
@@ -676,6 +677,7 @@ elsif ( $File =~ /\.sql$/ ) {
   #die "Unhandled file type $File\n";
 }
 elsif ( $File =~ /\.rb$/ or
+        $File =~ /\.feature$/ or
           $File =~ /\.pl$/ or
           $File =~ /\.properties$/ or
           $File =~ /\.properties.default$/ ) {

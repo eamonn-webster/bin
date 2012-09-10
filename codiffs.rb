@@ -11,6 +11,9 @@
 #  5th Aug 2012  eweb     #0008 Include git add commands
 #  5th Aug 2012  eweb     #0008 git add only for untracked files
 #  6th Aug 2012  eweb     #0008 Make cos.sh executable
+# 10th Sep 2012  eweb     #0008 deleted, modified, renamed and new file
+# 10th Sep 2012  eweb     #0008 pushd and popd
+# 10th Sep 2012  eweb     #0008 make cos.sh executable
 #
 
 def find_git( where = "." )
@@ -51,7 +54,11 @@ changed_files = []
       elsif line =~ /# Your branch/
       elsif line =~ /# Changes to be committed:/
         stage = :staged
-      elsif line =~ /#\tmodified:   (.*)/
+      elsif line =~ /#\tdeleted: +(.*)/
+        #
+      elsif line =~ /#\tmodified: +(.*)/ ||
+            line =~ /#\trenamed: +(?:.*) -> (.*)/ ||
+            line =~ /#\tnew file: +(.*)/
         file = $1
         puts "Staged #{file}\n" if stage == :staged && verbose
         puts "Unstaged #{file}\n" if stage == :unstaged && verbose
@@ -92,10 +99,11 @@ def get_comments file, diffs
   comments if comments.length
 end
 
+puts "#{changed_files.length} files changed"
 if changed_files.length
   File.open( diffs_file, "w" ) do |diffs|
     File.open( script_file, "w" ) do |script|
-      script.puts "chdir #{project_root}" if need_to_change_directory
+      script.puts "pushd #{project_root}" if need_to_change_directory
       stage =
       changed_files.each do |f|
         if f.class == Symbol
@@ -115,11 +123,13 @@ if changed_files.length
           end
         end
       end
+      script.puts "popd" if need_to_change_directory
     end
   end
   mode = File.stat( script_file ).mode & 0777
-  File.chmod( mode | 0400, script_file )
-  if true
+  # executable by owner
+  File.chmod( mode | 0100, script_file )
+  if false
     puts "# File: #{script_file}"
     system "cat #{script_file}"
   end
