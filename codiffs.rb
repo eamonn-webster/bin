@@ -14,6 +14,7 @@
 # 10th Sep 2012  eweb     #0008 deleted, modified, renamed and new file
 # 10th Sep 2012  eweb     #0008 pushd and popd
 # 10th Sep 2012  eweb     #0008 make cos.sh executable
+# 24th Oct 2012  eweb     #0008 Report number of files changed
 #
 
 def find_git( where = "." )
@@ -99,8 +100,8 @@ def get_comments file, diffs
   comments if comments.length
 end
 
-puts "#{changed_files.length} files changed"
 if changed_files.length
+  files_changed = 0
   File.open( diffs_file, "w" ) do |diffs|
     File.open( script_file, "w" ) do |script|
       script.puts "pushd #{project_root}" if need_to_change_directory
@@ -110,6 +111,7 @@ if changed_files.length
           script.puts "### #{f}" if stage != f
           stage = f
         else
+          files_changed = files_changed + 1
           comments = get_comments f, diffs
           if stage == :untracked
             script.puts "#git add #{f}"
@@ -126,6 +128,7 @@ if changed_files.length
       script.puts "popd" if need_to_change_directory
     end
   end
+  puts "#{files_changed} files changed"
   mode = File.stat( script_file ).mode & 0777
   # executable by owner
   File.chmod( mode | 0100, script_file )

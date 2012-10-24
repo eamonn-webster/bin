@@ -6,6 +6,7 @@
 #
 # Date:          Author:  Comments:
 # 10th Sep 2012  eweb     #0008 Anagrams
+# 24th Oct 2012  eweb     #0008 Multiple words
 #
 require 'spellchecker'
 require 'tempfile'
@@ -15,7 +16,7 @@ def anagrams (k,w)
   g = k.chars.count { |c| c == '?' }
   letters = w.chars.to_a
   if g != letters.size
-    puts "#{g} ? but #{leters.size} letters"
+    puts "#{g} ? but #{letters.size} letters"
   else
     letters.permutation do |p|
       word = k.chars.collect do |c|
@@ -23,7 +24,7 @@ def anagrams (k,w)
       end
       word = word.join
       chk = Spellchecker.check( word )
-      puts word if chk[0][:correct]
+      puts word if chk.all?{|x| x[:correct]}
     end
     nil
   end

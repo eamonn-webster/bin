@@ -82,6 +82,7 @@
 #  6th Aug 2012  eweb     #0008 Find git
 #  6th Aug 2012  eweb     #0008 Reverse sort git commit message
 # 10th Sep 2012  eweb     #0008 Treate .feature files as ruby
+# 24th Oct 2012  eweb     #0008 Extended characters
 #
 
 # DONE change event if comment not present.
@@ -950,7 +951,7 @@ while ( <INPUT> ) {
       print STDERR "SPACE!!! Trailing space found at line $Line\n";
     }
   }
-  if ( $thisLine =~ /[^\x20-\x7f\t\n\r]/ ) {
+  if ( $thisLine =~ /([^\x20-\x7f\t\n\r]+)/ ) {
     if ( $bom ) {
     }
     elsif ( $encoding eq "utf-8" ) {
@@ -960,7 +961,8 @@ while ( <INPUT> ) {
     elsif ( $infile =~ /_.+\.dat/ and $infile !~ /english/ ) {
     }
     else {
-      print STDERR "`!!! extended character found at line $Line\n";
+      # print "[$1] " . join(',', unpack('U*', $1)) . "\n";
+      print STDERR "CHAR!!! extended character [$1] found at line $Line\n";
     }
   }
   my $bugchanged = 0;
