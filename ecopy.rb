@@ -62,7 +62,7 @@ end
 
 def match_file_one( file, opt )
   #puts( "match_file_one(#{file},#{opt})" )
-  if ( opt ) 
+  if ( opt )
     File.fnmatch( opt, file )
   end
 end
@@ -175,7 +175,7 @@ def rename_file( source, destination )
   File.rename( source, destination )
 end
 
-def process_file( prompt, source, destination, options, switches )
+def process_file( prompt, source, destination, options, switches, reverse=nil )
   if File.directory?(source)
     return process_folder( source, destination, options, switches )
   elsif File.directory?(destination)
@@ -238,8 +238,13 @@ def process_file( prompt, source, destination, options, switches )
         end
         break
       elsif (ans == 'r' )
-        puts "FileUtils.remove_file(#{source},true)"
-        FileUtils.remove_file(source,true)
+        if reverse
+          puts "FileUtils.remove_file(#{destination},true)"
+          FileUtils.remove_file(destination,true)
+         else
+          puts "FileUtils.remove_file(#{source},true)"
+          FileUtils.remove_file(source,true)
+        end
         break
       elsif (ans == 'd' )
         cmd = diff_cmd( destination, source )
@@ -282,16 +287,16 @@ def compare_files( source, destination, options )
   puts "compare_files(#{source},#{destination})\n" if options.find { |x| x == "-v" }
   only_newer = true unless options.find { |x| x == "-n-" }
   if only_newer
-    if File.mtime(source) <= File.mtime(destination) 
+    if File.mtime(source) <= File.mtime(destination)
       puts "compare_files(File.mtime(#{source}) <= File.mtime(#{destination})\n" if options.find { |x| x == "-v" }
       return true
     end
     puts "src: #{File.mtime(source)} #{source}\ndst: #{File.mtime(destination)} #{destination}\n" if options.find { |x| x == "-v" }
   end
-  
+
   if FileUtils.compare_file( source, destination )
     puts "FileUtils.compare_file(#{source},#{destination}) => true\n" if options.find { |x| x == "-v" }
-    true    
+    true
   else
     puts "FileUtils.compare_file(#{source},#{destination}) => false\n" if options.find { |x| x == "-v" }
     cmd = diff_cmd( destination, source )
@@ -318,8 +323,8 @@ def process_folder( source, destination, options, switches )
   #puts "Files to be removed #{deletes.join( ', ' )}\n"
   #puts "Files to be compared #{compares.join( ', ' )}\n"
 
-  adds.each do |add| 
-    deletes.each do |del| 
+  adds.each do |add|
+    deletes.each do |del|
       if del.downcase == add.downcase
         prompt = "Case mismatches a) #{del} and b) #{add}?"
         ans = get_response prompt
@@ -327,7 +332,7 @@ def process_folder( source, destination, options, switches )
           rename_file "#{destination}/#{del}", "#{destination}/#{add}"
           adds = adds - [add]
           deletes = deletes - [del]
-          compares = compares + [add] 
+          compares = compares + [add]
         elsif ans == 'a'
           rename_file "#{source}/#{add}", "#{source}/#{del}"
           adds = adds - [add]
@@ -352,7 +357,7 @@ def process_folder( source, destination, options, switches )
   end
   puts "Files not in #{source} but in #{destination}" unless deletes.empty?
   deletes.each do | file |
-    ans = process_file( "remove file #{destination}/#{file}? (c/r/b/v)", "#{source}/#{file}","#{destination}/#{file}", options, local_switches )
+    ans = process_file( "remove file #{destination}/#{file}? (r/b/v)", "#{source}/#{file}","#{destination}/#{file}", options, local_switches, true )
     return ans if ans == 'q'
   end
   compares.each do | file |
@@ -365,11 +370,11 @@ def process_folder( source, destination, options, switches )
       ans = process_folder( "#{source}/#{file}","#{destination}/#{file}", options, local_switches )
       return ans if ans == 'q'
     elsif ( File.directory?( "#{source}/#{file}" ) and File.file?( "#{destination}/#{file}" ) )
-      if ( switches['v'] ) 
+      if ( switches['v'] )
         puts "#{source}/#{file} shadowed by file #{destination}/#{file}\n"
       end
     elsif ( File.file?( "#{source}/#{file}" ) and File.directory?( "#{destination}/#{file}" ) )
-      if ( switches['v'] ) 
+      if ( switches['v'] )
         puts "#{source}/#{file} is shadow for directory #{destination}/#{file}\n"
       end
     end

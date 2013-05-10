@@ -1,0 +1,3 @@
+git remote update
+git update-ref refs/heads/rails31 remotes/origin/rails31
+git update-ref refs/heads/master remotes/origin/master

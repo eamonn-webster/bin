@@ -32,9 +32,16 @@ my $rsyncflags = "rt";
 # o preserve owner
 # D same as --devices --specials
 
-my $cmd = "rsync -rtvi $src/ $dst";
+my $cmd = "rsync -rtvi --delete-during $src/ $dst";
 print "$cmd\n";
 system ( $cmd );
 
+print "cd /Volumes/$drive/projects/wacc\n";
 chdir( "/Volumes/$drive/projects/wacc" );
+print "git fetch --all\n";
+system( "git fetch --all");
+
+print "cd /Volumes/$drive/accounts/java\n";
+chdir( "/Volumes/$drive/accounts/java" );
+print "git fetch --all\n";
 system( "git fetch --all");

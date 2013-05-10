@@ -587,6 +587,7 @@ if ( $infile =~ m!(/|\\)yui\1! ) {
 if ( $infile eq "" ) {
   die "No file given\n";
 }
+
 # determine filename and immediate parent
 my ($File, $path) = fileparse($infile);
 
@@ -634,6 +635,13 @@ elsif ( $File =~ /\.dsw$/ or
           $File =~ /\.dsp$/ or
           $File =~ /\.dat$/ ) {
   print "Unhandled file type $File\n";
+  if ( $changeEvent eq "Y" ) {
+    chevent($infile, $Comments );
+  }
+  exit;
+}
+elsif ( $File eq "R.java" ) {
+  print "Uncommentable file $File\n";
   if ( $changeEvent eq "Y" ) {
     chevent($infile, $Comments );
   }
@@ -898,6 +906,9 @@ while ( <INPUT> ) {
   if ( $Line == 0 and $thisLine =~ /<\?xml .+encoding='(.+)'.*\?>/ ) {
     $encoding = $1;
   }
+  if ( $Line == 0 and $thisLine =~ /<\?xml .+encoding="(.+)".*\?>/ ) {
+    $encoding = $1;
+  }
   if ( $Line == 0 and $VeryFirstLine ne "" && /$VeryFirstLine/ ) {
     $FirstLine = $thisLine;
   }
@@ -935,7 +946,7 @@ while ( <INPUT> ) {
     $thisLine = "$thisLine\n";
   }
   else {
-    print STDERR "No eoln at eof $Line\n";
+    print STDERR "$File:$Line No eoln at eof\n";
   }
 
   if ( $thisLine =~ /\t/ ) {
@@ -962,7 +973,7 @@ while ( <INPUT> ) {
     }
     else {
       # print "[$1] " . join(',', unpack('U*', $1)) . "\n";
-      print STDERR "CHAR!!! extended character [$1] found at line $Line\n";
+      print STDERR "$File:$Line CHAR!!! extended character [$1]\n";
     }
   }
   my $bugchanged = 0;
@@ -1587,3 +1598,7 @@ sub add_to_git_commit_msg($) {
     }
   }
 }
+
+#<path-to-eclipse>\eclipse.exe -vm <path-to-vm>\java.exe -application org.eclipse.jdt.core.JavaCodeFormatter -verbose -config <path-to-config-file>\org.eclipse.jdt.core.prefs <path-to-your-source-files>\*.java
+
+#/dev2/eclipse/eclipse -application org.eclipse.jdt.core.JavaCodeFormatter -verbose -config ~/projects/wacc/java/acc/.settings/org.eclipse.jdt.core.prefs <path-to-your-source-files>\*.java

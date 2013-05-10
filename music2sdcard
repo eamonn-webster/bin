@@ -1,0 +1,9 @@
+rsync -tavm --modify-window=2 --del --include='*.mp3' \
+--exclude='.Spotlight-V100/*' \
+--exclude='Led Zeppelin/Live at Kaikan Hall*' \
+--exclude='Various/Rodrigo_*' \
+-f 'hide,! */' /Users/eweb/Music/iTunes/iTunes\ Media/Music/ /Volumes/MUSIC-A/
+
+# cd /Users/eweb/Music/iTunes/iTunes\ Media/Music
+# rsync -tvr --exclude *.m4a . /Volumes/MUSIC-A/
+

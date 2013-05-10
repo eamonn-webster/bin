@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+branch = ARGV[0]
+`git tag archive/#{branch} #{branch}`
+`git branch -d #{branch}`
