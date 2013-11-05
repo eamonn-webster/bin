@@ -1,4 +1,13 @@
-#! /usr/bin/env ruby
+#!/usr/bin/env ruby
+#
+# File: getlyric.rb
+# Author: eweb
+# Copyright eweb, 2013-2013
+# Contents:
+#
+# Date:          Author:  Comments:
+#  5th Nov 2013  eweb     #0008 Maintenance
+#
 require 'nokogiri'
 require 'open-uri'
 
@@ -12,6 +21,9 @@ def save_lyrics(lyric)
   lyric.gsub!( '&amp;', '&' )
   lyric.gsub!( '&lt;', '<' )
   lyric.gsub!( '&gt;', '>' )
+  lyric.gsub!( /\n\n \n\n/, "\n\n" )
+  lyric.gsub!( '<i>', '(' )
+  lyric.gsub!( '</i>', ')' )
   puts lyric
   puts "**** Contains entities" if lyric[/&.+;/]
 
@@ -28,14 +40,22 @@ artist.gsub!(/[^a-z0-9_]/, '')
 song.gsub!(/ /, '_')
 song.gsub!(/[^a-z0-9_]/, '')
 
-url = "http://www.lyricsmania.com/#{song}_lyrics_#{artist}.html"
+lyric = nil
 
-puts url
+url = nil # "http://www.lyricsmania.com/#{song}_lyrics_#{artist}.html"
 
-doc = Nokogiri::HTML(open(url))
+if url
+  puts url
 
-lyric = doc.xpath( "id('songlyrics_h')" ).inner_html.gsub /<br>/, ''
-lyric = lyric.strip
+  begin
+    doc = Nokogiri::HTML(open(url))
+
+    lyric = doc.xpath( "id('songlyrics_h')" ).inner_html.gsub /<br>/, ''
+    lyric = lyric.strip
+  rescue Exception => e
+    puts e
+  end
+end
 
 if lyric && lyric != ''
   save_lyrics(lyric)
@@ -63,6 +83,9 @@ else
     lyric = lyric.strip
     if lyric =~ /Unfortunately, we are not licensed to display the full lyrics/
       lyric = nil
+    end
+    if lyric =~ /Category:Instrumental/ && lyric =~ /TrebleClef/
+      lyric = 'Instrumental'
     end
 
   rescue Exception => e
@@ -111,6 +134,48 @@ else
       if lyric && lyric != ''
         save_lyrics(lyric)
       else
+        artist = ARGV[0].dup if ARGV.length > 0
+        song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
+        artist = artist.downcase
+        song = song.downcase
+        artist.gsub!(/[^a-z0-9]+/, '-')
+        song.gsub!(/[^a-z0-9]+/, '-')
+        url = "http://www.lyricstime.com/#{artist}-#{song}-lyrics.html"
+        puts url
+
+        begin
+          doc = Nokogiri::HTML(open(url))
+
+          lyric = doc.xpath( "id('songlyrics')/p" ).inner_html.gsub /<br>/, ''
+          lyric = lyric.strip
+        rescue Exception => e
+          puts e
+        end
+        if lyric && lyric != ''
+          save_lyrics(lyric)
+        else
+=begin
+          artist = ARGV[0].dup if ARGV.length > 0
+          song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
+          artist = artist.downcase
+          song = song.downcase
+          artist.gsub!(/[^a-z0-9]+/, '')
+          song.gsub!(/[^a-z0-9]+/, '-')
+          url = "http://irishmusicdb.com/#{artist[0]}/#{artist}"
+          puts url
+
+          begin
+            doc = Nokogiri::HTML(open(url))
+            href = doc.css('a').detect{|a| a.attribute('href').to_s =~ /lyrics/}.attribute('href')
+            url = "#{url}/#{href}"
+            puts url
+            doc = Nokogiri::HTML(open(url))
+          rescue Exception => e
+            puts e
+            puts e.backtrace
+          end
+=end
+        end
       end
     end
   end
