@@ -2,7 +2,7 @@
 #
 # File: codiffs.rb
 # Author:
-# Copyright eweb, 2012-2012
+# Copyright eweb, 2012-2013
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -15,6 +15,7 @@
 # 10th Sep 2012  eweb     #0008 pushd and popd
 # 10th Sep 2012  eweb     #0008 make cos.sh executable
 # 24th Oct 2012  eweb     #0008 Report number of files changed
+#  7th Nov 2013  eweb     #0008 Use addcomment.rb
 #
 
 def find_git( where = "." )
@@ -31,6 +32,8 @@ def find_git( where = "." )
 end
 
 verbose = false
+
+addcomment = 'addcomment.rb'
 
 project_root = find_git
 
@@ -118,10 +121,10 @@ if changed_files.length
           end
           if comments.length > 0
             comments.each do |c|
-              script.puts "#addcomment.pl -c \"#{c}\" #{f}"
+              script.puts "##{addcomment} -c \"#{c}\" #{f}"
             end
           else
-            script.puts "addcomment.pl -c \"\" #{f}"
+            script.puts "#{addcomment} -c \"\" #{f}"
           end
         end
       end

@@ -8,6 +8,7 @@
 # Date:          Author:  Comments:
 # 10th Sep 2012  eweb     #0008 Detect backup volume
 # 14th Aug 2013  eweb     #0008 Convert to ruby
+#  7th Nov 2013  eweb     #0008 Sync back
 #
 
 if Dir.exist?('/Volumes/IOMEGA0')
@@ -28,17 +29,27 @@ dst = "/Volumes/#{drive}/iTunes"
 # o preserve owner
 # D same as --devices --specials
 
-cmd = "rsync -rtvi --delete-during #{src}/ #{dst}"
-puts cmd
-system( cmd )
+if @back
+  cmd = "rsync -rtvi --delete-during #{dst}/ #{src}"
+  puts cmd
+  system( cmd )
+else
+  cmd = "rsync -rtvi --delete-during #{src}/ #{dst}"
+  puts cmd
+  system( cmd )
 
-dirs = ["/Volumes/#{drive}/projects/wacc",
-        "/Volumes/#{drive}/accounts/java"]
+  dirs = ["/Volumes/#{drive}/projects/wacc",
+          "/Volumes/#{drive}/accounts/java"]
 
-dirs.each do |dir|
-  Dir.chdir(dir) do
-    puts dir
-    puts "git fetch --all"
-    system( "git fetch --all")
+  dirs.each do |dir|
+    Dir.chdir(dir) do
+      puts dir
+      puts "git fetch --all"
+      system( "git fetch --all")
+    end
   end
+
 end
+#cmd = "rsync -rtvi #{src}/ /Volumes/Macintosh\ HD-1/#{src}"
+
+
