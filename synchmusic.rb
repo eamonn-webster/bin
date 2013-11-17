@@ -29,8 +29,9 @@ dst = "/Volumes/#{drive}/iTunes"
 # o preserve owner
 # D same as --devices --specials
 
+@back = true
 if @back
-  cmd = "rsync -rtvi --delete-during #{dst}/ #{src}"
+  cmd = "rsync -rtvi  #{dst}/ #{src}"
   puts cmd
   system( cmd )
 else
@@ -50,6 +51,4 @@ else
   end
 
 end
-#cmd = "rsync -rtvi #{src}/ /Volumes/Macintosh\ HD-1/#{src}"
-
 

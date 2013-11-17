@@ -626,7 +626,9 @@ def determine_type(file)
       file =~ /\.feature$/ or
       file =~ /\.pl$/ or
       file =~ /\.properties$/ or
-      file =~ /\.properties.default$/)
+      file =~ /\.properties.default$/ or
+      file =~ /\.rake$/ or
+      file =~ /^Rakefile$/ )
     file_type = "pl"
   elsif (file =~ /\.tmpl$/)
     file_type = "tmpl"

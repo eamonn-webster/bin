@@ -33,11 +33,11 @@ end
 
 verbose = false
 
-addcomment = 'addcomment.rb'
-
 project_root = find_git
 
 exit unless project_root
+
+addcomment = 'addcomment.rb'
 
 need_to_change_directory = Dir.pwd != project_root
 
