@@ -7,6 +7,7 @@
 #
 # Date:          Author:  Comments:
 #  5th Nov 2013  eweb     #0008 Maintenance
+# 29th Nov 2013  eweb     #0008 Match divs over lines
 #
 require 'nokogiri'
 require 'open-uri'
@@ -76,7 +77,7 @@ else
     doc = Nokogiri::HTML(open(url))
     lyric = doc.xpath( "//div[@class='lyricbox']" ).inner_html
 
-    lyric = lyric.gsub /<div.+<\/div>/, ''
+    lyric = lyric.gsub /<div.+<\/div>/m, ''
     lyric = lyric.gsub /<!--.+-->/m, ''
     lyric = lyric.gsub /<br>/, "\n"
 
