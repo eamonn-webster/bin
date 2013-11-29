@@ -9,6 +9,7 @@
 # 10th Sep 2012  eweb     #0008 Detect backup volume
 # 14th Aug 2013  eweb     #0008 Convert to ruby
 #  7th Nov 2013  eweb     #0008 Sync back
+# 29th Nov 2013  eweb     #0008 Don't copy backwards
 #
 
 if Dir.exist?('/Volumes/IOMEGA0')
@@ -29,7 +30,6 @@ dst = "/Volumes/#{drive}/iTunes"
 # o preserve owner
 # D same as --devices --specials
 
-@back = true
 if @back
   cmd = "rsync -rtvi  #{dst}/ #{src}"
   puts cmd
