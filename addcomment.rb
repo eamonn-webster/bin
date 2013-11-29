@@ -86,6 +86,7 @@
 #  5th Nov 2013  eweb     #0008 Port to ruby
 #  5th Nov 2013  eweb     #0008 Shebang line to determine type
 # 29th Nov 2013  eweb     #0008 Problems with multi line start
+# 29th Nov 2013  eweb     #0008 Recognise ruby encoding
 #
 
 # DONE change event if comment not present.
@@ -816,6 +817,10 @@ end
   if (@Line == 0 and thisLine =~ /<\?xml .+encoding="(.+)".*\?>/)
     @encoding = $1
   end
+  if thisLine =~ /# -\*- coding: (.+) -\*-/
+    @encoding = $1
+  end
+
   if (@Line == 0 and @very_first_line && thisLine =~ Regexp.new(@very_first_line))
     @FirstLine = "#{thisLine}\n"
   end
@@ -864,13 +869,16 @@ end
     end
   end
   if (thisLine =~ /([^\x20-\x7f\t\n\r]+)/)
+    exchars = $1
     if (@bom)
     elsif (@encoding == "utf-8")
     elsif (@infile =~ /resources_..\.properties/)
     elsif (@infile =~ /_.+\.dat/ and @infile !~ /english/)
     else
-      # print "[$1] " . join(',', unpack('U*', $1)) . "\n"
-      STDERR.print "#{@File}:#{@Line} CHAR!!! extended character [#{$1}]\n"
+      # print "[exchars] " . join(',', unpack('U*', exchars)) . "\n"
+      chars = exchars.bytes.collect{|b| '%X' % b }.join
+      #chars = exchars
+      STDERR.print "#{@File}:#{@Line} CHAR!!! extended character '#{exchars}' [#{chars}]\n"
     end
   end
   (@newline, @bugchanged, @found80000) = map_ids(thisLine, 0, 0)
