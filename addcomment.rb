@@ -85,6 +85,7 @@
 # 24th Oct 2012  eweb     #0008 Extended characters
 #  5th Nov 2013  eweb     #0008 Port to ruby
 #  5th Nov 2013  eweb     #0008 Shebang line to determine type
+# 29th Nov 2013  eweb     #0008 Problems with multi line start
 #
 
 # DONE change event if comment not present.
@@ -885,13 +886,13 @@ end
   if (@multi_line_start.present? && @thisLine.start_with?(@multi_line_start))
     print "Found start of multiline\n#{@thisLine}" if (@verbose.to_i > 2)
     @incomment = true
-    @commentStart = @thisLine
+    @commentStart = @thisLine.dup
     #chomp(@commentStart)
     @commentStart.sub!(/[\r\n]+$/, '')
   elsif (@multi_line_end.present? && @thisLine.start_with?(@multi_line_end))
     print "Found end of multiline\n#{@thisLine}" if (@verbose.to_i > 2)
     @incomment = nil
-    @commentEnd = @thisLine
+    @commentEnd = @thisLine.dup
     #chomp(@commentEnd)
     @commentEnd.sub!(/[\r\n]+$/, '')
 
@@ -1053,10 +1054,10 @@ end
     #  @preBanner = @thisLine
   elsif (!@pastHistory and
       ((@fileType == "tmpl" and @thisLine =~ /^##var/) ||
-          (@multi_line_end.present? and @thisLine.end_with?(@multi_line_end)) ||
-          (@single_line.present? and @thisLine =~ Regexp.new("^#{@single_line}$")) ||
-          (@single_line.present? and @thisLine =~ /^$/) ||
-          (@single_line.present? and !@thisLine.start_with?(@single_line))))
+       (@multi_line_end.present? and @thisLine =~ Regexp.new("#{Regexp.quote(@multi_line_end)}$")) ||
+       (@single_line.present? and @thisLine =~ Regexp.new("^#{Regexp.quote(@single_line)}$")) ||
+       (@single_line.present? and @thisLine =~ /^$/) ||
+       (@single_line.present? and @thisLine !~ Regexp.new("^#{Regexp.quote(@single_line)}"))))
     if (@nComments < 2)
       print "found end of comments: #{@thisLine}" if (@verbose.to_i > 2)
     end
