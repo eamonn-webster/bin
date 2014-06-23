@@ -2,7 +2,7 @@
 #
 # File: synchmusic.rb
 # Author: eweb
-# Copyright eweb, 2012-2013
+# Copyright eweb, 2012-2014
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -10,6 +10,7 @@
 # 14th Aug 2013  eweb     #0008 Convert to ruby
 #  7th Nov 2013  eweb     #0008 Sync back
 # 29th Nov 2013  eweb     #0008 Don't copy backwards
+# 24th Jun 2014  eweb     #0008 Change from java to master
 #
 
 if Dir.exist?('/Volumes/IOMEGA0')
@@ -40,7 +41,7 @@ else
   system( cmd )
 
   dirs = ["/Volumes/#{drive}/projects/wacc",
-          "/Volumes/#{drive}/accounts/java"]
+          "/Volumes/#{drive}/accounts/master"]
 
   dirs.each do |dir|
     Dir.chdir(dir) do

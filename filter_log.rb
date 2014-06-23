@@ -2,11 +2,12 @@
 #
 # File: filter_log.rb
 # Author: eweb
-# Copyright qstream, 2013-2013
+# Copyright qstream, 2013-2014
 # Contents:
 #
 # Date:          Author:  Comments:
 #  5th Nov 2013  eweb     #0008 Filter boring and known lines from log
+# 24th Jun 2014  eweb     #0008 More noise to filter out
 #
 
 File.open(ARGV[1] || "filtered-#{ARGV[0]}", 'w') do |out|
@@ -80,6 +81,19 @@ File.open(ARGV[0]) do |f|
     elsif line =~ %r{app/modules/localized_application.rb:35:in `set_locale'}
     elsif line =~ %r{lib/set_cookie_domain.rb:14:in `call'}
     elsif line =~ /Scale to web=[0-9]+, worker=[0-9]+/
+    elsif line =~ /Completed 200 OK/
+    elsif line =~ /Processing by/
+    elsif line =~ /Parameters: /
+    elsif line =~ /Filter chain halted/
+    elsif line =~ /Completed 302/
+    elsif line =~ /Redirected to /
+    elsif line =~ /Process running mem/
+    elsif line =~ /Memory quota exceeded/
+    elsif line =~ /Setting locale to:/
+    elsif line =~ /Sent mail to /
+    elsif line =~ /Completed 406 Not Acceptable/
+    elsif line =~ /Rendered /
+    elsif line =~ /Stopping delivery/
     elsif line =~ /XXXX/
     else
       puts line

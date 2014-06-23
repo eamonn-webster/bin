@@ -2,7 +2,7 @@
 #
 # File: codiffs.rb
 # Author:
-# Copyright eweb, 2012-2013
+# Copyright eweb, 2012-2014
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -16,6 +16,7 @@
 # 10th Sep 2012  eweb     #0008 make cos.sh executable
 # 24th Oct 2012  eweb     #0008 Report number of files changed
 #  7th Nov 2013  eweb     #0008 Use addcomment.rb
+# 24th Jun 2014  eweb     #0008 git output changes, no diffs file
 #
 
 def find_git( where = "." )
@@ -44,7 +45,7 @@ need_to_change_directory = Dir.pwd != project_root
 Dir.chdir project_root if need_to_change_directory
 
 script_file = project_root + '/cos.sh'
-diffs_file = project_root + '/codiffs.txt'
+#diffs_file = project_root + '/codiffs.txt'
 
 #puts script_file
 
@@ -53,40 +54,42 @@ changed_files = []
   IO.popen("git status") do |f|
     stage = nil
     f.each do |line|
-      if line =~ /# On branch (.*)/
+      #puts line
+      if line =~ /On branch (.*)/
         branch = $1
-      elsif line =~ /# Your branch/
-      elsif line =~ /# Changes to be committed:/
+      elsif line =~ /Your branch/
+      elsif line =~ /Changes to be committed:/
         stage = :staged
-      elsif line =~ /#\tdeleted: +(.*)/
+      elsif line =~ /\tdeleted: +(.*)/
         #
-      elsif line =~ /#\tmodified: +(.*)/ ||
-            line =~ /#\trenamed: +(?:.*) -> (.*)/ ||
-            line =~ /#\tnew file: +(.*)/
+      elsif line =~ /\tmodified: +(.*)/ ||
+            line =~ /\trenamed: +(?:.*) -> (.*)/ ||
+            line =~ /\tnew file: +(.*)/
         file = $1
         puts "Staged #{file}\n" if stage == :staged && verbose
         puts "Unstaged #{file}\n" if stage == :unstaged && verbose
         changed_files << stage
         changed_files << file
-      elsif line =~ /# Untracked files:/
+      elsif line =~ /Untracked files:/
         stage = :untracked
-      elsif line =~ /# Changes not staged for commit:/
+      elsif line =~ /Changes not staged for commit:/
         stage = :unstaged
-      elsif line =~ /#\t(.*)/
+      elsif line =~ /\t(.*)/
         file = $1
         puts "Untracked #{file}" if verbose
         changed_files << stage
         changed_files << file
-      elsif line =~ /#   \(use/
-      elsif line == "#\n"
+      elsif line =~ / \(use/
+      elsif line == "\n"
       elsif line =~ /^[^#]/
+        puts "Unhandled #{line}"
       else
         puts "Unhandled #{line}"
       end
     end
   end
 
-def get_comments file, diffs
+def get_comments file #, diffs
   comments = []
   # git diff compares working tree with index what could be staged
   # git diff --cached compares index with HEAD what has been staged
@@ -96,16 +99,19 @@ def get_comments file, diffs
         puts "Comment: #{$1} #{$2} #{$3} #{$4} #{$5}\n"
         comments << $5
       else
-        diffs.puts line
+        #diffs.puts line
       end
     end
   end
-  comments if comments.length
+  comments
+rescue => e
+  puts "Error scanning file #{file} for comments #{e}"
+  []
 end
 
 if changed_files.length
   files_changed = 0
-  File.open( diffs_file, "w" ) do |diffs|
+  #File.open( diffs_file, "w" ) do |diffs|
     File.open( script_file, "w" ) do |script|
       script.puts "pushd #{project_root}" if need_to_change_directory
       stage =
@@ -115,7 +121,7 @@ if changed_files.length
           stage = f
         else
           files_changed = files_changed + 1
-          comments = get_comments f, diffs
+          comments = get_comments f #, diffs
           if stage == :untracked
             script.puts "#git add #{f}"
           end
@@ -130,7 +136,7 @@ if changed_files.length
       end
       script.puts "popd" if need_to_change_directory
     end
-  end
+  #end
   puts "#{files_changed} files changed"
   mode = File.stat( script_file ).mode & 0777
   # executable by owner
@@ -139,10 +145,6 @@ if changed_files.length
     puts "# File: #{script_file}"
     system "cat #{script_file}"
   end
-  if false
-    puts "# File: #{diffs_file}"
-    system "cat #{diffs_file}"
-  end
-  puts "aquamacs #{script_file} #{diffs_file}"
+  puts "aquamacs #{script_file}"
 end
 

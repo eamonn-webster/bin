@@ -2,7 +2,7 @@
 #
 # File: addcomment.rb
 # Author: eweb
-# Copyright eweb, 2003-2013
+# Copyright eweb, 2003-2014
 # Contents: Perl script to add comments to source files
 #
 # Date:          Author:  Comments:
@@ -87,6 +87,7 @@
 #  5th Nov 2013  eweb     #0008 Shebang line to determine type
 # 29th Nov 2013  eweb     #0008 Problems with multi line start
 # 29th Nov 2013  eweb     #0008 Recognise ruby encoding
+# 24th Jun 2014  eweb     #0008 feedback, file extensions, line numbers, regexps
 #
 
 # DONE change event if comment not present.
@@ -593,6 +594,12 @@ end
 def determine_type(file)
   file_type = nil
   if @JustChangeEvent
+  elsif (File.directory?(@infile))
+    print "Don't comment directories\n"
+  elsif (File.symlink?(@infile))
+    print "Don't comment symlinks\n"
+  elsif (file =~ /\.png$/ or file =~ /\.icns$/)
+    print "Can't comment images\n"
   elsif (file =~ /\.dsw$/ or
       file =~ /\.dsp$/ or
       file =~ /\.dat$/)
@@ -630,7 +637,10 @@ def determine_type(file)
       file =~ /\.properties$/ or
       file =~ /\.properties.default$/ or
       file =~ /\.rake$/ or
-      file =~ /^Rakefile$/ )
+      file =~ /\.yml$/ or
+      file =~ /\.simplecov$/ or
+      file =~ /^Rakefile$/ or
+      file =~ /^Gemfile$/ )
     file_type = "pl"
   elsif (file =~ /\.tmpl$/)
     file_type = "tmpl"
@@ -648,8 +658,6 @@ def determine_type(file)
     file_type = "asp"
   elsif (file =~ /\.bas$/ or file =~ /\.vb$/)
     file_type = "bas"
-  elsif (File.directory?(@infile))
-    print "Don't comment directories\n"
   else
     first_line = File.open(@infile) { |fh| fh.readline.chomp }
     if first_line =~ /^#!.+perl/ ||
@@ -832,21 +840,21 @@ end
     @eoln = $1
     if (@eoln != @lineType)
       if (@Line > 1)
-        STDERR.print "ERROR: Mixed line endings at line #{@Line}\n"
+        STDERR.print "ERROR: Mixed line endings at line #{@File}:#{@Line}\n"
       end
       @chars = @eoln.chars.collect(&:ord)
       #STDERR.print "eoln: [#{@chars}]\n"
 
       if (@eoln == "\r\n")
-        STDERR.print "ERROR: Dos line end [#{@chars}] at line #{@Line}\n" unless (RUBY_PLATFORM == "MSWin32")
+        STDERR.print "ERROR: Dos line end [#{@chars}] at line #{@File}:#{@Line}\n" unless (RUBY_PLATFORM == "MSWin32")
       elsif (@eoln == "\n")
-        STDERR.print "ERROR: Unix line end [#{@chars}] at line #{@Line}\n" if (RUBY_PLATFORM == "MSWin32")
+        STDERR.print "ERROR: Unix line end [#{@chars}] at line #{@File}:#{@Line}\n" if (RUBY_PLATFORM == "MSWin32")
       elsif (@eoln == "\r")
-        STDERR.print "ERROR: Mac line end [#{@chars}] at line #{@Line}\n"
+        STDERR.print "ERROR: Mac line end [#{@chars}] at line #{@File}:#{@Line}\n"
       elsif (@eoln == "\r\r\n")
-        STDERR.print "ERROR: Netscape line end [#{@chars}] at line #{@Line}\n"
+        STDERR.print "ERROR: Netscape line end [#{@chars}] at line #{@File}:#{@Line}\n"
       else
-        STDERR.print "ERROR: Odd line end [#{@chars}] at line #{@Line}\n"
+        STDERR.print "ERROR: Odd line end [#{@chars}] at line #{@File}:#{@Line}\n"
       end
     end
     @lineType = @eoln
@@ -857,15 +865,15 @@ end
   end
 
   if (thisLine =~ /\t/)
-    STDERR.print "TABS!!! Tabs found at line #{@Line}\n"
+    STDERR.print "TABS!!! Tabs found at line #{@File}:#{@Line}\n"
   end
   if (thisLine =~ /[ \t][\r\n]/)
     if (@stripTrailingSpaces)
-      STDERR.print "Space! Trailing space removed from line #{@Line}\n"
+      STDERR.print "Space! Trailing space removed from line #{@File}:#{@Line}\n"
       thisLine.sub!(/[ \t]+$/, '')
       @changed = 1
     else
-      STDERR.print "SPACE!!! Trailing space found at line #{@Line}\n"
+      STDERR.print "SPACE!!! Trailing space found at line #{@File}:#{@Line}\n"
     end
   end
   if (thisLine =~ /([^\x20-\x7f\t\n\r]+)/)
@@ -897,7 +905,7 @@ end
     @commentStart = @thisLine.dup
     #chomp(@commentStart)
     @commentStart.sub!(/[\r\n]+$/, '')
-  elsif (@multi_line_end.present? && @thisLine.start_with?(@multi_line_end))
+  elsif (@multi_line_end.present? && @thisLine.end_with?(@multi_line_end))
     print "Found end of multiline\n#{@thisLine}" if (@verbose.to_i > 2)
     @incomment = nil
     @commentEnd = @thisLine.dup
@@ -1342,34 +1350,36 @@ elsif (@dodgyBanner)
   #print "Will try to open @outfile\n"
   @output = open(@outfile, 'w') or die "can't open #{@outfile}\n"
   #writeBanner()
-  @past = 0
+  @past = false
+
   @input.each_line do |l|
-    if (@past)
-      @output.print l
-    elsif (@multi_line_start.present? and l =~ /^\Q#{@multi_line_start}\E/)
+    l.chomp!
+    if @past
+      @output.print "#{l}\n"
+    elsif @multi_line_start.present? and l.start_with?(@multi_line_start)
       @output.print "#{@multi_line_start}\n"
       print "start of comments\n" if (@verbose.to_i > 2)
-    elsif (@multi_line_end.present? and l =~ /\Q#{@multi_line_end}\E$/)
+    elsif @multi_line_end.present? and l.end_with?(@multi_line_end)
       @output.print "#{@multi_line_end}\n"
       @past = 1
       print "end of comments\n" if (@verbose.to_i > 2)
     else
       if (l =~ /^$ *$/)
         #@output.print "#{@multi_line_prefix} File: "#{$1}"\n"
-      elsif (l =~ /^\Q@multi_line_end\E *File: (.+)/)
+      elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + ' *File: (.+)')
         @output.print "#{@multi_line_prefix} File: #{$1}\n"
-      elsif (l =~ /^\Q@multi_line_end\E *Author: (.+)/)
+      elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + ' *Author: (.+)')
         @output.print "#{@multi_line_prefix} Author: #{$1}\n"
-      elsif (l =~ /^\Q@multi_line_end\E *Contents: (.+)/)
+      elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + ' *Contents: (.+)')
         @output.print "#{@multi_line_prefix} Contents: #{$1}\n"
-      elsif (l =~ /^\Q@multi_line_end\E *Contents:/)
+      elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + ' *Contents:')
         @output.print "#{@multi_line_prefix} Contents:\n"
-      elsif (l =~ /^\Q@multi_line_end\E *Copyright (.+), (.+)/)
+      elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + ' *Copyright (.+), (.+)')
         @output.print "#{@multi_line_prefix} Copyright #{$1}, #{$2}\n"
-      elsif (l =~ /^\Q@multi_line_prefix\E( ?)(.+)/)
+      elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + '( ?)(.+)')
         @output.print "#{@multi_line_prefix} #{$2}\n"
       else
-        @output.print l
+        @output.print "#{l}\n"
       end
     end
   end

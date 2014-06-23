@@ -2,32 +2,41 @@
 #
 # File: git-synch-all
 # Author: eweb
-# Copyright eweb, 2013-2013
+# Copyright qstream, 2013-2014
 # Contents:
 #
 # Date:          Author:  Comments:
 #  5th Nov 2013  eweb     #0008 Synch all workspaces
+# 24th Jun 2014  eweb     #0008 Discover workspaces
 #
 
-worktrees = %w{rails31 edge trove scratch}
+Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
+  next unless Dir.exist?(dir)
+  Dir.chdir(dir) do |dir|
+    next unless Dir.exist?('.git')
+    remote = %x{git remote -v | grep -e 'origin.\\+fetch'}
+    if remote =~ %r{git@github.com:qstream/(.+)\.git}
+      repo = $1
+      puts dir
+      current = `git rev-parse --abbrev-ref HEAD`.chomp
+      puts "current [#{current}]"
+      puts remote
 
-worktrees.each do |wt|
-  Dir.chdir("#{ENV['HOME']}/projects/qstream/#{wt}") do |dir|
-    puts dir
+      system("git remote update")
 
-    system("git remote update")
+      case repo
+        when 'spaced-ed'
+          branches = %w{master trove-master edge}
+        else
+          branches = %w{master}
+      end
 
-    branches = %w{rails31 master trove-master edge}
+      branches.each do |br|
+        next if br == current
+        system("git update-ref refs/heads/#{br} remotes/origin/#{br}")
+      end
 
-    current = `git rev-parse --abbrev-ref HEAD`.chomp
-
-    puts "current [#{current}]"
-
-    branches.each do |br|
-      next if br == current
-      system("git update-ref refs/heads/#{br} remotes/origin/#{br}")
+      system("git pull")
     end
-
-    system("git pull")
   end
 end

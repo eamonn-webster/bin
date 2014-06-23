@@ -2,15 +2,16 @@
 #
 # File: git-synch
 # Author: eweb
-# Copyright eweb, 2013-2013
+# Copyright eweb, 2013-2014
 # Contents:
 #
 # Date:          Author:  Comments:
 #  5th Nov 2013  eweb     #0008 Synch one workspace
+# 24th Jun 2014  eweb     #0008 Drop rails31
 #
 system("git remote update")
 
-branches = %w{rails31 master trove-master edge}
+branches = %w{master trove-master edge}
 
 current = `git rev-parse --abbrev-ref HEAD`.chomp
 
