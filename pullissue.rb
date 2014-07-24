@@ -5,7 +5,7 @@ base = ARGV[2]
 
 head = %x{git rev-parse --abbrev-ref HEAD} unless head
 head = head.strip
-base ||= 'rails31'
+base ||= 'edge'
 
 if ARGV.empty?
   puts "usage #{$0} issue [head:#{head}] [base:#{base}]"
