@@ -17,6 +17,9 @@ if Dir.exist?('/Volumes/IOMEGA0')
   drive = 'IOMEGA0'
 elsif Dir.exist?('/Volumes/iomega1')
   drive = 'iomega1'
+else
+  puts 'Removeable drive not found'
+  exit
 end
 
 src = "/Users/eweb/Music/iTunes"
