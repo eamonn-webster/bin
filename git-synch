@@ -11,7 +11,7 @@
 #
 system("git remote update")
 
-branches = %w{master trove-master edge}
+branches = %w{master trove edge labs}
 
 current = `git rev-parse --abbrev-ref HEAD`.chomp
 

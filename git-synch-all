@@ -26,7 +26,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
 
       case repo
         when 'spaced-ed'
-          branches = %w{master trove-master edge}
+          branches = %w{master trove edge labs}
         else
           branches = %w{master}
       end
