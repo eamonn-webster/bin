@@ -8,7 +8,14 @@
 # Date:          Author:  Comments:
 #  5th Nov 2013  eweb     #0008 Synch all workspaces
 # 24th Jun 2014  eweb     #0008 Discover workspaces
+# 20th Aug 2014  eweb     #0008 Include branch qs-labs
+# 20th Aug 2014  eweb     #0008 Call tag-releases
 #
+
+tagged = nil
+
+bin_dir = File.expand_path('../', __FILE__)
+# puts bin_dir
 
 Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
   next unless Dir.exist?(dir)
@@ -24,9 +31,19 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
 
       system("git remote update")
 
+      if repo == 'spaced-ed' && !tagged
+        apps = %w{qs-alpha qs-bleedin qs-staging qs-labs}
+        apps.each do |app|
+          #tags = `#{bin_dir}/tag-releases.rb #{app}`.chomp
+          tags = `tag-releases #{app}`.chomp
+          puts tags unless tags.empty?
+        end
+        tagged = true
+      end
+
       case repo
         when 'spaced-ed'
-          branches = %w{master trove edge labs}
+          branches = %w{master trove edge qs-labs}
         else
           branches = %w{master}
       end

@@ -8,10 +8,11 @@
 # Date:          Author:  Comments:
 #  5th Nov 2013  eweb     #0008 Synch one workspace
 # 24th Jun 2014  eweb     #0008 Drop rails31
+# 20th Aug 2014  eweb     #0008 Include branch qs-labs
 #
 system("git remote update")
 
-branches = %w{master trove edge labs}
+branches = %w{master trove edge qs-labs}
 
 current = `git rev-parse --abbrev-ref HEAD`.chomp
 

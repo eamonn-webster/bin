@@ -17,6 +17,7 @@
 # 24th Oct 2012  eweb     #0008 Report number of files changed
 #  7th Nov 2013  eweb     #0008 Use addcomment.rb
 # 24th Jun 2014  eweb     #0008 git output changes, no diffs file
+# 20th Aug 2014  eweb     #0008 Cleaner output
 #
 
 def find_git( where = "." )
@@ -57,7 +58,9 @@ changed_files = []
       #puts line
       if line =~ /On branch (.*)/
         branch = $1
-      elsif line =~ /Your branch/
+      elsif line =~ /Your branch is up-to-date with '.+'/
+      elsif line =~ /Your branch is ahead of '.+'/
+      elsif line =~ /nothing to commit, working directory clean/
       elsif line =~ /Changes to be committed:/
         stage = :staged
       elsif line =~ /\tdeleted: +(.*)/
@@ -141,10 +144,12 @@ if changed_files.length
   mode = File.stat( script_file ).mode & 0777
   # executable by owner
   File.chmod( mode | 0100, script_file )
-  if false
-    puts "# File: #{script_file}"
-    system "cat #{script_file}"
+  unless files_changed == 0
+    if false
+      puts "# File: #{script_file}"
+      system "cat #{script_file}"
+    end
+    puts "aquamacs #{script_file}"
   end
-  puts "aquamacs #{script_file}"
 end
 
