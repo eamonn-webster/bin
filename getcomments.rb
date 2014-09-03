@@ -8,6 +8,7 @@
 # Date:          Author:  Comments:
 # 24th Feb 2010  eweb     #0008 Scrape comments from files
 # 24th Jun 2014  eweb     #0008 Port to ruby
+#  3rd Sep 2014  eweb     #0008 Hint if no comments
 #
 
 @comments = []
@@ -124,8 +125,8 @@ def formatDate(d, m ,y)
   "#{d}#{th} #{m} #{y}"
 end
 
-def onefile(file, since, out)
-  #puts "onefile(#{file}, #{since}, #{out})"
+def onefile(file, since)
+  #puts "onefile(#{file}, #{since})"
   puts file if @verbose
   # got the changes, open the file and see if they are within range.
 
@@ -171,7 +172,6 @@ def onefile(file, since, out)
             puts "looking for [bugid text] in (@oldComments)" if @verbose
             if @oldComments.none?{ |c| c == "#{bugid} #{text}"}
               #print "#{bugid} [#{text}]\n"
-              #out.print "rem addcomment.pl -c \"#{comment}\" \"#{file}\"\n"
               if @comments.none?{ |c| c == comment }
                 @comments << comment
               end
@@ -188,7 +188,7 @@ def onefile(file, since, out)
     end
   end
 
-def comments(out)
+def get_comments
   if @scc == :git
     since = "#{@rev}"
     cmd = "git diff --name-only #{since}"
@@ -213,14 +213,10 @@ def comments(out)
           next
         end
       end
-      onefile(line, since, out)
+      onefile(line, since)
   end
   @comments = @comments.sort
-  @comments = @comments.reverse
-  @comments.each do |c|
-    #out.puts "REM #{c}"
-    out.puts c
-  end
+  @comments.reverse
 end
 
 determinescc
@@ -237,8 +233,17 @@ output = 'comments.dat' if os == 'darwin' or os == 'linux'
 editor = 'emacs' if os == 'linux'
 editor = 'aquamacs' if os == 'darwin'
 
-print "#{editor} #{output}\n\n"
 
-File.open(output, 'w') do |h|
-  comments(h)
+comments = get_comments
+if comments.empty?
+  puts "no comments try #{$0} -l --cached"
+  File.delete(output)
+else
+  puts "#{comments.size} comments"
+  File.open(output, 'w') do |out|
+    comments.each do |c|
+      out.puts c
+    end
+  end
+  print "#{editor} #{output}\n\n"
 end
