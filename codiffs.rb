@@ -18,6 +18,7 @@
 #  7th Nov 2013  eweb     #0008 Use addcomment.rb
 # 24th Jun 2014  eweb     #0008 git output changes, no diffs file
 # 20th Aug 2014  eweb     #0008 Cleaner output
+#  3rd Sep 2014  eweb     #0008 Delete file if no changes
 #
 
 def find_git( where = "." )
@@ -114,41 +115,37 @@ end
 
 if changed_files.length
   files_changed = 0
-  #File.open( diffs_file, "w" ) do |diffs|
-    File.open( script_file, "w" ) do |script|
-      script.puts "pushd #{project_root}" if need_to_change_directory
-      stage =
-      changed_files.each do |f|
-        if f.class == Symbol
-          script.puts "### #{f}" if stage != f
-          stage = f
+  File.open( script_file, "w" ) do |script|
+    script.puts "pushd #{project_root}" if need_to_change_directory
+    stage =
+    changed_files.each do |f|
+      if f.class == Symbol
+        script.puts "### #{f}" if stage != f
+        stage = f
+      else
+        files_changed = files_changed + 1
+        comments = get_comments f #, diffs
+        if stage == :untracked
+          script.puts "#git add #{f}"
+        end
+        if comments.length > 0
+          comments.each do |c|
+            script.puts "##{addcomment} -c \"#{c}\" #{f}"
+          end
         else
-          files_changed = files_changed + 1
-          comments = get_comments f #, diffs
-          if stage == :untracked
-            script.puts "#git add #{f}"
-          end
-          if comments.length > 0
-            comments.each do |c|
-              script.puts "##{addcomment} -c \"#{c}\" #{f}"
-            end
-          else
-            script.puts "#{addcomment} -c \"\" #{f}"
-          end
+          script.puts "#{addcomment} -c \"\" #{f}"
         end
       end
-      script.puts "popd" if need_to_change_directory
     end
-  #end
+    script.puts "popd" if need_to_change_directory
+  end
   puts "#{files_changed} files changed"
-  mode = File.stat( script_file ).mode & 0777
-  # executable by owner
-  File.chmod( mode | 0100, script_file )
-  unless files_changed == 0
-    if false
-      puts "# File: #{script_file}"
-      system "cat #{script_file}"
-    end
+  if files_changed == 0
+    File.delete(script_file)
+  else
+    mode = File.stat( script_file ).mode & 0777
+    # executable by owner
+    File.chmod( mode | 0100, script_file )
     puts "aquamacs #{script_file}"
   end
 end
