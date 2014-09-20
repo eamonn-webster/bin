@@ -8,11 +8,12 @@
 # Date:          Author:  Comments:
 #  5th Nov 2013  eweb     #0008 Tag releases
 # 20th Aug 2014  eweb     #0008 More apps, display first tag
+# 20th Sep 2014  eweb     #0008 analytics apps
 #
 
 apps = [ARGV[0]]
 
-apps = %w{qs-alpha qs-bleedin qs-staging qs-analytics qs-labs qs-demo qs-demo-launcher} if apps.compact.empty?
+apps = %w{qs-alpha qs-bleedin qs-staging qs-analytics qs-analytics qs-analytics-2 qs-labs qs-demo qs-demo-launcher} if apps.compact.empty?
 
 apps.each do |app|
   displayed = false

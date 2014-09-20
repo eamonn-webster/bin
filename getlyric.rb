@@ -9,6 +9,7 @@
 #  5th Nov 2013  eweb     #0008 Maintenance
 # 29th Nov 2013  eweb     #0008 Match divs over lines
 # 24th Jun 2014  eweb     #0008 Reorg
+# 20th Sep 2014  eweb     #0008 tidy html
 #
 require 'nokogiri'
 require 'open-uri'
@@ -24,6 +25,14 @@ def save_lyrics(lyric)
   puts "**** Contains entities" if lyric[/&.+;/]
 
   IO.popen('pbcopy', 'w').puts lyric
+end
+
+def tidy(lyric)
+  lyric = lyric.gsub /<div.+?<\/div>/m, ''
+  lyric = lyric.gsub /<script.+?<\/script>/m, ''
+  lyric = lyric.gsub /<!--.+?-->/m, ''
+  lyric = lyric.gsub /<br>/, "\n"
+  lyric = lyric.strip
 end
 
 def fetch_0
@@ -45,14 +54,14 @@ def fetch_0
 
   begin
     doc = Nokogiri::HTML(open(url))
-    lyric = doc.xpath( "id('songlyrics_h')" ).inner_html.gsub /<br>/, ''
-    lyric = lyric.strip
+    lyric = doc.xpath( "id('songlyrics_h')" ).inner_html
+    lyric = tidy(lyric)
     if lyric && lyric != ''
       save_lyrics(lyric)
       true
     end
   rescue Exception => e
-    puts e
+    puts "#{e.class} #{e.message}"
   end
 end
 
@@ -71,11 +80,7 @@ def fetch_1
     doc = Nokogiri::HTML(open(url))
     lyric = doc.xpath( "//div[@class='lyricbox']" ).inner_html
 
-    lyric = lyric.gsub /<div.+?<\/div>/m, ''
-    lyric = lyric.gsub /<!--.+?-->/m, ''
-    lyric = lyric.gsub /<br>/, "\n"
-
-    lyric = lyric.strip
+    lyric = tidy(lyric)
     if lyric =~ /Unfortunately, we are not licensed to display the full lyrics/
       lyric = nil
     end
@@ -87,7 +92,7 @@ def fetch_1
       true
     end
   rescue Exception => e
-    puts e
+    puts "#{e.class} #{e.message}"
   end
 end
 
@@ -107,14 +112,14 @@ def fetch_2
   begin
     doc = Nokogiri::HTML(open(url))
 
-    lyric = doc.xpath( "id('songlyrics_h')" ).inner_html.gsub /<br>/, ''
-    lyric = lyric.strip
+    lyric = doc.xpath( "id('songlyrics_h')" ).inner_html
+    lyric = tidy(lyric)
     if lyric && lyric != ''
       save_lyrics(lyric)
       true
     end
   rescue Exception => e
-    puts e
+    puts "#{e.class} #{e.message}"
   end
 end
 
@@ -141,14 +146,14 @@ def fetch_3
   begin
     doc = Nokogiri::HTML(open(url))
 
-    lyric = doc.xpath( "id('songlyrics_h')" ).inner_html.gsub /<br>/, ''
-    lyric = lyric.strip
+    lyric = doc.xpath( "id('songlyrics_h')" ).inner_html
+    lyric = tidy(lyric)
     if lyric && lyric != ''
       save_lyrics(lyric)
       true
     end
   rescue Exception => e
-    puts e
+    puts "#{e.class} #{e.message}"
   end
 
 end
@@ -165,8 +170,8 @@ def fetch_4
 
   begin
     doc = Nokogiri::HTML(open(url))
-    lyric = doc.xpath( "id('songlyrics')/p" ).inner_html.gsub /<br>/, ''
-    lyric = lyric.strip
+    lyric = doc.xpath( "id('songlyrics')/p" ).inner_html
+    lyric = tidy(lyric)
     if lyric && lyric != ''
       save_lyrics(lyric)
       true

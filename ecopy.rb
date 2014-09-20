@@ -2,13 +2,14 @@
 #
 # File: ecopy.rb
 # Author: eweb
-# Copyright eweb, 1989-2011
+# Copyright eweb, 1989-2014
 # Contents:
 #
 # Date:          Author:  Comments:
 # 25th Aug 2011  eweb     #0008 Rewrite ecopy in ruby
 # 25th Aug 2011  eweb     #0008 Does it remove execute permissions
 # 25th Aug 2011  eweb     #0008 Does it remove execute permissions - yes it does
+# 20th Sep 2014  eweb     #0008 conflicted copies
 #
 require 'FileUtils'
 
@@ -349,7 +350,12 @@ def process_folder( source, destination, options, switches )
 
   puts "Files in #{source} but not in #{destination}" unless adds.empty?
   adds.each do | file |
-    ans = process_file( "add file #{source}/#{file} #{destination}/#{file}? (c/r/v)", "#{source}/#{file}","#{destination}/#{file}", options, local_switches )
+    if file =~ /\(conflicted copy.*\)/
+      stem = file.sub(/ \(conflicted copy.*\)/, '')
+      ans = process_file( "add file #{source}/#{file} #{source}/#{stem}? (c/r/d/e/v)", "#{source}/#{file}", "#{source}/#{stem}", options, local_switches )
+    else
+      ans = process_file( "add file #{source}/#{file} #{destination}/#{file}? (c/r/v)", "#{source}/#{file}", "#{destination}/#{file}", options, local_switches )
+    end
     #puts "local_switches #{local_switches}\n"
     return ans if ans == 'q'
     return if ans == 's'

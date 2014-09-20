@@ -19,6 +19,7 @@
 # 24th Jun 2014  eweb     #0008 git output changes, no diffs file
 # 20th Aug 2014  eweb     #0008 Cleaner output
 #  3rd Sep 2014  eweb     #0008 Delete file if no changes
+# 20th Sep 2014  eweb     #0008 Don't delete cos.sh
 #
 
 def find_git( where = "." )
@@ -140,12 +141,11 @@ if changed_files.length
     script.puts "popd" if need_to_change_directory
   end
   puts "#{files_changed} files changed"
-  if files_changed == 0
-    File.delete(script_file)
-  else
-    mode = File.stat( script_file ).mode & 0777
-    # executable by owner
-    File.chmod( mode | 0100, script_file )
+
+  mode = File.stat( script_file ).mode & 0777
+  # executable by owner
+  File.chmod( mode | 0100, script_file )
+  if files_changed > 0
     puts "aquamacs #{script_file}"
   end
 end
