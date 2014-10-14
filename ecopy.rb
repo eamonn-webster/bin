@@ -10,6 +10,7 @@
 # 25th Aug 2011  eweb     #0008 Does it remove execute permissions
 # 25th Aug 2011  eweb     #0008 Does it remove execute permissions - yes it does
 # 20th Sep 2014  eweb     #0008 conflicted copies
+# 14th Oct 2014  eweb     #0008 Regexp for conflicted copies
 #
 require 'FileUtils'
 
@@ -350,8 +351,8 @@ def process_folder( source, destination, options, switches )
 
   puts "Files in #{source} but not in #{destination}" unless adds.empty?
   adds.each do | file |
-    if file =~ /\(conflicted copy.*\)/
-      stem = file.sub(/ \(conflicted copy.*\)/, '')
+    if file =~ /\(.*conflicted copy.*\)/
+      stem = file.sub(/ \(.*conflicted copy.*\)/, '')
       ans = process_file( "add file #{source}/#{file} #{source}/#{stem}? (c/r/d/e/v)", "#{source}/#{file}", "#{source}/#{stem}", options, local_switches )
     else
       ans = process_file( "add file #{source}/#{file} #{destination}/#{file}? (c/r/v)", "#{source}/#{file}", "#{destination}/#{file}", options, local_switches )
