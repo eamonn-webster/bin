@@ -2,7 +2,7 @@
 #
 # File: synchmusic.rb
 # Author: eweb
-# Copyright eweb, 2012-2014
+# Copyright eweb, 2012-2015
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -11,6 +11,7 @@
 #  7th Nov 2013  eweb     #0008 Sync back
 # 29th Nov 2013  eweb     #0008 Don't copy backwards
 # 24th Jun 2014  eweb     #0008 Change from java to master
+# 25th Mar 2015  eweb     #0008 Backup own music
 #
 
 if Dir.exist?('/Volumes/IOMEGA0')
@@ -38,8 +39,14 @@ if @back
   cmd = "rsync -rtvi  #{dst}/ #{src}"
   puts cmd
   system( cmd )
+  cmd.gsub!('iTunes', 'Own')
+  puts cmd
+  system( cmd )
 else
   cmd = "rsync -rtvi --delete-during #{src}/ #{dst}"
+  puts cmd
+  system( cmd )
+  cmd.gsub!('iTunes', 'Own')
   puts cmd
   system( cmd )
 
