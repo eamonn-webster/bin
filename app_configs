@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+
+#
+# File: app_configs
+# Author: eweb
+# Copyright QStream, 2015-2015
+# Contents:
+#
+# Date:          Author:  Comments:
+# 25th Mar 2015  eweb     #0008 Fetch heroku app configs
+#
+
+%x{heroku apps}.each_line do |line|
+  next if line =~ /^===/
+  if line =~ /^(.+)\s+(.+)$/
+    app = $1.strip
+    puts app
+    config = %x{heroku config --app #{app}}
+    File.open("#{app}.config", "w") do |f|
+      f.puts(config)
+    end
+  end
+end
