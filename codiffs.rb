@@ -2,7 +2,7 @@
 #
 # File: codiffs.rb
 # Author:
-# Copyright eweb, 2012-2014
+# Copyright eweb, 2012-2015
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -20,6 +20,7 @@
 # 20th Aug 2014  eweb     #0008 Cleaner output
 #  3rd Sep 2014  eweb     #0008 Delete file if no changes
 # 20th Sep 2014  eweb     #0008 Don't delete cos.sh
+# 25th Mar 2015  eweb     #0008 Always push and pop dir
 #
 
 def find_git( where = "." )
@@ -117,7 +118,7 @@ end
 if changed_files.length
   files_changed = 0
   File.open( script_file, "w" ) do |script|
-    script.puts "pushd #{project_root}" if need_to_change_directory
+    script.puts "pushd #{project_root}" # if need_to_change_directory
     stage =
     changed_files.each do |f|
       if f.class == Symbol
@@ -138,7 +139,7 @@ if changed_files.length
         end
       end
     end
-    script.puts "popd" if need_to_change_directory
+    script.puts "popd" # if need_to_change_directory
   end
   puts "#{files_changed} files changed"
 
