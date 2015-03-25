@@ -2,7 +2,7 @@
 #
 # File: git-synch-all
 # Author: eweb
-# Copyright qstream, 2013-2014
+# Copyright qstream, 2013-2015
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -10,6 +10,7 @@
 # 24th Jun 2014  eweb     #0008 Discover workspaces
 # 20th Aug 2014  eweb     #0008 Include branch qs-labs
 # 20th Aug 2014  eweb     #0008 Call tag-releases
+# 25th Mar 2015  eweb     #0008 Drop trove
 #
 
 tagged = nil
@@ -43,7 +44,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
 
       case repo
         when 'spaced-ed'
-          branches = %w{master trove edge qs-labs}
+          branches = %w{master edge qs-labs}
         else
           branches = %w{master}
       end
