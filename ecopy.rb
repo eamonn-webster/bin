@@ -13,6 +13,7 @@
 # 14th Oct 2014  eweb     #0008 Regexp for conflicted copies
 # 25th Mar 2015  eweb     #0007 Reformat
 # 25th Mar 2015  eweb     #0007 Classify
+# 25th Mar 2015  eweb     #0007 Avoid infinite recursion
 #
 require 'FileUtils'
 
@@ -37,10 +38,10 @@ require 'FileUtils'
 # make writable / checkout
 class AppIO
   def puts(msg)
-    puts(msg)
+    Kernel::puts(msg)
   end
   def print(msg)
-    print(msg)
+    Kernel::print(msg)
   end
   def get_key
     STDIN.gets[0..0]
@@ -49,9 +50,8 @@ class AppIO
     print prompt
     get_key
   end
-
   def system(cmd)
-    system cmd
+    Kernel::system cmd
   end
 end
 
@@ -73,7 +73,7 @@ class ECopy
   end
 
   def system(cmd)
-    @io.system(md)
+    @io.system(cmd)
   end
 
   def match_file_one(file, opt)
