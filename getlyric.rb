@@ -2,7 +2,7 @@
 #
 # File: getlyric.rb
 # Author: eweb
-# Copyright eweb, 2013-2014
+# Copyright eweb, 2013-2015
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -10,6 +10,7 @@
 # 29th Nov 2013  eweb     #0008 Match divs over lines
 # 24th Jun 2014  eweb     #0008 Reorg
 # 20th Sep 2014  eweb     #0008 tidy html
+# 25th Mar 2015  eweb     #0008 Apostrophies
 #
 require 'nokogiri'
 require 'open-uri'
@@ -70,8 +71,10 @@ def fetch_1
   song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
 
   artist.gsub!(/ /, '_')
+  artist.gsub!("'", '%27')
   song.gsub!(/ /, '_')
   song.gsub!('?', '%3F')
+  song.gsub!("'", '%27')
 
   url = "http://lyrics.wikia.com/#{artist}:#{song}"
 
@@ -207,7 +210,7 @@ def fetch_5
 end
 
 if ARGV.length < 2
-elsif fetch_0
+# elsif fetch_0
 elsif fetch_1
 elsif fetch_2
 elsif fetch_3
