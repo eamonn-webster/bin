@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+#
+# File: host-mod
+# Author: eweb
+# Copyright QStream, 2015-2015
+# Contents:
+#
+# Date:          Author:  Comments:
+# 25th Mar 2015  eweb     #0008 Android hosts file
+#
+
+cmd = "ifconfig | grep '\\binet\\b' | grep -v 127.0.0.1 | awk '{print $2}'"
+addrs = `#{cmd}`
+addr = addrs.lines.first.chomp
+
+
+# Copy our hosts file into a tmp location and replace all 127.0.0.1 with the
+# android emulator host ip
+`cat /etc/hosts | awk '{ if (/127.0.0.1/ && c++>0) { sub(/127.0.0.1/, "#{addr}"); } print }' > /tmp/hosts`
+
+`~/android-sdk-macosx/platform-tools/adb remount`
+`~/android-sdk-macosx/platform-tools/adb push /tmp/hosts /system/etc`
+
+puts "Hosts file updated!"

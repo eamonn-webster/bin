@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#
+# File: watch-hosts
+# Author: eweb
+# Copyright QStream, 2015-2015
+# Contents:
+#
+# Date:          Author:  Comments:
+# 25th Mar 2015  eweb     #0008 Android hosts file
+#
+~/bin/host-mod
+fswatch /etc ~/bin/host-mod
