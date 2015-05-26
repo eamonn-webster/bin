@@ -2,11 +2,12 @@
 #
 # File: host-mod
 # Author: eweb
-# Copyright QStream, 2015-2015
+# Copyright eweb, 2015-2015
 # Contents:
 #
 # Date:          Author:  Comments:
 # 25th Mar 2015  eweb     #0008 Android hosts file
+# 26th May 2015  eweb     #0008 Commands to set up watch
 #
 
 cmd = "ifconfig | grep '\\binet\\b' | grep -v 127.0.0.1 | awk '{print $2}'"
@@ -22,3 +23,7 @@ addr = addrs.lines.first.chomp
 `~/android-sdk-macosx/platform-tools/adb push /tmp/hosts /system/etc`
 
 puts "Hosts file updated!"
+
+
+# ~/bin/host-mod
+# fswatch /etc ~/bin/host-mod
