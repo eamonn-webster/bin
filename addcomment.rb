@@ -2,7 +2,7 @@
 #
 # File: addcomment.rb
 # Author: eweb
-# Copyright eweb, 2003-2014
+# Copyright eweb, 2003-2015
 # Contents: Perl script to add comments to source files
 #
 # Date:          Author:  Comments:
@@ -88,6 +88,7 @@
 # 29th Nov 2013  eweb     #0008 Problems with multi line start
 # 29th Nov 2013  eweb     #0008 Recognise ruby encoding
 # 24th Jun 2014  eweb     #0008 feedback, file extensions, line numbers, regexps
+# 26th May 2015  eweb     #0008 Handle sh/bash scripts
 #
 
 # DONE change event if comment not present.
@@ -633,6 +634,7 @@ def determine_type(file)
     file_type = "sql"
   elsif (file =~ /\.rb$/ or
       file =~ /\.feature$/ or
+      file =~ /\.sh$/ or
       file =~ /\.pl$/ or
       file =~ /\.properties$/ or
       file =~ /\.properties.default$/ or
@@ -661,7 +663,8 @@ def determine_type(file)
   else
     first_line = File.open(@infile) { |fh| fh.readline.chomp }
     if first_line =~ /^#!.+perl/ ||
-        first_line =~ /^#!.+ruby/
+        first_line =~ /^#!.+ruby/ ||
+        first_line =~ /^#!.+bash/
       file_type = 'pl'
     else
       print "Unhandled file type #{file}\n"
