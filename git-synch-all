@@ -11,7 +11,10 @@
 # 20th Aug 2014  eweb     #0008 Include branch qs-labs
 # 20th Aug 2014  eweb     #0008 Call tag-releases
 # 25th Mar 2015  eweb     #0008 Drop trove
+# 26th May 2015  eweb     #0008 Clean up and colorize output
 #
+
+require 'open3'
 
 tagged = nil
 
@@ -23,14 +26,26 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
   Dir.chdir(dir) do |dir|
     next unless Dir.exist?('.git')
     remote = %x{git remote -v | grep -e 'origin.\\+fetch'}
-    if remote =~ %r{git@github.com:qstream/(.+)\.git}
+    if remote =~ %r{git@github.com:qstream/(.+)\.git} ||
+       remote =~ %r{https://github.com/qstream/(.+)\.git}
+      remote = Regexp.last_match(0)
       repo = $1
-      puts dir
       current = `git rev-parse --abbrev-ref HEAD`.chomp
-      puts "current [#{current}]"
-      puts remote
+      puts "\033[0;34m#{dir}\033[0m \033[0;35m#{current}\033[0m \033[0;36m#{remote}\033[0m"
 
-      system("git remote update")
+      Open3.popen2e("git", "remote", "update") {|i,oe,t|
+        oe.each {|line|
+          line.chomp!
+          if /Fetching repository, done./ =~ line
+          elsif /Already up-to-date./ =~ line
+          elsif /Fetching (.+)/ =~ line
+            print "\033[2K\r#{line}"
+          else
+            puts line
+          end
+        }
+      }
+      print "\033[2K\r"
 
       if repo == 'spaced-ed' && !tagged
         apps = %w{qs-alpha qs-bleedin qs-staging qs-labs}
@@ -54,7 +69,19 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
         system("git update-ref refs/heads/#{br} remotes/origin/#{br}")
       end
 
-      system("git pull")
+      Open3.popen2e("git", "pull") {|i,oe,t|
+        oe.each {|line|
+          line.chomp!
+          if /Fetching repository, done./ =~ line
+          elsif /Already up-to-date./ =~ line
+          elsif /Fetching (.+)/ =~ line
+            #print "\033[2K\r#{line}"
+          else
+            puts line
+          end
+        }
+      }
+      # print "\033[2K\r"
     end
   end
 end
