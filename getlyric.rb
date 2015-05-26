@@ -11,6 +11,7 @@
 # 24th Jun 2014  eweb     #0008 Reorg
 # 20th Sep 2014  eweb     #0008 tidy html
 # 25th Mar 2015  eweb     #0008 Apostrophies
+# 26th May 2015  eweb     #0008 Translate entities
 #
 require 'nokogiri'
 require 'open-uri'
@@ -19,6 +20,7 @@ def save_lyrics(lyric)
   lyric.gsub!( '&amp;', '&' )
   lyric.gsub!( '&lt;', '<' )
   lyric.gsub!( '&gt;', '>' )
+  lyric.gsub!( /&#([0-9]+);/ ) { |hex| $1.to_i.chr }
   lyric.gsub!( /\n\n \n\n/, "\n\n" )
   lyric.gsub!( '<i>', '(' )
   lyric.gsub!( '</i>', ')' )
