@@ -89,6 +89,7 @@
 # 29th Nov 2013  eweb     #0008 Recognise ruby encoding
 # 24th Jun 2014  eweb     #0008 feedback, file extensions, line numbers, regexps
 # 26th May 2015  eweb     #0008 Handle sh/bash scripts
+# 27th May 2015  eweb     #0008 applescript and files names with spaces
 #
 
 # DONE change event if comment not present.
@@ -145,6 +146,7 @@
 @JustChangeEvent
 @ValidateComments = true
 @stripTrailingSpaces = true
+@tabs_allowed = false
 
 @bug_map = {}
 
@@ -555,6 +557,11 @@ def setup_for_type(type)
       @multi_line_start = "/*"
       @multi_line_end = "*/"
       @multi_line_prefix = "  "
+    when 'applescript'
+      @multi_line_start = "(*"
+      @multi_line_end = "*)"
+      @multi_line_prefix = "  "
+      @tabs_allowed = true
     when 'xml'
       @multi_line_start = "<!--"
       @multi_line_end = "-->"
@@ -660,6 +667,8 @@ def determine_type(file)
     file_type = "asp"
   elsif (file =~ /\.bas$/ or file =~ /\.vb$/)
     file_type = "bas"
+  elsif (file =~ /\.applescript$/)
+    file_type = "applescript"
   else
     first_line = File.open(@infile) { |fh| fh.readline.chomp }
     if first_line =~ /^#!.+perl/ ||
@@ -819,6 +828,7 @@ end
 
 @input.each_line do |thisLine|
 
+  start_of_header_line = Regexp.escape(@single_line || @multi_line_start)
   if (@Line == 0 and thisLine =~ /\xef\xbb\xbf/)
     @bom = 1
   end
@@ -867,7 +877,7 @@ end
     STDERR.print "#{@File}:#{@Line} No eoln at eof\n"
   end
 
-  if (thisLine =~ /\t/)
+  if (!@tabs_allowed && thisLine =~ /\t/)
     STDERR.print "TABS!!! Tabs found at line #{@File}:#{@Line}\n"
   end
   if (thisLine =~ /[ \t][\r\n]/)
@@ -1027,8 +1037,8 @@ end
       @hasComment = true
     end
     @output.print "#{@thisLine}"
-  elsif (!@pastHistory and @thisLine =~ / File\s*:\s*([^\s]+)/)
-    @file = $1
+  elsif (!@pastHistory and @thisLine =~ /^#{start_of_header_line}\s*File\s*:\s*(.+)\s*$/)
+    @file = $1.strip
     print "Found File: #{@file}\n#{@thisLine}" if (@verbose.to_i > 2)
     if (@thisLine =~ /use File::/)
       @output.print "#{@thisLine}"
