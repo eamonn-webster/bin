@@ -21,6 +21,7 @@
 #  3rd Sep 2014  eweb     #0008 Delete file if no changes
 # 20th Sep 2014  eweb     #0008 Don't delete cos.sh
 # 25th Mar 2015  eweb     #0008 Always push and pop dir
+# 26th May 2015  eweb     #0008 Ignore directories
 #
 
 def find_git( where = "." )
@@ -58,6 +59,7 @@ changed_files = []
   IO.popen("git status") do |f|
     stage = nil
     f.each do |line|
+      line.chomp
       #puts line
       if line =~ /On branch (.*)/
         branch = $1
@@ -80,6 +82,8 @@ changed_files = []
         stage = :untracked
       elsif line =~ /Changes not staged for commit:/
         stage = :unstaged
+      elsif line =~ /\t(.*)\/$/
+        puts "Ignoring directory #{line}" if verbose
       elsif line =~ /\t(.*)/
         file = $1
         puts "Untracked #{file}" if verbose
