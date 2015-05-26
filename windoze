@@ -1,0 +1,16 @@
+#!/bin/bash
+#
+# File: windoze
+# Author: eweb
+# Copyright eweb, 2015-2015
+# Contents:
+#
+# Date:          Author:  Comments:
+# 26th May 2015  eweb     #0008 Download for virtualbox
+#
+
+curl -O -L "https://www.modern.ie/vmdownload?browserOS=IE9-Win7&parts=4&platform=Mac&virtPlatform=virtualbox&filename=VMBuild_20141027/VirtualBox/IE9/Mac/IE9.Win7.For.Mac.VirtualBox.zip{.001,.002,.003,.004}"
+
+cat *.zip.00? > combined.zip
+
+open combined.zip
