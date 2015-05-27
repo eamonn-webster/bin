@@ -22,17 +22,16 @@
 # 20th Sep 2014  eweb     #0008 Don't delete cos.sh
 # 25th Mar 2015  eweb     #0008 Always push and pop dir
 # 26th May 2015  eweb     #0008 Ignore directories
+# 27th May 2015  eweb     #0008 files names with spaces
 #
 
-def find_git( where = "." )
+def find_git(where = ".")
   where = File.expand_path where
-  #puts "Trying #{where}\n"
   if File.directory?("#{where}/.git")
     where
   elsif where == '/'
   else
     up = File.expand_path "#{where}/.."
-    #puts "up #{up}\n"
     find_git up if up != where
   end
 end
@@ -50,9 +49,6 @@ need_to_change_directory = Dir.pwd != project_root
 Dir.chdir project_root if need_to_change_directory
 
 script_file = project_root + '/cos.sh'
-#diffs_file = project_root + '/codiffs.txt'
-
-#puts script_file
 
 changed_files = []
 
@@ -132,14 +128,14 @@ if changed_files.length
         files_changed = files_changed + 1
         comments = get_comments f #, diffs
         if stage == :untracked
-          script.puts "#git add #{f}"
+          # script.puts "#git add #{f}"
         end
         if comments.length > 0
           comments.each do |c|
-            script.puts "##{addcomment} -c \"#{c}\" #{f}"
+            script.puts "##{addcomment} -c \"#{c}\" \"#{f}\""
           end
         else
-          script.puts "#{addcomment} -c \"\" #{f}"
+          script.puts "#{addcomment} -c \"\" \"#{f}\""
         end
       end
     end
