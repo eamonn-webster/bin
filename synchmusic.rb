@@ -12,6 +12,7 @@
 # 29th Nov 2013  eweb     #0008 Don't copy backwards
 # 24th Jun 2014  eweb     #0008 Change from java to master
 # 25th Mar 2015  eweb     #0008 Backup own music
+#  7th Sep 2015  eweb     #0008 synch bin and exclude mobile apps
 #
 
 if Dir.exist?('/Volumes/IOMEGA0')
@@ -43,7 +44,7 @@ if @back
   puts cmd
   system( cmd )
 else
-  cmd = "rsync -rtvi --delete-during #{src}/ #{dst}"
+  cmd = "rsync -rtvi --exclude 'Mobile Applications' --delete-during #{src}/ #{dst}"
   puts cmd
   system( cmd )
   cmd.gsub!('iTunes', 'Own')
@@ -51,7 +52,8 @@ else
   system( cmd )
 
   dirs = ["/Volumes/#{drive}/projects/wacc",
-          "/Volumes/#{drive}/accounts/master"]
+          "/Volumes/#{drive}/accounts/master",
+          "/Volumes/#{drive}/bin"]
 
   dirs.each do |dir|
     Dir.chdir(dir) do

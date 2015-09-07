@@ -2,18 +2,29 @@
 #
 # File: tag-releases
 # Author: eweb
-# Copyright eweb, 2013-2014
+# Copyright eweb, 2013-2015
 # Contents:
 #
 # Date:          Author:  Comments:
 #  5th Nov 2013  eweb     #0008 Tag releases
 # 20th Aug 2014  eweb     #0008 More apps, display first tag
 # 20th Sep 2014  eweb     #0008 analytics apps
+#  7th Sep 2015  eweb     #0008 discover apps
 #
 
-apps = [ARGV[0]]
+apps = [ARGV[0]].compact
 
-apps = %w{qs-alpha qs-bleedin qs-staging qs-analytics qs-analytics qs-analytics-2 qs-labs qs-demo qs-demo-launcher} if apps.compact.empty?
+if apps.empty?
+  all_apps = %x{heroku apps}
+  all_apps.each_line do |app|
+    app.chomp!
+    app = app.split(' ')[0]
+    if app =~ /^qs-/ || app =~ /^eweb-/
+      #puts "[#{app}]"
+      apps << app
+    end
+  end
+end
 
 apps.each do |app|
   displayed = false
@@ -29,8 +40,9 @@ apps.each do |app|
       if x =~ /fatal: tag '#{tag}' already exists/
         puts tag unless displayed
         displayed = true
+      elsif x =~ /fatal: Failed to resolve '.+' as a valid ref./
       elsif x =~ /fatal:/
-        puts x
+        puts "#{app}: #{x}"
       else
         displayed = true
         puts "created tag #{tag} on commit #{commit}"

@@ -23,6 +23,7 @@
 # 25th Mar 2015  eweb     #0008 Always push and pop dir
 # 26th May 2015  eweb     #0008 Ignore directories
 # 27th May 2015  eweb     #0008 files names with spaces
+#  7th Sep 2015  eweb     #0008 Ignore symlinks
 #
 
 def find_git(where = ".")
@@ -126,6 +127,10 @@ if changed_files.length
         stage = f
       else
         files_changed = files_changed + 1
+        if File.symlink?(f)
+          puts "Ignoring symlink #{f}" if verbose
+          next
+        end
         comments = get_comments f #, diffs
         if stage == :untracked
           # script.puts "#git add #{f}"

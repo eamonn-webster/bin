@@ -12,6 +12,7 @@
 # 20th Sep 2014  eweb     #0008 tidy html
 # 25th Mar 2015  eweb     #0008 Apostrophies
 # 26th May 2015  eweb     #0008 Translate entities
+#  7th Sep 2015  eweb     #0008 encoding
 #
 require 'nokogiri'
 require 'open-uri'
@@ -72,11 +73,16 @@ def fetch_1
   artist = ARGV[0].dup if ARGV.length > 0
   song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
 
-  artist.gsub!(/ /, '_')
+  artist.gsub!(' ', '_')
+  artist.gsub!('%', '%25')
+  artist.gsub!('?', '%3F')
   artist.gsub!("'", '%27')
-  song.gsub!(/ /, '_')
+  artist.gsub!('=', '%3D')
+  song.gsub!(' ', '_')
+  song.gsub!('%', '%25')
   song.gsub!('?', '%3F')
   song.gsub!("'", '%27')
+  song.gsub!('=', '%3D')
 
   url = "http://lyrics.wikia.com/#{artist}:#{song}"
 

@@ -12,6 +12,7 @@
 # 20th Aug 2014  eweb     #0008 Call tag-releases
 # 25th Mar 2015  eweb     #0008 Drop trove
 # 26th May 2015  eweb     #0008 Clean up and colorize output
+#  7th Sep 2015  eweb     #0008 bugfix branches
 #
 
 require 'open3'
@@ -59,7 +60,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
 
       case repo
         when 'spaced-ed'
-          branches = %w{master edge qs-labs}
+          branches = %w{master edge qs-labs master-bugfixes edge-bugfixes}
         else
           branches = %w{master}
       end
