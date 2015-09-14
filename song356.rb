@@ -35,7 +35,7 @@ files = ARGV.compact.sort_by {|filename| File.mtime(filename) }
 files.each_with_index do |arg, i|
   options[:track] = i + 1
   # options[:tracks] = files.size
-  if arg =~ /(.+) - (.+)_\(song365.cc\).mp3/
+  if arg =~ /([^\/]+) - (.+)_\(song365.cc\).mp3/
     options[:artist] = $1
     options[:title] = $2
   end
