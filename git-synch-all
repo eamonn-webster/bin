@@ -61,6 +61,8 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
       case repo
         when 'spaced-ed'
           branches = %w{master edge qs-labs master-bugfixes edge-bugfixes}
+        when 'QstreamIOS'
+          branches = %w{master edge}
         else
           branches = %w{master}
       end
