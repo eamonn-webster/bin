@@ -6,13 +6,14 @@
 # Contents:
 #
 # Date:          Author:  Comments:
-#  5th Nov 2013  eweb     #0008 Synch all workspaces
-# 24th Jun 2014  eweb     #0008 Discover workspaces
-# 20th Aug 2014  eweb     #0008 Include branch qs-labs
-# 20th Aug 2014  eweb     #0008 Call tag-releases
-# 25th Mar 2015  eweb     #0008 Drop trove
-# 26th May 2015  eweb     #0008 Clean up and colorize output
-#  7th Sep 2015  eweb     #0008 bugfix branches
+#  5th Nov 2013  eweb     Synch all workspaces
+# 24th Jun 2014  eweb     Discover workspaces
+# 20th Aug 2014  eweb     Include branch qs-labs
+# 20th Aug 2014  eweb     Call tag-releases
+# 25th Mar 2015  eweb     Drop trove
+# 26th May 2015  eweb     Clean up and colorize output
+#  7th Sep 2015  eweb     bugfix branches
+# 19th Oct 2015  eweb     Fetch heroku app configs
 #
 
 require 'open3'
@@ -87,4 +88,9 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
       # print "\033[2K\r"
     end
   end
+end
+
+Dir.chdir("#{ENV['HOME']}/projects/qstream/apps") do |dir|
+  %x{./app_configs.rb}
+  %x{git commit -a -m 'fetched'}
 end
