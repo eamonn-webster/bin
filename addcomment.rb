@@ -92,6 +92,7 @@
 # 27th May 2015  eweb     #0008 applescript and files names with spaces
 #  7th Sep 2015  eweb     #0007 brackets
 #  7th Sep 2015  eweb     #0008 drive to git_root
+# 19th Oct 2015  eweb     #0008 Qstream doesn't want issue numbers
 #
 
 # DONE change event if comment not present.
@@ -547,7 +548,7 @@ if @ValidateComments
   elsif @comments =~ /^#\?+/
     raise 'ERROR: Invalid comment'
   else
-    raise 'ERROR: Invalid comment'
+    raise 'ERROR: Invalid comment' unless @Company == 'Qstream'
   end
 end
 
