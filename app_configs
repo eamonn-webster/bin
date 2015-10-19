@@ -7,12 +7,14 @@
 #
 # Date:          Author:  Comments:
 # 25th Mar 2015  eweb     Fetch heroku app configs
+# 19th Oct 2015  eweb     Handle eu
 #
 
 %x{heroku apps}.each_line do |line|
   next if line =~ /^===/
   if line =~ /^(.+)\s+(.+)$/
     app = $1.strip
+    app.sub!(/ \(.+\)/, '')
     puts app
     config = %x{heroku config --app #{app}}
     File.open("#{app}.config", "w") do |f|
