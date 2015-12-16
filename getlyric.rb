@@ -13,6 +13,7 @@
 # 25th Mar 2015  eweb     #0008 Apostrophies
 # 26th May 2015  eweb     #0008 Translate entities
 #  7th Sep 2015  eweb     #0008 encoding
+# 16th Dec 2015  eweb     #0008 handle commas
 #
 require 'nokogiri'
 require 'open-uri'
@@ -78,6 +79,7 @@ def fetch_1
   artist.gsub!('?', '%3F')
   artist.gsub!("'", '%27')
   artist.gsub!('=', '%3D')
+  artist.gsub!(',', '%2C')
   song.gsub!(' ', '_')
   song.gsub!('%', '%25')
   song.gsub!('?', '%3F')
