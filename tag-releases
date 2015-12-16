@@ -10,6 +10,7 @@
 # 20th Aug 2014  eweb     #0008 More apps, display first tag
 # 20th Sep 2014  eweb     #0008 analytics apps
 #  7th Sep 2015  eweb     #0008 discover apps
+# 16th Dec 2015  eweb     #0008 handle rollbacks
 #
 
 apps = [ARGV[0]].compact
@@ -46,6 +47,26 @@ apps.each do |app|
       else
         displayed = true
         puts "created tag #{tag} on commit #{commit}"
+        x = %x{git push origin #{tag} 2>&1}
+        if x =~ /fatal:/
+          puts x
+        end
+      end
+    elsif fields[1] == 'Rollback'
+      ver = fields[0]
+      commit = fields[3]
+      old_tag = "#{app}-#{commit}".upcase
+      tag = "#{app}-#{ver}".upcase
+      x = %x{git tag #{tag} #{old_tag} 2>&1}
+      if x =~ /fatal: tag '#{tag}' already exists/
+        puts tag unless displayed
+        displayed = true
+      elsif x =~ /fatal: Failed to resolve '.+' as a valid ref./
+      elsif x =~ /fatal:/
+        puts "#{app}: #{x}"
+      else
+        displayed = true
+        puts "created tag #{tag} on tag #{old_tag}"
         x = %x{git push origin #{tag} 2>&1}
         if x =~ /fatal:/
           puts x
