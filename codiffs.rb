@@ -24,6 +24,7 @@
 # 26th May 2015  eweb     #0008 Ignore directories
 # 27th May 2015  eweb     #0008 files names with spaces
 #  7th Sep 2015  eweb     #0008 Ignore symlinks
+# 16th Dec 2015  eweb     #0008 typechange, unmerged
 #
 
 def find_git(where = ".")
@@ -68,6 +69,7 @@ changed_files = []
       elsif line =~ /\tdeleted: +(.*)/
         #
       elsif line =~ /\tmodified: +(.*)/ ||
+            line =~ /\ttypechange: +(.*)/ ||
             line =~ /\trenamed: +(?:.*) -> (.*)/ ||
             line =~ /\tnew file: +(.*)/
         file = $1
@@ -79,6 +81,8 @@ changed_files = []
         stage = :untracked
       elsif line =~ /Changes not staged for commit:/
         stage = :unstaged
+      elsif line =~ /Unmerged paths:/
+        stage = :unmerged
       elsif line =~ /\t(.*)\/$/
         puts "Ignoring directory #{line}" if verbose
       elsif line =~ /\t(.*)/
@@ -125,7 +129,7 @@ if changed_files.length
       if f.class == Symbol
         script.puts "### #{f}" if stage != f
         stage = f
-      else
+      elsif f
         files_changed = files_changed + 1
         if File.symlink?(f)
           puts "Ignoring symlink #{f}" if verbose
