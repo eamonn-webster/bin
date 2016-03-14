@@ -7,3 +7,4 @@ codiffs.txt
 *.tmp
 aapt
 apktool
+/Change Plays.app/
