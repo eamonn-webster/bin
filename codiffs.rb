@@ -2,7 +2,7 @@
 #
 # File: codiffs.rb
 # Author:
-# Copyright eweb, 2012-2015
+# Copyright eweb, 2012-2016
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -25,6 +25,7 @@
 # 27th May 2015  eweb     #0008 files names with spaces
 #  7th Sep 2015  eweb     #0008 Ignore symlinks
 # 16th Dec 2015  eweb     #0008 typechange, unmerged
+# 14th Mar 2016  eweb     #0008 less directory noise
 #
 
 def find_git(where = ".")
@@ -46,9 +47,7 @@ exit unless project_root
 
 addcomment = 'addcomment.rb'
 
-need_to_change_directory = Dir.pwd != project_root
-
-Dir.chdir project_root if need_to_change_directory
+Dir.chdir project_root
 
 script_file = project_root + '/cos.sh'
 
@@ -123,7 +122,7 @@ end
 if changed_files.length
   files_changed = 0
   File.open( script_file, "w" ) do |script|
-    script.puts "pushd #{project_root}" # if need_to_change_directory
+    script.puts "pushd #{project_root} > /dev/null"
     stage =
     changed_files.each do |f|
       if f.class == Symbol
@@ -148,7 +147,7 @@ if changed_files.length
         end
       end
     end
-    script.puts "popd" # if need_to_change_directory
+    script.puts "popd > /dev/null"
   end
   puts "#{files_changed} files changed"
 
