@@ -2,7 +2,7 @@
 #
 # File: addcomment.rb
 # Author: eweb
-# Copyright eweb, 2003-2015
+# Copyright eweb, 2003-2016
 # Contents: Perl script to add comments to source files
 #
 # Date:          Author:  Comments:
@@ -93,6 +93,7 @@
 #  7th Sep 2015  eweb     #0007 brackets
 #  7th Sep 2015  eweb     #0008 drive to git_root
 # 19th Oct 2015  eweb     #0008 Qstream doesn't want issue numbers
+# 14th Mar 2016  eweb     #0008 detect encoding
 #
 
 # DONE change event if comment not present.
@@ -849,6 +850,9 @@ end
     @encoding = $1
   end
   if thisLine =~ /# -\*- coding: (.+) -\*-/
+    @encoding = $1
+  end
+  if thisLine =~ /# coding: (.+)/
     @encoding = $1
   end
 
