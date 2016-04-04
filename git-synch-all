@@ -2,7 +2,7 @@
 #
 # File: git-synch-all
 # Author: eweb
-# Copyright qstream, 2013-2015
+# Copyright qstream, 2013-2016
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -17,6 +17,7 @@
 # 16th Dec 2015  eweb     #0008 tag all apps
 # 16th Dec 2015  eweb     #0008 branches to update
 # 16th Dec 2015  eweb     #0008 check remote branch exists
+#  4th Apr 2016  eweb     #0008 rename of spaceded to qs-core
 #
 
 require 'open3'
@@ -66,7 +67,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
       }
       print "\033[2K\r"
 
-      if repo == 'spaced-ed' && !tagged
+      if repo == 'qs-core' && !tagged
         app_list.each do |app|
           #tags = `#{bin_dir}/tag-releases.rb #{app}`.chomp
           tags = `tag-releases #{app}`.chomp
@@ -76,7 +77,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
       end
 
       case repo
-        when 'spaced-ed'
+        when 'qs-core'
           branches = %w{master edge master-bugfixes user-admin-sprint maintenance-sprint}
         when 'QstreamIOS'
           branches = %w{master edge}
