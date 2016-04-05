@@ -2,7 +2,7 @@
 #
 # File: tag-releases
 # Author: eweb
-# Copyright eweb, 2013-2015
+# Copyright eweb, 2013-2016
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -11,12 +11,13 @@
 # 20th Sep 2014  eweb     #0008 analytics apps
 #  7th Sep 2015  eweb     #0008 discover apps
 # 16th Dec 2015  eweb     #0008 handle rollbacks
+#  5th Apr 2016  eweb     #0008 heroku apps --all
 #
 
 apps = [ARGV[0]].compact
 
 if apps.empty?
-  all_apps = %x{heroku apps}
+  all_apps = %x{heroku apps --all}
   all_apps.each_line do |app|
     app.chomp!
     app = app.split(' ')[0]
