@@ -2,7 +2,7 @@
 #
 # File: ecopy.rb
 # Author: eweb
-# Copyright eweb, 1989-2015
+# Copyright eweb, 1989-2016
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -18,6 +18,23 @@
 # 28th Mar 2015  eweb     #1723 Adapted for use in app
 #  6th Apr 2015  eweb     #0007 tidy up
 #  6th Apr 2015  eweb     #0007 break once copied or removed
+# 27th Apr 2015  eweb     #0007 process_folder_compares
+# 30th Apr 2015  eweb     #0007 process_folder_compares_one
+# 17th May 2015  eweb     #2232 Were no longer detecting differences
+# 26th May 2015  eweb     #0007 avoid [0..0]
+#  3rd Aug 2015  eweb     #0007 process_file and get_folder
+#  6th Sep 2015  eweb     #0007 refactor
+# 28th Sep 2015  eweb     #0007 create_dir, compare_files
+# 10th Jan 2016  eweb     #0007 rubocop
+#  6th Mar 2016  eweb     #2213 callbacks
+#  6th Mar 2016  eweb     #0007 coverage
+# 26th Mar 2016  eweb     #0007 rubocop
+# 27th Mar 2016  eweb     #0007 strip_trailing_slash
+# 23rd Apr 2016  eweb     #2401 Logging of actions
+# 23rd Apr 2016  eweb     #2401 logging
+# 14th May 2016  eweb     #0007 compare_files
+# 23rd Jun 2016  eweb     #2455 Must include options in the prompt
+# 21st Aug 2016  eweb     #0008 copied from wacc
 #
 
 # ruby replacement for ecopy.exe
@@ -38,22 +55,27 @@
 # make backups
 # shadowing
 # make writable / checkout
+
 class AppIO
   def puts(msg)
-    Kernel::puts(msg)
+    Kernel.puts(msg)
   end
 
   def print(msg)
-    Kernel::print(msg)
+    Kernel.print(msg)
   end
 
   def get_key
-    STDIN.gets[0..0]
+    STDIN.gets[0]
   end
 
   def get_response(prompt)
     print prompt
     get_key
+  end
+
+  def info(msg)
+    puts(msg)
   end
 
   def diff_cmd(dst, src)
@@ -84,13 +106,13 @@ class AppIO
   end
 end
 
-class ECopy
-  def initialize(io=nil)
-    @io = io || AppIO.new
-  end
-
+module ECopyIO
   def puts(msg)
     @io.puts(msg)
+  end
+
+  def trace(msg)
+    @io.puts(msg) if verbose
   end
 
   def print(msg)
@@ -99,6 +121,30 @@ class ECopy
 
   def get_response(prompt)
     @io.get_response(prompt)
+  end
+
+  def info(msg)
+    @io.info(msg)
+  end
+
+  def view_file(file)
+    @io.view_file(file)
+  end
+
+  def diff_files(file1, file2)
+    @io.diff_files(file1, file2)
+  end
+
+  def ediff_files(file1, file2)
+    @io.ediff_files(file1, file2)
+  end
+end
+
+class ECopy
+  include ECopyIO
+
+  def initialize(io = nil)
+    @io = io || AppIO.new
   end
 
   def match_file_one(file, opt)
@@ -122,7 +168,7 @@ class ECopy
             otherwise = false
           end
           if match_file_one(file, opt)
-            puts "match_file( #{file}, #{opt} ) ==> #{inc}" if verbose
+            trace "match_file(#{file}, #{opt}) ==> #{inc}"
             return inc
           end
           inc = true
@@ -130,7 +176,7 @@ class ECopy
       end
     end
     # no explicit match
-    puts "match_file( #{file} ) ==> #{otherwise}" if verbose
+    trace "match_file(#{file}) ==> #{otherwise}"
     otherwise
   end
 
@@ -145,33 +191,27 @@ class ECopy
     if File.directory?(dir)
     else
       prompt = "Create directory #{dir}? (y/n/s)"
-      while true
-        ans = get_response(prompt)
-        if ans.downcase == 'y'
-          FileUtils.makedirs(dir)
-          return ans
-        elsif ans.downcase == 'n'
-          return ans
-        elsif ans.downcase == 's'
-          dir_dir = File.dirname(dir)
-          FileUtils.makedirs(dir_dir)
-          FileUtils.touch(dir)
-          return ans
-        else
-          return ans
-        end
+      ans = get_response(prompt)
+      case ans.downcase
+      when 'y'
+        FileUtils.makedirs(dir)
+      when 's'
+        dir_dir = File.dirname(dir)
+        FileUtils.makedirs(dir_dir)
+        FileUtils.touch(dir)
       end
+      ans
     end
   end
 
-# uppercase means apply to all
-# q for quit this folder
-# Q to terminate app
-# need set of flags. yes_to_all, no_to_all etc...
-# handle how these flags are applied
-#  to this folder only
-#  to this folder and all sub folders
-#  from now on...
+  # uppercase means apply to all
+  # q for quit this folder
+  # Q to terminate app
+  # need set of flags. yes_to_all, no_to_all etc...
+  # handle how these flags are applied
+  #  to this folder only
+  #  to this folder and all sub folders
+  #  from now on...
 
   def copy_file(source, destination, verbose)
     # permissions
@@ -179,43 +219,96 @@ class ECopy
     # if the destination files existed should the new file have the same permissions as the old file
     # or the same as the source file? If copying from a fat device then the source might not have
     # the proper rights.
-    source_mode = File.stat(source).mode
     if File.file?(destination)
       mode = File.stat(destination).mode
     else
-      mode = source_mode
+      mode = File.stat(source).mode
     end
-    puts "copy_file(#{source},#{destination})"
+    info "copying file '#{source}' to '#{destination}'"
 
     FileUtils.copy_file(source, destination, verbose)
     File.chmod(mode, destination)
   end
 
   def rename_file(source, destination)
-    puts "rename_file(#{source},#{destination})"
+    info "renaming file '#{source}' to '#{destination}'"
     File.rename(source, destination)
   end
 
   def create_dir_if_needed(prompt, dest_dir, switches)
     if !switches['N'] && !File.directory?(dest_dir) && !File.file?(dest_dir)
-      #puts "switches #{switches}"
-      # if the directory doesn't exist
       print prompt
       dir_ans = create_dir(dest_dir)
-      if dir_ans.upcase == dir_ans
-        #puts "Setting switch #{dir_ans}"
+      if dir_ans =~ /[A-Z]/
         switches[dir_ans] = true
       end
-      if dir_ans == 'q'
-        dir_ans
-      elsif dir_ans.downcase == 'n'
-        dir_ans.downcase
-      elsif dir_ans.downcase == 's'
-        dir_ans.downcase
-      end
+      'qns'[dir_ans.downcase]
     end
   end
 
+  def compare_files_times(source, destination)
+    only_newer = !options.find { |x| x == "-n-" }
+    if only_newer
+      source_mtime = File.mtime(source)
+      dest_mtime = File.mtime(destination)
+      if source_mtime <= dest_mtime
+        trace "compare_files(File.mtime(#{source}) <= File.mtime(#{destination})"
+        return true
+      end
+      trace "src: #{source_mtime} #{source}\ndst: #{dest_mtime} #{destination}"
+    end
+  end
+
+  def compare_files(source, destination)
+    trace "compare_files(#{source},#{destination})"
+    if compare_files_times(source, destination)
+      return true
+    end
+
+    same = FileUtils.compare_file(source, destination)
+    trace "FileUtils.compare_file(#{source},#{destination}) => #{same}"
+    unless same
+      diff_files(destination, source)
+    end
+    same
+  end
+
+  def verbose
+    options.find { |x| x == "-v" }
+  end
+
+  attr_accessor :options
+
+  def get_folder(flag)
+    p = options.find_index(flag)
+    if p
+      folder = options[p + 1]
+      options[p..p + 1] = []
+      folder
+    end
+  end
+
+  def get_source
+    get_folder('-s')
+  end
+
+  def get_destination
+    get_folder('-d')
+  end
+
+  def run(argv)
+    self.options = argv
+    source_root = get_source
+    destination_root = get_destination
+    unless File.directory?(source_root)
+      puts "source_root #{source_root} not found"
+      return
+    end
+    process_folder(source_root, destination_root, {})
+  end
+end
+
+module ProcessFile
   def process_file_ans(prompt, switches)
     if switches['Y']
       ans = 'y'
@@ -230,9 +323,8 @@ class ECopy
     else
       ans = get_response(prompt)
     end
-    if ans == ans.upcase
+    if ans =~ /[A-Z]/
       switches[ans] = true
-      #puts "have added #{ans} to #{switches}"
       ans = ans.downcase
     end
     ans
@@ -240,29 +332,36 @@ class ECopy
 
   def process_file_copy(source, destination)
     dest_dir = File.dirname(destination)
+    raise "dest_dir is neither file nor directory" if !File.directory?(dest_dir) && !File.file?(dest_dir)
     if !File.directory?(dest_dir) && !File.file?(dest_dir)
-      create_dir(dest_dir)
+      # create_dir(dest_dir)
     end
     if File.directory?(dest_dir)
       copy_file(source, destination, true)
+      file_copied(destination)
     end
   end
 
   def process_file_back(source, destination)
+    raise "destination is not a file" if !File.file?(destination)
     if !File.file?(destination)
-      puts "Can't copy back destination #{destination} doesn't exist"
+      # puts "Can't copy back destination #{destination} doesn't exist"
     else
       copy_file(destination, source, true)
+      file_backed(source)
     end
+  end
+
+  def remove_file(file)
+    info "removing file '#{file}'"
+    FileUtils.remove_file(file, true)
   end
 
   def process_file_remove(source, destination, reverse)
     if reverse
-      puts "FileUtils.remove_file(#{destination},true)"
-      FileUtils.remove_file(destination, true)
+      remove_file(destination)
     else
-      puts "FileUtils.remove_file(#{source},true)"
-      FileUtils.remove_file(source, true)
+      remove_file(source)
     end
   end
 
@@ -274,93 +373,76 @@ class ECopy
     end
   end
 
-  def process_file(prompt, source, destination, switches, reverse=nil)
-    if File.directory?(source)
-      process_folder(source, destination, switches)
-    elsif File.directory?(destination)
-      process_folder(source, destination, switches)
+  def process_file_file(prompt, source, destination, switches, reverse)
+    ans = process_file_ans(prompt, switches)
+    process_file_file_action(ans, source, destination, reverse)
+  end
+
+  def process_file_file_action(ans, source, destination, reverse)
+    case ans
+    when 'c', 'y'
+      process_file_copy(source, destination)
+      throw :return
+    when 'b'
+      process_file_back(source, destination)
+      throw :return
+    when 'r'
+      process_file_remove(source, destination, reverse)
+      throw :return
+    when 'd'
+      diff_files(destination, source)
+    when 'e'
+      ediff_files(destination, source)
+    when 'v'
+      process_file_view(source, destination)
+    when 'q'
+      throw :return, ans
     else
-      while true
+      throw :return
+    end
+  end
+
+  def process_file(prompt, source, destination, switches, reverse = nil)
+    raise "source #{source} is a directory" if File.directory?(source)
+    # process_folder(source, destination, switches)
+    raise "destination #{destination} is a directory" if File.directory?(destination)
+    #  process_folder(source, destination, switches)
+    # else
+    catch :return do
+      loop do
         dest_dir = File.dirname(destination)
         dir_ans = create_dir_if_needed(prompt, dest_dir, switches)
         return dir_ans if dir_ans
-
-        ans = process_file_ans(prompt, switches)
-
-        case ans
-          when 'c', 'y'
-            process_file_copy(source, destination)
-            return
-          when 'b'
-            process_file_back(source, destination)
-            return
-          when 'r'
-            process_file_remove(source, destination, reverse)
-            return
-          when 'd'
-            diff_files(destination, source)
-          when 'e'
-            ediff_files(destination, source)
-          when 'v'
-            process_file_view(source, destination)
-          when 'q'
-            return ans
-          else
-            return
-        end
+        process_file_file(prompt, source, destination, switches, reverse)
       end
     end
+    # end
   end
 
-  def view_file(file)
-    @io.view_file(file)
-  end
+  ECopy.send(:include, ProcessFile)
+end
 
-  def diff_files(file1, file2)
-    @io.diff_files(file1, file2)
-  end
-
-  def ediff_files(file1, file2)
-    @io.ediff_files(file1, file2)
-  end
-
-  def compare_files(source, destination)
-    puts "compare_files(#{source},#{destination})" if verbose
-    only_newer = !options.find { |x| x == "-n-" }
-    if only_newer
-      if File.mtime(source) <= File.mtime(destination)
-        puts "compare_files(File.mtime(#{source}) <= File.mtime(#{destination})" if verbose
-        return true
-      end
-      puts "src: #{File.mtime(source)} #{source}\ndst: #{File.mtime(destination)} #{destination}" if verbose
-    end
-
-    if FileUtils.compare_file(source, destination)
-      puts "FileUtils.compare_file(#{source},#{destination}) => true" if verbose
-      true
-    else
-      puts "FileUtils.compare_file(#{source},#{destination}) => false" if verbose
-      diff_files(destination, source)
-      false
+module ProcessFolder
+  def process_file_mismatch(source, destination, add, del)
+    ans = get_response "Case mismatches a) #{del} and b) #{add} (a/b)?"
+    if ans == 'b'
+      rename_file "#{destination}/#{del}", "#{destination}/#{add}"
+      add
+    elsif ans == 'a'
+      rename_file "#{source}/#{add}", "#{source}/#{del}"
+      del
     end
   end
 
-  def process_folder_mismatch(adds, deletes, compares, source, destination)
+  def process_folder_mismatch(source, destination, adds, deletes, compares)
     adds.each do |add|
       deletes.each do |del|
-        if del.downcase == add.downcase
-          prompt = "Case mismatches a) #{del} and b) #{add}?"
-          ans = get_response prompt
-          if ans == 'b'
-            rename_file "#{destination}/#{del}", "#{destination}/#{add}"
+        if del.casecmp(add) == 0
+          comp = process_file_mismatch(source, destination, add, del)
+          if comp
             adds.delete(add)
             deletes.delete(del)
-            compares.push(add)
-          elsif ans == 'a'
-            rename_file "#{source}/#{add}", "#{source}/#{del}"
-            adds.delete(add)
-            deletes.delete(del)
-            compares.push(del)
+            compares.push(comp)
           end
         end
       end
@@ -378,7 +460,6 @@ class ECopy
       else
         ans = process_file("add file #{source_file} #{destination_file}? (c/r/v)", source_file, destination_file, local_switches)
       end
-      #puts "local_switches #{local_switches}"
       return ans if ans == 'q'
       return ans if ans == 's'
       return ans if ans == 'n' # no to create directory not no to a file
@@ -397,34 +478,50 @@ class ECopy
     nil
   end
 
+  def file_or_directory(path)
+    if File.directory?(path)
+      :directory
+    elsif File.file?(path)
+      :file
+    end
+  end
+
+  def process_folder_compares_one(source_file, destination_file, local_switches)
+    source_type = file_or_directory(source_file)
+    destination_type = file_or_directory(destination_file)
+    case [source_type, destination_type]
+    when [:file, :file]
+      if !compare_files(source_file, destination_file)
+        process_file("copy file #{source_file}? (c/r/b/d/e)", source_file, destination_file, local_switches)
+      end
+    when [:directory, :directory]
+      process_folder(source_file, destination_file, local_switches)
+    when [:directory, :file]
+      trace "#{source_file} shadowed by file #{destination_file}"
+    when [:file, :directory]
+      trace "#{source_file} is shadow for directory #{destination_file}"
+    end
+  end
+
   def process_folder_compares(source, destination, compares, local_switches)
     compares.each do |file|
       source_file = "#{source}/#{file}"
       destination_file = "#{destination}/#{file}"
-      if File.file?(source_file) && File.file?(destination_file)
-        if !compare_files(source_file, destination_file)
-          ans = process_file("copy file #{source_file}? (c/r/b/d/e)", source_file, destination_file, local_switches)
-          return ans if ans == 'q'
-        end
-      elsif File.directory?(source_file) && File.directory?(destination_file)
-        ans = process_folder(source_file, destination_file, local_switches)
-        return ans if ans == 'q'
-      elsif File.directory?(source_file) && File.file?(destination_file)
-        if verbose
-          puts "#{source_file} shadowed by file #{destination_file}"
-        end
-      elsif File.file?(source_file) && File.directory?(destination_file)
-        if verbose
-          puts "#{source_file} is shadow for directory #{destination_file}"
-        end
+      if process_folder_compares_one(source_file, destination_file, local_switches) == 'q'
+        return 'q'
       end
     end
+    nil
+  end
+
+  def strip_trailing_slash(dir)
+    dir.end_with?('/') ? dir[0..-2] : dir
   end
 
   def process_folder(source, destination, switches)
     puts source
-    source = source[0..-2] if source.end_with?('/')
-    destination = destination[0..-2] if destination.end_with?('/')
+    source = strip_trailing_slash(source)
+    destination = strip_trailing_slash(destination)
     local_switches = switches.clone
 
     source_files = contents_of_folder(source)
@@ -434,8 +531,12 @@ class ECopy
     deletes = destination_files - source_files
     compares = destination_files - (destination_files - source_files)
 
-    process_folder_mismatch(adds, deletes, compares, source, destination)
+    process_folder_mismatch(source, destination, adds, deletes, compares)
 
+    process_folder_aux(source, destination, adds, deletes, compares, local_switches)
+  end
+
+  def process_folder_aux(source, destination, adds, deletes, compares, local_switches)
     ans = process_folder_adds(source, destination, adds, local_switches)
     return ans if ans == 'q'
     return if ans == 's'
@@ -448,45 +549,30 @@ class ECopy
     nil
   end
 
-  def verbose
-    options.find { |x| x == "-v" }
-  end
-
-  attr_accessor :options
-
-  def get_source(argv)
-    p = options.find_index('-s')
-    if p
-      source_root = options[p+1]
-      options[p..p+1] = []
-      source_root
-    end
-  end
-  def get_destination(argv)
-    p = options.find_index('-d')
-    if p
-      destination_root = options[p+1]
-      options[p..p+1] = []
-      destination_root
-    end
-  end
-
-  def run(argv)
-    self.options = argv
-    source_root = get_source(argv)
-    destination_root = get_destination(argv)
-
-    unless File.directory?(source_root)
-      puts "source_root #{source_root} not found"
-      return
-    end
-
-    process_folder(source_root, destination_root, {})
-  end
-
+  ECopy.send(:include, ProcessFolder)
 end
 
-if $0 == __FILE__
+module EcopyCallbacks
+  def file_copied(file)
+    @on_file_copy.call(file) if @on_file_copy
+  end
+
+  def file_backed(file)
+    @on_file_back.call(file) if @on_file_back
+  end
+
+  def on_file_copy(&block)
+    @on_file_copy = block
+  end
+
+  def on_file_back(&block)
+    @on_file_back = block
+  end
+
+  ECopy.send(:include, EcopyCallbacks)
+end
+
+if $PROGRAM_NAME == __FILE__
   require 'FileUtils'
   ECopy.new.run(ARGV)
 end
