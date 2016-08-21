@@ -1,0 +1,69 @@
+#! /usr/bin/env ruby
+
+#
+# File: tag-angular
+# Author: eweb
+# Copyright eweb, 2016-2016
+# Contents:
+#
+# Date:          Author:  Comments:
+# 21st Aug 2016  eweb     #0008 tag angular based of dist in qs-core
+#
+
+def run(cmd)
+  puts cmd
+  `#{cmd}`
+end
+
+def commit_for_distribution
+  current_commit = nil
+  commits = {}
+  run("git log --all --name-status -- dist/scripts/").each_line do |line|
+    if line =~ /^commit (.+)$/
+      current_commit = $1
+    elsif line =~ %r(^A\s+dist/scripts/(vendor\..+\.js))
+    # commits[current_commit][:vendor] = $1
+    elsif line =~ %r(^A\s+dist/scripts/(scripts\..+\.js))
+      commits[$1] = current_commit
+    elsif line =~ %r(^A\s+dist/scripts/(scripts\..+\.min\.js))
+      commits[$1] = current_commit
+    elsif line =~ %r(^A\s)
+      puts line
+    end
+  end
+  commits
+end
+
+def get_current_files(name, commit= 'HEAD')
+  cmd = "git ls-tree -r --name-only #{commit} -- public/integrations/#{name}/scripts"
+  run(cmd).each_line.collect do |line|
+    line.chomp!
+    File.basename(line) if line =~ /scripts\..+\.min\.js/
+    # File.basename(line) if line =~ /scripts\..+\.js/
+  end.compact
+end
+
+
+def main(tag)
+  files = get_current_files('user_admin', tag)
+  # puts "files: #{files}"
+  file = files.first
+  return unless file
+  puts file
+  repo = 'qs-user-admin'
+  Dir.chdir("../#{repo}") do
+    commits = commit_for_distribution
+    # puts "commits: #{commits}"
+    commit = commits[file]
+    commit ||= commits[file.sub('.js', '.min.js')]
+    if commit
+      run "git tag #{tag} #{commit}"
+      run "git push origin #{tag}"
+    else
+      puts "commit containing #{file} not found"
+    end
+  end
+end
+
+main(ARGV[0])
+
