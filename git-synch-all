@@ -19,6 +19,7 @@
 # 16th Dec 2015  eweb     #0008 check remote branch exists
 #  4th Apr 2016  eweb     #0008 rename of spaceded to qs-core
 #  5th Apr 2016  eweb     #0008 heroku apps --all
+# 21st Aug 2016  eweb     #0008 improvements
 #
 
 require 'open3'
@@ -47,8 +48,8 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
   Dir.chdir(dir) do |dir|
     next unless Dir.exist?('.git')
     remote = %x{git remote -v | grep -e 'origin.\\+fetch'}
-    if remote =~ %r{git@github.com:qstream/(.+)\.git} ||
-       remote =~ %r{https://github.com/qstream/(.+)\.git}
+    if remote =~ %r{git@github.com:qstream/(.+)(?:\.git) } ||
+       remote =~ %r{https://github.com/qstream/(.+)(?:\.git) }
       remote = Regexp.last_match(0)
       repo = $1
       current = `git rev-parse --abbrev-ref HEAD`.chomp
@@ -68,7 +69,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
       }
       print "\033[2K\r"
 
-      if repo == 'qs-core' && !tagged
+      if (repo == 'qs-core' || repo == 'spaced-ed') && !tagged
         app_list.each do |app|
           #tags = `#{bin_dir}/tag-releases.rb #{app}`.chomp
           tags = `tag-releases #{app}`.chomp
@@ -78,8 +79,10 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
       end
 
       case repo
-        when 'qs-core'
-          branches = %w{master edge master-bugfixes user-admin-sprint}
+        when 'qs-core', 'spaced-ed'
+          branches = %w{master edge maintenance sprint release1}
+        when 'qs-user-admin', 'qs-angular-core'
+          branches = %w{master sprint maintenance}
         when 'QstreamIOS'
           branches = %w{master edge}
         else
@@ -88,8 +91,16 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
 
       branches.each do |br|
         next if br === current
-        unless `git branch --list --remote origin/#{br}`.empty?
-          system("git update-ref refs/heads/#{br} remotes/origin/#{br}")
+        matching = `git branch --list --remote origin/#{br}`
+        unless matching.empty?
+          matching.each_line do |line|
+            line.chomp!
+            if line =~ %r(origin/(.+))
+              if $1 != current
+                system("git update-ref refs/heads/#{$1} remotes/origin/#{$1}")
+              end
+            end
+          end
         end
       end
 
@@ -106,10 +117,13 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
         }
       }
       # print "\033[2K\r"
+    else
+      puts "ignoring #{dir} #{remote}"
     end
   end
 end
 
+puts 'app configs'
 Dir.chdir("#{ENV['HOME']}/projects/qstream/apps") do |dir|
   %x{./app_configs.rb}
   %x{git commit -a -m 'fetched'}
