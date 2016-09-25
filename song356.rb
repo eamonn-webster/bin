@@ -3,12 +3,15 @@
 #
 # File: song356.rb
 # Author: eweb
-# Copyright Qstream, 2015-2015
+# Copyright Qstream, 2015-2016
 # Contents:
 #
 # Date:          Author:  Comments:
 #  7th Sep 2015  eweb     #0008 Tagging songs from songs365
+# 25th Sep 2016  eweb     #0008 install taglib
 #
+
+rvm @global do gem install taglib-ruby
 
 require 'taglib'
 
