@@ -2,7 +2,7 @@
 #
 # File: synchmusic.rb
 # Author: eweb
-# Copyright eweb, 2012-2015
+# Copyright eweb, 2012-2016
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -13,6 +13,7 @@
 # 24th Jun 2014  eweb     #0008 Change from java to master
 # 25th Mar 2015  eweb     #0008 Backup own music
 #  7th Sep 2015  eweb     #0008 synch bin and exclude mobile apps
+# 25th Sep 2016  eweb     #0008 remote for first run
 #
 
 if Dir.exist?('/Volumes/IOMEGA0')
@@ -51,15 +52,20 @@ else
   puts cmd
   system( cmd )
 
-  dirs = ["/Volumes/#{drive}/projects/wacc",
-          "/Volumes/#{drive}/accounts/master",
-          "/Volumes/#{drive}/bin"]
+  dirs = [["/Volumes/#{drive}/projects/wacc", "git@bitbucket.org:eamoon/wacc.git"],
+          ["/Volumes/#{drive}/accounts/master", "git@bitbucket.org:eamoon/data.git"],
+          ["/Volumes/#{drive}/bin", "git@bitbucket.org:eamoon/bin.git"]]
 
-  dirs.each do |dir|
-    Dir.chdir(dir) do
-      puts dir
-      puts "git fetch --all"
-      system( "git fetch --all")
+  dirs.each do |dir, remote|
+    puts dir
+    if Dir.exists?(dir)
+      Dir.chdir(dir) do
+        puts "git fetch --all"
+        system( "git fetch --all")
+      end
+    else
+      puts("git clone #{remote} #{dir}")
+      system("git clone #{remote} #{dir}")
     end
   end
 
