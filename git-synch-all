@@ -20,6 +20,7 @@
 #  4th Apr 2016  eweb     #0008 rename of spaceded to qs-core
 #  5th Apr 2016  eweb     #0008 heroku apps --all
 # 21st Aug 2016  eweb     #0008 improvements
+# 29th Dec 2016  eweb     #0008 handling remotes
 #
 
 require 'open3'
@@ -47,7 +48,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
   next unless Dir.exist?(dir)
   Dir.chdir(dir) do |dir|
     next unless Dir.exist?('.git')
-    remote = %x{git remote -v | grep -e 'origin.\\+fetch'}
+    remote = %x{git remote -v | grep -e 'origin.\\+fetch'}.chomp
     if remote =~ %r{git@github.com:qstream/(.+)(?:\.git) } ||
        remote =~ %r{https://github.com/qstream/(.+)(?:\.git) }
       remote = Regexp.last_match(0)
@@ -69,6 +70,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
       }
       print "\033[2K\r"
 
+      # for each remote that matches an app
       if (repo == 'qs-core' || repo == 'spaced-ed') && !tagged
         app_list.each do |app|
           #tags = `#{bin_dir}/tag-releases.rb #{app}`.chomp
@@ -118,7 +120,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
       }
       # print "\033[2K\r"
     else
-      puts "ignoring #{dir} #{remote}"
+      puts "ignoring [#{dir}] [#{remote}]"
     end
   end
 end

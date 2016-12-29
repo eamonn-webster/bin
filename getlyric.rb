@@ -2,7 +2,7 @@
 #
 # File: getlyric.rb
 # Author: eweb
-# Copyright eweb, 2013-2015
+# Copyright eweb, 2013-2016
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -14,6 +14,7 @@
 # 26th May 2015  eweb     #0008 Translate entities
 #  7th Sep 2015  eweb     #0008 encoding
 # 16th Dec 2015  eweb     #0008 handle commas
+# 29th Dec 2016  eweb     #0008 handle exclamation marks
 #
 require 'nokogiri'
 require 'open-uri'
@@ -76,14 +77,16 @@ def fetch_1
 
   artist.gsub!(' ', '_')
   artist.gsub!('%', '%25')
-  artist.gsub!('?', '%3F')
+  artist.gsub!('!', '%21')
   artist.gsub!("'", '%27')
-  artist.gsub!('=', '%3D')
   artist.gsub!(',', '%2C')
+  artist.gsub!('?', '%3F')
+  artist.gsub!('=', '%3D')
   song.gsub!(' ', '_')
   song.gsub!('%', '%25')
-  song.gsub!('?', '%3F')
+  song.gsub!('!', '%21')
   song.gsub!("'", '%27')
+  song.gsub!('?', '%3F')
   song.gsub!('=', '%3D')
 
   url = "http://lyrics.wikia.com/#{artist}:#{song}"

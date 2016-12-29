@@ -94,6 +94,7 @@
 #  7th Sep 2015  eweb     #0008 drive to git_root
 # 19th Oct 2015  eweb     #0008 Qstream doesn't want issue numbers
 # 14th Mar 2016  eweb     #0008 detect encoding
+# 29th Dec 2016  eweb     #0008 .metrics as ruby
 #
 
 # DONE change event if comment not present.
@@ -658,6 +659,7 @@ def determine_type(file)
       file =~ /\.yml$/ ||
       file =~ /\.yaml$/ ||
       file =~ /\.reek$/ ||
+      file =~ /\.metrics$/ ||
       file =~ /\.simplecov$/ ||
       file =~ /^Rakefile$/ ||
       file =~ /^Gemfile$/
