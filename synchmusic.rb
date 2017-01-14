@@ -2,7 +2,7 @@
 #
 # File: synchmusic.rb
 # Author: eweb
-# Copyright eweb, 2012-2016
+# Copyright eweb, 2012-2017
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -14,6 +14,7 @@
 # 25th Mar 2015  eweb     #0008 Backup own music
 #  7th Sep 2015  eweb     #0008 synch bin and exclude mobile apps
 # 25th Sep 2016  eweb     #0008 remote for first run
+# 14th Jan 2017  eweb     #0008 copy photos
 #
 
 if Dir.exist?('/Volumes/IOMEGA0')
@@ -49,6 +50,12 @@ else
   puts cmd
   system( cmd )
   cmd.gsub!('iTunes', 'Own')
+  puts cmd
+  system( cmd )
+
+  src = "/Users/eweb/Pictures/Photos Library.photoslibrary/Masters"
+  dst = "/Volumes/#{drive}/Pictures/Masters"
+  cmd = "rsync -rtvi --delete-during '#{src}/' '#{dst}'"
   puts cmd
   system( cmd )
 
