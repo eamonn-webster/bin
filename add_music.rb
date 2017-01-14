@@ -3,11 +3,12 @@
 #
 # File: add_music.rb
 # Author: eweb
-# Copyright eweb, 2016-2016
+# Copyright eweb, 2016-2017
 # Contents:
 #
 # Date:          Author:  Comments:
 # 29th Dec 2016  eweb     #0008 when adding music from mp3va
+# 14th Jan 2017  eweb     #0008 unzip into folder
 #
 
 downloads = "#{ENV['HOME']}/Downloads"
@@ -16,13 +17,15 @@ auto_add = "#{ENV['HOME']}/Music/iTunes/iTunes Media/Automatically Add to iTunes
 
 def run(cmd)
   puts cmd
-  # system(cmd)
+  system(cmd)
 end
 
 Dir["#{downloads}/* - *.zip"].map do |zip_path|
   zip = File.basename(zip_path)
+  name = zip.sub('.zip', '')
   run(%(mv "#{downloads}/#{zip}" #{music_own}))
-  run(%(unzip "#{music_own}/#{zip}" -d #{music_own}/temp))
-  run(%(mv "#{music_own}/temp/#{zip.sub('.zip', '')}" "#{auto_add}"))
+  run(%(unzip "#{music_own}/#{zip}" -d "#{music_own}/temp/#{name}"))
+  run(%(mv "#{music_own}/temp/#{name}" "#{auto_add}"))
+  break
 end
 
