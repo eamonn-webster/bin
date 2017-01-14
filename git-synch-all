@@ -2,7 +2,7 @@
 #
 # File: git-synch-all
 # Author: eweb
-# Copyright qstream, 2013-2016
+# Copyright qstream, 2013-2017
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -21,6 +21,7 @@
 #  5th Apr 2016  eweb     #0008 heroku apps --all
 # 21st Aug 2016  eweb     #0008 improvements
 # 29th Dec 2016  eweb     #0008 handling remotes
+# 14th Jan 2017  eweb     #0008 bye bye edge
 #
 
 require 'open3'
@@ -82,11 +83,11 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
 
       case repo
         when 'qs-core', 'spaced-ed'
-          branches = %w{master edge maintenance sprint release1}
+          branches = %w{master maintenance sprint}
         when 'qs-user-admin', 'qs-angular-core'
           branches = %w{master sprint maintenance}
         when 'QstreamIOS'
-          branches = %w{master edge}
+          branches = %w{master sprint}
         else
           branches = %w{master}
       end
