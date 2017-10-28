@@ -15,6 +15,7 @@
 #  7th Sep 2015  eweb     #0008 synch bin and exclude mobile apps
 # 25th Sep 2016  eweb     #0008 remote for first run
 # 14th Jan 2017  eweb     #0008 copy photos
+# 28th Oct 2017  eweb     #0008 other repos
 #
 
 if Dir.exist?('/Volumes/IOMEGA0')
@@ -41,40 +42,52 @@ dst = "/Volumes/#{drive}/iTunes"
 if @back
   cmd = "rsync -rtvi  #{dst}/ #{src}"
   puts cmd
-  system( cmd )
+  system(cmd)
   cmd.gsub!('iTunes', 'Own')
   puts cmd
-  system( cmd )
+  system(cmd)
 else
   cmd = "rsync -rtvi --exclude 'Mobile Applications' --delete-during #{src}/ #{dst}"
   puts cmd
-  system( cmd )
-  cmd.gsub!('iTunes', 'Own')
+  system(cmd)
+
+  src = "/Users/eweb/Music/Own"
+  dst = "/Volumes/#{drive}/Own"
+  cmd = "rsync -rtvi #{src}/ #{dst}"
   puts cmd
-  system( cmd )
+  system(cmd)
 
   src = "/Users/eweb/Pictures/Photos Library.photoslibrary/Masters"
   dst = "/Volumes/#{drive}/Pictures/Masters"
   cmd = "rsync -rtvi --delete-during '#{src}/' '#{dst}'"
   puts cmd
-  system( cmd )
+  system(cmd)
+
+  src = "/Users/eweb/projects/wbt.git"
+  dst = "/Volumes/#{drive}/projects/wbt.git"
+  cmd = "rsync -rtvi --delete-during '#{src}/' '#{dst}'"
+  puts cmd
+  system(cmd)
 
   dirs = [["/Volumes/#{drive}/projects/wacc", "git@bitbucket.org:eamoon/wacc.git"],
           ["/Volumes/#{drive}/accounts/master", "git@bitbucket.org:eamoon/data.git"],
-          ["/Volumes/#{drive}/bin", "git@bitbucket.org:eamoon/bin.git"]]
+          ["/Volumes/#{drive}/bin", "git@bitbucket.org:eamoon/bin.git"],
+          ["/Volumes/#{drive}/projects/metric_fu", "https://github.com/eamonn-webster/metric_fu.git"],
+          ["/Volumes/#{drive}/projects/flog", "https://github.com/eamonn-webster/flog.git"],
+          ["/Volumes/#{drive}/projects/simway", "git@bitbucket.org:eamoon/simway.git"],
+          # ["/Volumes/#{drive}/projects/wbt", "/Users/eweb/projects/wbt.git"]
+         ]
 
   dirs.each do |dir, remote|
     puts dir
     if Dir.exists?(dir)
       Dir.chdir(dir) do
         puts "git fetch --all"
-        system( "git fetch --all")
+        system("git fetch --all")
       end
     else
       puts("git clone #{remote} #{dir}")
       system("git clone #{remote} #{dir}")
     end
   end
-
 end
-

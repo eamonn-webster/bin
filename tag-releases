@@ -2,7 +2,7 @@
 #
 # File: tag-releases
 # Author: eweb
-# Copyright eweb, 2013-2016
+# Copyright eweb, 2013-2017
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -12,6 +12,7 @@
 #  7th Sep 2015  eweb     #0008 discover apps
 # 16th Dec 2015  eweb     #0008 handle rollbacks
 #  5th Apr 2016  eweb     #0008 heroku apps --all
+# 28th Oct 2017  eweb     #0008 don't tag all apps
 #
 
 apps = [ARGV[0]].compact
@@ -29,6 +30,7 @@ if apps.empty?
 end
 
 apps.each do |app|
+  next unless %w(qs-alpha qs-bleedin qs-core-eu-1).include?(app)
   displayed = false
   releases = %x{heroku releases --app #{app}}
   releases.each_line do |release|

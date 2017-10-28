@@ -1,8 +1,9 @@
 #!/usr/bin/env ruby
+# coding: utf-8
 #
 # File: getlyric.rb
 # Author: eweb
-# Copyright eweb, 2013-2016
+# Copyright eweb, 2013-2017
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -15,6 +16,7 @@
 #  7th Sep 2015  eweb     #0008 encoding
 # 16th Dec 2015  eweb     #0008 handle commas
 # 29th Dec 2016  eweb     #0008 handle exclamation marks
+# 28th Oct 2017  eweb     #0008 tidy up
 #
 require 'nokogiri'
 require 'open-uri'
@@ -76,18 +78,9 @@ def fetch_1
   song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
 
   artist.gsub!(' ', '_')
-  artist.gsub!('%', '%25')
-  artist.gsub!('!', '%21')
-  artist.gsub!("'", '%27')
-  artist.gsub!(',', '%2C')
-  artist.gsub!('?', '%3F')
-  artist.gsub!('=', '%3D')
   song.gsub!(' ', '_')
-  song.gsub!('%', '%25')
-  song.gsub!('!', '%21')
-  song.gsub!("'", '%27')
-  song.gsub!('?', '%3F')
-  song.gsub!('=', '%3D')
+  artist = URI.escape(artist)
+  song = URI.escape(song)
 
   url = "http://lyrics.wikia.com/#{artist}:#{song}"
 

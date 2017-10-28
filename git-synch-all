@@ -22,14 +22,29 @@
 # 21st Aug 2016  eweb     #0008 improvements
 # 29th Dec 2016  eweb     #0008 handling remotes
 # 14th Jan 2017  eweb     #0008 bye bye edge
+# 28th Oct 2017  eweb     #0008 purge branches
 #
 
 require 'open3'
 
-tagged = nil
-
 bin_dir = File.expand_path('../', __FILE__)
 # puts bin_dir
+
+dir_to_do = nil
+do_tags = true
+do_apps = true
+
+ARGV.each do |arg|
+  if arg == '--no-tags'
+    do_tags = false
+    nil
+  elsif arg == '--no-apps'
+    do_apps = false
+    nil
+  else
+    dir_to_do ||= arg
+  end
+end
 
 def app_list
   apps = []
@@ -46,7 +61,8 @@ def app_list
 end
 
 Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
-  next unless Dir.exist?(dir)
+  next if !Dir.exist?(dir)
+  next if dir_to_do && File.basename(dir) != dir_to_do
   Dir.chdir(dir) do |dir|
     next unless Dir.exist?('.git')
     remote = %x{git remote -v | grep -e 'origin.\\+fetch'}.chomp
@@ -57,7 +73,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
       current = `git rev-parse --abbrev-ref HEAD`.chomp
       puts "\033[0;34m#{dir}\033[0m \033[0;35m#{current}\033[0m \033[0;36m#{remote}\033[0m"
 
-      Open3.popen2e("git", "remote", "update") {|i,oe,t|
+      Open3.popen2e("git", "remote", "update", "-p") {|i,oe,t|
         oe.each {|line|
           line.chomp!
           if /Fetching repository, done./ =~ line
@@ -72,13 +88,13 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
       print "\033[2K\r"
 
       # for each remote that matches an app
-      if (repo == 'qs-core' || repo == 'spaced-ed') && !tagged
+      if (repo == 'qs-core' || repo == 'spaced-ed') && do_tags
         app_list.each do |app|
           #tags = `#{bin_dir}/tag-releases.rb #{app}`.chomp
           tags = `tag-releases #{app}`.chomp
           puts tags unless tags.empty?
         end
-        tagged = true
+        do_tags = false
       end
 
       case repo
@@ -107,7 +123,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
         end
       end
 
-      Open3.popen2e("git", "pull") {|i,oe,t|
+      Open3.popen2e("git", "pull", "-p") {|i,oe,t|
         oe.each {|line|
           line.chomp!
           if /Fetching repository, done./ =~ line
@@ -126,8 +142,10 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
   end
 end
 
-puts 'app configs'
-Dir.chdir("#{ENV['HOME']}/projects/qstream/apps") do |dir|
-  %x{./app_configs.rb}
-  %x{git commit -a -m 'fetched'}
+if do_apps
+  puts 'app configs'
+  Dir.chdir("#{ENV['HOME']}/projects/qstream/apps") do |dir|
+    %x{./app_configs.rb}
+    %x{git commit -a -m 'fetched'}
+  end
 end

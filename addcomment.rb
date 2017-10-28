@@ -2,7 +2,7 @@
 #
 # File: addcomment.rb
 # Author: eweb
-# Copyright eweb, 2003-2016
+# Copyright eweb, 2003-2017
 # Contents: Perl script to add comments to source files
 #
 # Date:          Author:  Comments:
@@ -95,6 +95,7 @@
 # 19th Oct 2015  eweb     #0008 Qstream doesn't want issue numbers
 # 14th Mar 2016  eweb     #0008 detect encoding
 # 29th Dec 2016  eweb     #0008 .metrics as ruby
+# 28th Oct 2017  eweb     #0008 tidy up
 #
 
 # DONE change event if comment not present.
@@ -111,60 +112,13 @@
 # scan for history block
 # append comment line to history
 
-#use strict
-#use File::Spec
-#use Getopt::Std
-#use File::Basename
-#use Cwd
-#use File::Temp
-
-@verbose
-@verified_clearcase
-@use_clearcase = true
-@cctool = "cleartool"
-@scc = "clearcase"
-@changeEvent = "Y"
-
-@preBanner
-@infile
-@comments
-@Author
-@OrigAuthor
-@Company
-@CompanyX
-@checkIn
-@checkOut
-@Major
-@Minor
-@Point
-@Build
-@Package
-@StartYear
-#@multi_line_start
-#@multi_line_end
-#@multi_line_prefix
-@single_line
-@very_first_line
-@FirstLine
-@bom
-@encoding
-@JustChangeEvent
-@ValidateComments = true
-@stripTrailingSpaces = true
-@tabs_allowed = false
-
-@bug_map = {}
-
-@nameExceptions = %w{schemaupgrade incrementalupgrade revisionnumber databaseversion baseschema topclassusername}
-@dataExceptions = %w{incrementalupgrade revisionnumber databaseversion topclassusername}
-
 class String
   def blank?
-    self.empty?
+    empty?
   end
 
   def present?
-    !self.empty?
+    !empty?
   end
 end
 
@@ -178,27 +132,23 @@ class NilClass
   end
 end
 
-@opts = {
-=begin
- 'a' => nil,
-             'c' => nil,
-             'E' => nil,
-             'A' => nil,
-             'C' => nil,
-             'D' => nil,
-             'i' => nil,
-             'o' => nil,
-             'm' => nil,
-             'n' => nil,
-             'p' => nil,
-             'b' => nil,
-             'k' => nil,
-             'S' => nil,
-             'v' => nil,
-             'x' => nil,
-             't' => nil,
-=end
-}
+@use_clearcase = true
+@scc = "clearcase"
+@change_event = 'Y'
+
+@validate_comments = true
+@strip_trailing_spaces = true
+@tabs_allowed = false
+
+def name_exceptions
+  %w(schemaupgrade incrementalupgrade revisionnumber databaseversion baseschema topclassusername)
+end
+
+def data_exceptions
+  %w(incrementalupgrade revisionnumber databaseversion topclassusername)
+end
+
+@opts = {}
 
 def getopts(str, opts)
   valid_opts = {}
@@ -218,7 +168,7 @@ def getopts(str, opts)
       prev = nil
     elsif arg[0] == '-'
       cmd = arg[1]
-      if valid_opts.has_key?(cmd)
+      if valid_opts.key?(cmd)
         prev = valid_opts[cmd] ? cmd : nil
         opts[cmd] = true
       else
@@ -233,21 +183,9 @@ def getopts(str, opts)
   true
 end
 
-puts "argv: #{ARGV}" if @verbose.to_i > 2
-
-# Was anything other than the defined option entered on the command line?
-if !getopts("c:a:A:C:D:Eiom:n:p:b:k:S:v:x:t", @opts) || ARGV.size > 1
-  STDERR.print "Unknown args #{ARGV}\n" if ARGV.size > 0
-  #Usage()
-  exit
-end
-
-puts "argv: #{ARGV}" if @verbose.to_i > 2
-puts "opts: #{@opts}" if @verbose.to_i > 2
-
 def find_git
   dir = Dir.getwd
-  while (!File.directory?("#{dir}/.git"))
+  until File.directory?("#{dir}/.git")
     parent = "#{dir}/.."
     if File.expand_path(dir) == File.expand_path(parent)
       break
@@ -263,97 +201,78 @@ def find_git
   nil
 end
 
-@git_root = "."
-
-if find_git
-  @scc = "git"
-  @drive = @git_root
-else
-  @cwd = Dir.getwd
-  if @cwd =~ /p4clients/
-    @scc = "p4"
-  end
-end
-
-def verifyClearcase
+def verify_clearcase
   if @verified_clearcase == "N" && @use_clearcase
-    @cctool = "cleartool"
-    @topclassVob = "/topclass"
+    topclass_vob = "/topclass"
     if RUBY_PLATFORM == "linux"
-      @topclassVob = "/vobs#{@topclassVob}"
+      topclass_vob = "/vobs#{topclass_vob}"
     end
-    desc = `#{@cctool} desc -fmt "[%m]" "#{@topclassVob}"`
+    desc = `cleartool desc -fmt "[%m]" "#{topclass_vob}"`
     if desc == "[**null meta type**]"
       print "Not a clearcase drive\n"
-      @cctool = ""
       @use_clearcase = false
     elsif desc == "[directory version]"
       print "Is a clearcase drive\n"
       @use_clearcase = true
     elsif desc.blank?
       print "Looks like we don't have cleartool\n"
-      @cctool = ""
       @use_clearcase = false
     end
-    @verified_clearcase = "Y"
+    @verified_clearcase = 'Y'
   end
 end
 
-def GetBuildNumber(drive, fileType=nil)
-  buildNoFile = "#{drive}/topclass/oracle/topclass/sources/buildno.h"
-  if !File.exists? buildNoFile
-    versionInfoFile = "#{drive}/topclass/oracle/topclass/sources/versioninfo.h"
-    if File.exists? versionInfoFile
-      buildNoFile = versionInfoFile
+def get_build_number(drive, file_type = nil)
+  build_no_file = "#{drive}/topclass/oracle/topclass/sources/buildno.h"
+  if !File.exist? build_no_file
+    version_info_file = "#{drive}/topclass/oracle/topclass/sources/versioninfo.h"
+    if File.exist? version_info_file
+      build_no_file = version_info_file
     else
-      neoBuildNoFile = "#{drive}/topclass/neo/sources/buildno.h"
-      if File.exists? neoBuildNoFile
-        buildNoFile = neoBuildNoFile
+      neo_build_no_file = "#{drive}/topclass/neo/sources/buildno.h"
+      if File.exist? neo_build_no_file
+        build_no_file = neo_build_no_file
       else
-        versionInfoFile = "#{drive}/topclass/neo/sources/versioninfo.h"
-        if File.exists? versionInfoFile
-          buildNoFile = versionInfoFile
+        version_info_file = "#{drive}/topclass/neo/sources/versioninfo.h"
+        if File.exist? version_info_file
+          build_no_file = version_info_file
         end
       end
     end
   end
 
-  #puts buildNoFile
-
-  open(buildNoFile).each_line do |line|
+  build = major = minor = point = 0
+  open(build_no_file).each_line do |line|
     if line =~ /\#define BUILDNUMBER +([0-9]+)/
-      @Build = $1
-      #@Build++
-      #@Build--
+      build = $1
+      #@build++
+      #@build--
     elsif line =~ /\#define MAJORREVISION +([0-9]+)/
-      @Major = $1
+      major = $1
     elsif line =~ /\#define MINORREVISION +([0-9]+)/
-      @Minor = $1
+      minor = $1
     elsif line =~ /\#define POINTREVISION +([0-9]+)/
-      @Point = $1
+      point = $1
     end
   end
 
-  @Build = sprintf("%03d", @Build)
+  build = format("%03d", build)
 
-  [@Major, @Minor, @Point, @Build]
+  [major, minor, point, build]
 rescue Errno::ENOENT
-  if fileType == "sql" && "#{@Major}#{@Minor}#{@Point}#{@Build}#{@Package}" == ""
-    print "**** Cannot open file #{buildNoFile} for reading\n"
+  if file_type == "sql" && "#{major}#{minor}#{point}#{build}" == ""
+    print "**** Cannot open file #{build_no_file} for reading\n"
   end
-
 end
 
-def chevent(file, comment)
+def chevent(_file, comment)
   if comment.blank?
-  elsif $scc == "git"
+  elsif @scc == "git"
     add_to_git_commit_msg(comment)
   end
 end
 
-@Year = nil
-
-def formatDate(d, m, y)
+def format_date(d, m, y)
   th = "th"
   d = d.to_i
   if d == 1 || d == 21 || d == 31
@@ -370,248 +289,75 @@ def formatDate(d, m, y)
   "#{d}#{th} #{m} #{y}"
 end
 
-def FormatToday
+def format_today
   now = Time.new.localtime
 
-  @Year = now.year
+  @year = now.year
 
   months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-  @Month = months[now.month-1]
+  @month = months[now.month - 1]
   d = now.day
 
-  return formatDate(d, @Month, @Year)
-end
-
-@Date = FormatToday()
-
-@infile = ARGV[0]
-
-if @opts.has_key?('c')
-  @comments = @opts['c']
-end
-
-if @opts.has_key?('a')
-  @Author = @opts['a']
-end
-
-if @opts.has_key?('A')
-  @OrigAuthor = @opts['A']
-end
-
-if @opts.has_key?('E')
-  @JustChangeEvent = 1
-end
-
-if @opts.has_key?('D')
-  if @opts['D'] =~ /([0-9]+)-(...)-([0-9]+)/
-    @Date = formatDate($3, $2, $1)
-  else
-    print "ERROR invalid date @opts['D'] should be in form yyyy-mmm-dd e.g. 2011-Aug-12\n"
-  end
-end
-
-if @opts.has_key?('C')
-  @Company = @opts['C']
-  @CompanyX = @opts['C']
-end
-
-if @opts.has_key?('i')
-  @checkIn = "Y"
-end
-
-if @opts.has_key?('x')
-  @changeEvent = uc @opts['x']
-end
-
-@verbose = @opts['v'].to_i if @opts['v']
-
-if @opts.has_key?('o')
-  @checkOut = "Y"
-end
-
-if @opts.has_key?('m')
-  @Major = @opts['m']
-end
-
-if @opts.has_key?('n')
-  @Minor = @opts['n']
-end
-
-if @opts.has_key?('p')
-  @Point = @opts['p']
-end
-
-if @opts.has_key?('b')
-  @Build = @opts['b']
-end
-
-if @opts.has_key?('k')
-  @Package = @opts['k']
-end
-
-if @opts.has_key?('S')
-  @StartYear = @opts['S']
-end
-
-@abs_path = File.expand_path(@infile)
-@drive
-if @abs_path =~ /^(.:)/
-  @drive = $1
-else
-  @drive = @git_root
-end
-
-@outfile = "#{@infile}.new"
-
-@usernameMap = {}
-
-unless @Author
-  @Author = ENV['USER'].downcase unless (@Author)
-  @Author = ENV['USERNAME'].downcase unless (@Author)
-  if @usernameMap[@Author].present?
-    @Author = @usernameMap[@Author]
-  end
-end
-if @OrigAuthor.blank? && @scc == "clearcase"
-  @OrigAuthor = `cleartool desc -fmt "%u" @infile\@\@/main/0`
-  if @usernameMap[@OrigAuthor].present?
-    @OrigAuthor = @usernameMap[@OrigAuthor]
-  end
-end
-if @OrigAuthor.blank?
-  @OrigAuthor = @Author
-elsif @OrigAuthor == "."
-  @OrigAuthor = ""
-end
-
-if @Company.blank?
-  if @scc == "git"
-    @email = `git config --get user.email`
-    if @email =~ /wbtsystems.com/
-      @Company = "WBT Systems"
-    end
-    if @email =~ /qstream.com/
-      @Company = "Qstream"
-    end
-  end
-  @Company = "eweb" unless (@Company)
-end
-if @StartYear.blank? && @scc == "clearcase"
-  @date = `cleartool desc -fmt "%Nd" @infile\@\@/main/0`
-  if @date =~ /(^[0-9]{4})/
-    @StartYear = $1
-  end
-end
-if @StartYear.blank?
-  if @Company == "WBT Systems"
-    @StartYear = "1995"
-  else
-    @StartYear = @Year
-  end
-end
-
-if @infile =~ %r{(/|\\)yui\1}
-  #print "Part of yui\n"
-  #@OrigAuthor = "-"
-end
-
-if @infile.blank?
-  die "No file given\n"
-end
-
-# determine filename and immediate parent
-#(@File, @path) = fileparse(@infile)
-
-@infile = File.expand_path(@infile)
-
-@File = File.basename(@infile)
-@path = File.dirname(@infile)
-
-print "(#{@File}, #{@path})\n" if @verbose.to_i > 2
-
-# strip trailing slash
-@path.sub!(%r{\/$}, '')
-@path.sub!(%r{\\$}, '')
-
-#print "(@File, @path)\n"
-
-@Parent = File.dirname(@path)
-
-@fileType = ""
-
-@comments.strip! if @comments
-
-if @ValidateComments
-  if @comments =~ /^#[0-9]{4,5} .+/ || @comments =~ /^#[A-Z]+-[0-9]{3,5} .+/
-    @comments = @comments.split(/ +/).join(' ')
-  elsif @comments.blank?
-    puts 'Empty comment'
-  elsif @comments =~ /^#\?+/
-    raise 'ERROR: Invalid comment'
-  else
-    raise 'ERROR: Invalid comment' unless @Company == 'Qstream'
-  end
-end
-
-if @opts['t']
-  add_to_git_commit_msg(@comments)
-  exit
+  format_date(d, @month, @year)
 end
 
 def setup_for_type(type)
   case type
-    when 'c++'
-      @multi_line_start = "/*"
-      @multi_line_end = "*/"
-      @multi_line_prefix = "  "
-    when 'applescript'
-      @multi_line_start = "(*"
-      @multi_line_end = "*)"
-      @multi_line_prefix = "  "
-      @tabs_allowed = true
-    when 'xml'
-      @multi_line_start = "<!--"
-      @multi_line_end = "-->"
-      @multi_line_prefix = "  "
-      @very_first_line = /<?xml.*>/
-    when 'pl'
-      @single_line = "#"
-      @very_first_line = "#!"
-    when "tmpl"
-      @single_line = "#"
-    when "lsp"
-      @multi_line_start = "#|"
-      @multi_line_end = "|#"
-      @multi_line_prefix = "  "
+  when 'c++'
+    @multi_line_start = "/*"
+    @multi_line_end = "*/"
+    @multi_line_prefix = "  "
+  when 'applescript'
+    @multi_line_start = "(*"
+    @multi_line_end = "*)"
+    @multi_line_prefix = "  "
+    @tabs_allowed = true
+  when 'xml'
+    @multi_line_start = "<!--"
+    @multi_line_end = "-->"
+    @multi_line_prefix = "  "
+    @very_first_line = /<?xml.*>/
+  when 'pl'
+    @single_line = "#"
+    @very_first_line = "#!"
+  when 'rb'
+    @single_line = "#"
+    @very_first_line = "#!"
+  when "tmpl"
+    @single_line = "#"
+  when "lsp"
+    @multi_line_start = "#|"
+    @multi_line_end = "|#"
+    @multi_line_prefix = "  "
     #@single_line = ";"
-    when "bat"
-      @single_line = "::"
-    when "def"
-      @single_line = ";"
-    when "jsp"
-      @multi_line_start = "<%/*"
-      @multi_line_end = "*/%>"
-      @multi_line_prefix = "  "
-    when "html"
-      @multi_line_start = "<!--"
-      @multi_line_end = "-->"
-      @multi_line_prefix = "  "
-      @very_first_line = /<!DOCTYPE.*>/
-    when "asp"
-      @multi_line_start = "<%"
-      @multi_line_end = "%>"
-      @multi_line_prefix = "' "
-    when "bas"
-      @single_line = "'"
-    when "sql"
-      @single_line = "--"
+  when "bat"
+    @single_line = "::"
+  when "def"
+    @single_line = ";"
+  when "jsp"
+    @multi_line_start = "<%/*"
+    @multi_line_end = "*/%>"
+    @multi_line_prefix = "  "
+  when "html"
+    @multi_line_start = "<!--"
+    @multi_line_end = "-->"
+    @multi_line_prefix = "  "
+    @very_first_line = /<!DOCTYPE.*>/
+  when "asp"
+    @multi_line_start = "<%"
+    @multi_line_end = "%>"
+    @multi_line_prefix = "' "
+  when "bas"
+    @single_line = "'"
+  when "sql"
+    @single_line = "--"
   end
 end
 
 def determine_type(file)
   file_type = nil
-  if @JustChangeEvent
+  if @just_change_event
   elsif File.directory?(@infile)
     print "Don't comment directories\n"
   elsif File.symlink?(@infile)
@@ -619,50 +365,51 @@ def determine_type(file)
   elsif file =~ /\.png$/ || file =~ /\.icns$/
     print "Can't comment images\n"
   elsif file =~ /\.dsw$/ ||
-      file =~ /\.dsp$/ ||
-      file =~ /\.dat$/
+    file =~ /\.dsp$/ ||
+    file =~ /\.dat$/
     print "Unhandled file type #{file}\n"
   elsif file == "R.java"
     print "Uncommentable file #{file}\n"
   elsif file =~ /\.cpp$/ ||
-      file =~ /\.h$/ ||
-      file =~ /\.rh$/ ||
-      file =~ /\.inc$/ ||
-      file =~ /\.js$/ ||
-      file =~ /\.c$/ ||
-      file =~ /\.rc$/ ||
-      file =~ /\.rc2$/ ||
-      file =~ /\.lnt$/ ||
-      file =~ /\.css$/ ||
-      file =~ /\.rul$/ ||
-      file =~ /\.g$/ ||
-      file =~ /\.java$/ ||
-      file =~ /\.idl$/
+    file =~ /\.h$/ ||
+    file =~ /\.rh$/ ||
+    file =~ /\.inc$/ ||
+    file =~ /\.js$/ ||
+    file =~ /\.c$/ ||
+    file =~ /\.rc$/ ||
+    file =~ /\.rc2$/ ||
+    file =~ /\.lnt$/ ||
+    file =~ /\.css$/ ||
+    file =~ /\.rul$/ ||
+    file =~ /\.g$/ ||
+    file =~ /\.java$/ ||
+    file =~ /\.idl$/
     file_type = "c++"
   elsif file =~ /\.xml$/ ||
-      file =~ /\.xslt$/ ||
-      file =~ /\.dtd$/ ||
-      file =~ /\.jmx$/ ||
-      file =~ /\.tld$/ ||
-      file =~ /\.xsd$/ ||
-      file =~ /\.jrxml/
+    file =~ /\.xslt$/ ||
+    file =~ /\.dtd$/ ||
+    file =~ /\.jmx$/ ||
+    file =~ /\.tld$/ ||
+    file =~ /\.xsd$/ ||
+    file =~ /\.jrxml/
     file_type = "xml"
   elsif file =~ /\.sql$/
     file_type = "sql"
   elsif file =~ /\.rb$/ ||
-      file =~ /\.feature$/ ||
-      file =~ /\.sh$/ ||
-      file =~ /\.pl$/ ||
-      file =~ /\.properties$/ ||
-      file =~ /\.properties.default$/ ||
-      file =~ /\.rake$/ ||
-      file =~ /\.yml$/ ||
-      file =~ /\.yaml$/ ||
-      file =~ /\.reek$/ ||
-      file =~ /\.metrics$/ ||
-      file =~ /\.simplecov$/ ||
-      file =~ /^Rakefile$/ ||
-      file =~ /^Gemfile$/
+    file =~ /\.feature$/ ||
+    file =~ /\.rake$/ ||
+    file =~ /\.yml$/ ||
+    file =~ /\.yaml$/ ||
+    file =~ /\.reek$/ ||
+    file =~ /\.metrics$/ ||
+    file =~ /\.simplecov$/ ||
+    file =~ /^Rakefile$/ ||
+    file =~ /^Gemfile$/
+    file_type = "rb"
+  elsif file =~ /\.pl$/ ||
+    file =~ /\.sh$/ ||
+    file =~ /\.properties$/ ||
+    file =~ /\.properties.default$/
     file_type = "pl"
   elsif file =~ /\.tmpl$/
     file_type = "tmpl"
@@ -684,9 +431,10 @@ def determine_type(file)
     file_type = "applescript"
   else
     first_line = File.open(@infile) { |fh| fh.readline.chomp }
-    if first_line =~ /^#!.+perl/ ||
-        first_line =~ /^#!.+ruby/ ||
-        first_line =~ /^#!.+bash/
+    if first_line =~ /^#!.+ruby/
+      file_type = 'rb'
+    elsif first_line =~ /^#!.+perl/ ||
+      first_line =~ /^#!.+bash/
       file_type = 'pl'
     else
       print "Unhandled file type #{file}\n"
@@ -695,50 +443,17 @@ def determine_type(file)
   file_type
 end
 
-@fileType = determine_type(@File)
-if @fileType.nil?
-  if @changeEvent == "Y"
-    chevent(@infile, @comments)
-  end
-  exit
-end
-setup_for_type(@fileType)
-
-puts "File: #{@File} is of type #{@fileType}" if @verbose.to_i > 2
-#puts [@multi_line_start, @multi_line_end, @multi_line_prefix].join(', ')
-#puts "#{@single_line} #{@very_first_line}"
-
-#print "Will try to open @infile\n"
-@input = open(@infile, 'r') or die "can't open #{@infile}\n"
-# binmode @input
-#print "Will try to open @outfile\n"
-@output = open(@outfile, 'w') or die "can't open #{@outfile}\n"
-#binmode @output
-
-@changed = false
-@inHistory = false
-@pastHistory = false
-@nComments = 0
-@hasComment = false
-@commented = false
-@hasBanner = false
-@hasHistory = false
-
 def quotemeta(str)
   (str || '').gsub(/([.|()\[\]{}+\$*?^])/) { |ch| "\\#{ch}" }
 end
 
-@commentPattern = Regexp.new(quotemeta(@Date) + " +" + quotemeta(@Author) + " +" + quotemeta(@comments)) # [addcomment.pl don't change]
-
-print "\@commentPattern [#{@commentPattern}]\n" if @verbose.to_i > 2
-
-def writeHistory
-  puts 'writeHistory'
+def write_history
+  puts 'write_history'
   if @multi_line_start.present?
     @output.puts @multi_line_start
   end
-  writeDAC
-  writeLine
+  write_date_author_comment
+  write_line
   if @multi_line_start.present?
     @output.puts @multi_line_end
   else
@@ -747,705 +462,914 @@ def writeHistory
   @changed = 1
 end
 
-def writeBanner
-  if @OrigAuthor == "-"
+def write_banner
+  if @orig_author == "-"
+  elsif @multi_line_start.present?
+    @output.print "#{@multi_line_start}\n"
+    @output.print "#{@multi_line_prefix} File: #{@file}\n"
+    @output.print "#{@multi_line_prefix} Author: #{@orig_author}\n"
+    @output.print "#{@multi_line_prefix} Copyright #{@company}, #{@start_year}-#{@year}\n"
+    @output.print "#{@multi_line_prefix} Contents:\n"
+    @output.print "#{@multi_line_end}\n"
   else
-    if @multi_line_start.present?
-      @output.print "#{@multi_line_start}\n"
-      @output.print "#{@multi_line_prefix} File: #{@File}\n"
-      @output.print "#{@multi_line_prefix} Author: #{@OrigAuthor}\n"
-      @output.print "#{@multi_line_prefix} Copyright #{@Company}, #{@StartYear}-#{@Year}\n"
-      @output.print "#{@multi_line_prefix} Contents:\n"
-      @output.print "#{@multi_line_end}\n"
-    else
-      @output.print "#{@single_line}\n"
-      @output.print "#{@single_line} File: #{@File}\n"
-      @output.print "#{@single_line} Author: #{@OrigAuthor}\n"
-      @output.print "#{@single_line} Copyright #{@Company}, #{@StartYear}-#{@Year}\n"
-      @output.print "#{@single_line} Contents:\n"
-      @output.print "#{@single_line}\n"
-    end
+    @output.print "#{@single_line}\n"
+    @output.print "#{@single_line} File: #{@file}\n"
+    @output.print "#{@single_line} Author: #{@orig_author}\n"
+    @output.print "#{@single_line} Copyright #{@company}, #{@start_year}-#{@year}\n"
+    @output.print "#{@single_line} Contents:\n"
+    @output.print "#{@single_line}\n"
   end
 end
 
-def getCommentLine(date, author, comments)
+def get_comment_line(date, author, comments)
   if comments.blank?
     if @multi_line_start.present?
-      return sprintf "#{@multi_line_prefix} %-14s %s\n", date, author; # [addcomment.pl don't change]
+      format "#{@multi_line_prefix} %-14s %s\n", date, author; # [addcomment.pl don't change]
     else
-      return sprintf "#{@single_line} %-14s %s\n", date, author; # [addcomment.pl don't change]
+      format "#{@single_line} %-14s %s\n", date, author; # [addcomment.pl don't change]
     end
-  else
+  elsif !comments.blank?
     if @multi_line_start.present?
-      return sprintf "#{@multi_line_prefix} %-14s %-8s %s\n", date, author, comments; # [addcomment.pl don't change]
+      format "#{@multi_line_prefix} %-14s %-8s %s\n", date, author, comments; # [addcomment.pl don't change]
     else
-      return sprintf "#{@single_line} %-14s %-8s %s\n", date, author, comments; # [addcomment.pl don't change]
+      format "#{@single_line} %-14s %-8s %s\n", date, author, comments; # [addcomment.pl don't change]
     end
   end
 end
 
-def writeDAC
-  @output.print getCommentLine("Date:", "Author:", "Comments:"); # [addcomment.pl don't change]
+def write_date_author_comment
+  @output.print get_comment_line("Date:", "Author:", "Comments:"); # [addcomment.pl don't change]
 end
 
-def writeLine
+def write_line
   # don't add empty comment.
   if @comments.present?
-    @output.print getCommentLine(@Date, @Author, @comments); # [addcomment.pl don't change
+    @output.print get_comment_line(@date, @author, @comments); # [addcomment.pl don't change
   end
 end
 
-def map_ids(line, changed, found80000)
-  #print "line: #{line}\n"
-  #print "changed: #{changed}\n"
-  #print "found80000: #{found80000}\n"
-
-  line.scan(/#([0-9]{4,5})[^0-9]/) do |id|
-    #print "[#{id}]\n"
-    if id == "80000"
-      found80000 = true
-    end
-    old_id = id
-    new_id = @bug_map[old_id]
-    if new_id
-      print "changing from #{old_id} to #{new_id}\n"
-      changed = 1
-      line = line.gsub("##{old_id}", "##{new_id}")
-    end
-  end
-  #print "line: #{line}\n"
-  #print "changed: #{changed}\n"
-  #print "found80000: #{found80000}\n"
-  [line, changed, found80000]
-end
-
-(@Major, @Minor, @Point, @Build) = GetBuildNumber(@drive, @fileType)
-
-@dodgyBanner
-@pastBanner
-@commentStart
-@commentEnd
-@Line = 0
-@incomment
-@trailingSpace
-@tabs
-
-@lineType
-
-def quoteChar(ch)
+def quote_char(ch)
   return "\\r" if ch == '\r'
   return "\\n" if ch == '\n'
   return "\\t" if ch == '\r'
-  return ch
+  ch
 end
 
-@input.each_line do |thisLine|
+def setup_options
+  puts "argv: #{ARGV}" if @verbose.to_i > 2
 
-  start_of_header_line = Regexp.escape(@single_line || @multi_line_start)
-  if @Line == 0 && thisLine =~ /\xef\xbb\xbf/
-    @bom = 1
-  end
-  if @Line == 0 && thisLine =~ /<\?xml .+encoding='(.+)'.*\?>/
-    @encoding = $1
-  end
-  if @Line == 0 && thisLine =~ /<\?xml .+encoding="(.+)".*\?>/
-    @encoding = $1
-  end
-  if thisLine =~ /# -\*- coding: (.+) -\*-/
-    @encoding = $1
-  end
-  if thisLine =~ /# coding: (.+)/
-    @encoding = $1
+  # Was anything other than the defined option entered on the command line?
+  if !getopts("c:a:A:C:D:Eiom:n:p:b:k:S:v:x:tT:", @opts) || ARGV.size > 1
+    STDERR.print "Unknown args #{ARGV}\n" unless ARGV.empty?
+    #Usage()
+    exit
   end
 
-  if @Line == 0 && @very_first_line && thisLine =~ Regexp.new(@very_first_line)
-    @FirstLine = "#{thisLine}\n"
-  end
+  puts "argv: #{ARGV}" if @verbose.to_i > 2
+  puts "opts: #{@opts}" if @verbose.to_i > 2
 
-  @Line += 1
+  @git_root = "."
 
-  print "#{@Line}: #{thisLine}" if @verbose.to_i > 4
-  if thisLine =~ /[^\r\n]*([\r\n]+)$/
-    @eoln = $1
-    if @eoln != @lineType
-      if @Line > 1
-        STDERR.print "ERROR: Mixed line endings at line #{@File}:#{@Line}\n"
-      end
-      @chars = @eoln.chars.collect(&:ord)
-      #STDERR.print "eoln: [#{@chars}]\n"
-
-      if @eoln == "\r\n"
-        STDERR.print "ERROR: Dos line end [#{@chars}] at line #{@File}:#{@Line}\n" unless RUBY_PLATFORM == "MSWin32"
-      elsif @eoln == "\n"
-        STDERR.print "ERROR: Unix line end [#{@chars}] at line #{@File}:#{@Line}\n" if RUBY_PLATFORM == "MSWin32"
-      elsif @eoln == "\r"
-        STDERR.print "ERROR: Mac line end [#{@chars}] at line #{@File}:#{@Line}\n"
-      elsif @eoln == "\r\r\n"
-        STDERR.print "ERROR: Netscape line end [#{@chars}] at line #{@File}:#{@Line}\n"
-      else
-        STDERR.print "ERROR: Odd line end [#{@chars}] at line #{@File}:#{@Line}\n"
-      end
-    end
-    @lineType = @eoln
-    thisLine.gsub!(/[\r\n]/, '')
-    thisLine = "#{thisLine}\n"
+  if find_git
+    @scc = "git"
+    @drive = @git_root
   else
-    STDERR.print "#{@File}:#{@Line} No eoln at eof\n"
-  end
-
-  if !@tabs_allowed && thisLine =~ /\t/
-    STDERR.print "TABS!!! Tabs found at line #{@File}:#{@Line}\n"
-  end
-  if thisLine =~ /[ \t][\r\n]/
-    if @stripTrailingSpaces
-      STDERR.print "Space! Trailing space removed from line #{@File}:#{@Line}\n"
-      thisLine.sub!(/[ \t]+$/, '')
-      @changed = 1
-    else
-      STDERR.print "SPACE!!! Trailing space found at line #{@File}:#{@Line}\n"
+    @cwd = Dir.getwd
+    if @cwd =~ /p4clients/
+      @scc = "p4"
     end
   end
-  if thisLine =~ /([^\x20-\x7f\t\n\r]+)/
-    exchars = $1
-    if @bom
-    elsif @encoding == "utf-8"
-    elsif @infile =~ /resources_..\.properties/
-    elsif @infile =~ /_.+\.dat/ && @infile !~ /english/
-    else
-      # print "[exchars] " . join(',', unpack('U*', exchars)) . "\n"
-      chars = exchars.bytes.collect{|b| '%X' % b }.join
-      #chars = exchars
-      STDERR.print "#{@File}:#{@Line} CHAR!!! extended character '#{exchars}' [#{chars}]\n"
-    end
-  end
-  (@newline, @bugchanged, @found80000) = map_ids(thisLine, 0, 0)
-  if @bugchanged
-    #print "mapped bug_id\n"
-    @thisLine = @newline
-    @changed = true
-  end
-  if (@thisLine =~ /#8[0-9?]{4}/ && @thisLine !~ /\[addcomment\.pl don\'t change\]/) # [addcomment.pl don't change]
-    STDERR.print "#{@thisLine}\n"
+
+  @year = nil
+
+  @date = format_today
+
+  @infile = ARGV[0]
+
+  if @opts.key?('c')
+    @comments = @opts['c']
   end
 
-  if @multi_line_start.present? && @thisLine.start_with?(@multi_line_start)
-    print "Found start of multiline\n#{@thisLine}" if @verbose.to_i > 2
-    @incomment = true
-    @commentStart = @thisLine.dup
-    #chomp(@commentStart)
-    @commentStart.sub!(/[\r\n]+$/, '')
-  elsif @multi_line_end.present? && @thisLine.end_with?(@multi_line_end)
-    print "Found end of multiline\n#{@thisLine}" if @verbose.to_i > 2
-    @incomment = nil
-    @commentEnd = @thisLine.dup
-    #chomp(@commentEnd)
-    @commentEnd.sub!(/[\r\n]+$/, '')
-
-    if @hasBanner && !@pastBanner
-      @pastBanner = true
-      if @commentEnd != @multi_line_end
-        print "#{@Line}: dodgy end of banner\n[#{@commentEnd}]\n[#{@multi_line_end}]\n"; # if  @verbose.to_i > 2
-        @dodgyBanner = true
-      end
-    end
-  elsif @single_line.present? && @thisLine.start_with?(@single_line)
-    @incomment = true
-  elsif @single_line.present?
-    @incomment = nil
+  if @opts.key?('a')
+    @author = @opts['a']
   end
 
-  changeable = @thisLine !~ /\[addcomment\.pl don\'t change\]/ # [addcomment.pl don't change]
-  if changeable && !@pastHistory && @thisLine =~ /(.*)Copyright(.*)(\w+)(.*)([0-9][0-9]+)-([0-9][0-9]+)(.*)/
-    x1, x2, x3, x4, x5, x6, x7 = $1, $2, $3, $4, $5, $6, $7
-    print "Found copyright1\n#{@thisLine}" if @verbose.to_i > 2
-    if !@incomment
-      print "Found copyright out of comment line\n#{@thisLine}"
-      @output.print "#{@thisLine}"
-    elsif @thisLine =~ /Yahoo! Inc./
-      print "Found Yahoo copyright\n#{@thisLine}" if @verbose.to_i > 2
-      @OrigAuthor = "-"
-      print "Not updating, #{@thisLine}"
-      print "1: #{x1} 2: #{x2} 3: #{x3} 4: #{x4} 5: #{x5} 6: #{x6} 7: #{x7}\n" if @verbose.to_i > 2
-      @hasBanner = true
-      @output.print "#{@thisLine}"
-    elsif @OrigAuthor == "-"
-      print "Found copyright but OrigAuthor is -\n#{@thisLine}" if @verbose.to_i > 2
-      print "Found copyright but not updating\n#{@thisLine}"
-      print "1: #{x1} 2: #{x2} 3: #{x3} 4: #{x4} 5: #{x5} 6: #{x6} 7: #{x7}\n" if @verbose.to_i > 2
-      @hasBanner = true
-      @output.print "#{@thisLine}"
-    else
-      print "Found copyright line\n#{@thisLine}" if @verbose.to_i > 2
-      print "1: #{x1} 2: #{x2} 3: #{x3} 4: #{x4} 5: #{x5} 6: #{x6} 7: #{x7}\n" if @verbose.to_i > 2
-      @hasBanner = true
-      scannedYear = x6
-      correctYear = @Year
-      if @thisLine =~ /NeoLogic/
-        correctYear = 1997
-      end
-      if scannedYear != correctYear
-        @changed = true
-      end
-      @output.print "#{x1}Copyright#{x2}#{x3}#{x4}#{x5}-#{correctYear}#{x7}\n"
-      if @multi_line_start.present? && @commentStart != @multi_line_start
-        print "#{@Line}: dodgy start of banner\n[#{@commentStart}]\n[#{@multi_line_start}]\n"; # if  @verbose.to_i > 2
-        @dodgyBanner = true
-      end
-    end
-  elsif changeable && !@pastHistory && @thisLine =~ /(.*)Copyright(.*)(\w+)(.*)([0-9][0-9]+)(.*)/
-    print "Found copyright2\n#{@thisLine}" if @verbose.to_i > 2
-    x1, x2, x3, x4, x5, x6 = $1, $2, $3, $4, $5, $6
-    if !@incomment
-      print "Found copyright out of comment line\n#{@thisLine}"
-      @output.print "#{@thisLine}"
-    elsif @thisLine =~ /Yahoo! Inc./
-      @OrigAuthor = "-"
-      print "Not updating, #{@thisLine}"
-      print "1: #{x1} 2: #{x2} 3: #{x3} 4: #{x4} 5: #{x5} 6: #{x6}\n" if @verbose.to_i > 2
-      @hasBanner = true
-      @output.print "#{@thisLine}"
-    elsif @OrigAuthor == "-"
-      print "Found copyright but not updating\n#{@thisLine}"
-      print "1: #{x1} 2: #{x2} 3: #{x3} 4: #{x4} 5: #{x5} 6: #{x6}\n" if @verbose.to_i > 2
-      @hasBanner = true
-      @output.print "#{@thisLine}"
-    else
-      print "Found copyright line\n#{@thisLine}" if @verbose.to_i > 2
-      print "1: #{x1} 2: #{x2} 3: #{x3} 4: #{x4} 5: #{x5} 6: #{x6}\n" if @verbose.to_i > 2
-      @hasBanner = true
-      @scannedYear = x5
-      @correctYear = @Year
-      if @thisLine =~ /NeoLogic/
-        @correctYear = 1997
-      end
-      if @scannedYear != @correctYear
-        @changed = true
-      end
-      @output.print "#{x1}Copyright#{x2}#{x3}#{x4}#{x5}-#{@correctYear}#{x6}\n"
-      if @multi_line_start.present? && @commentStart != @multi_line_start
-        print "#{@Line}: dodgy start of banner\n[#{@commentStart}]\n[#{@multi_line_start}]\n"; # if  @verbose.to_i > 2
-        @dodgyBanner = true
-      end
-    end
-  elsif changeable && !@pastHistory && @thisLine =~ /Date.*Author.*/
-    # found start of history...
-    print "Found start of history\n" if @verbose.to_i > 2
-    @inHistory = true
-    @hasHistory = true
-    writeDAC
-  elsif changeable && !@pastHistory && @thisLine =~ /date.*author.*comment.*/
-    # found start of history...
-    print "Found start of history (2)\n" if @verbose.to_i > 2
-    @inHistory = true
-    @hasHistory = true
-    @changed = true
-    writeDAC
-  elsif !@pastHistory && @thisLine =~ /-- Revision History/
-    print "Found 'Revision History' line\n#{@thisLine}" if @verbose.to_i > 2
-    @inHistory = true
-    @hasHistory = true
-    @changed = true
-    writeDAC
-  elsif !@pastHistory && @thisLine =~ @commentPattern
-    print "Found commentpattern\n#{@thisLine}" if @verbose.to_i > 2
-    if @inHistory
-      # already commented
-      @hasComment = true
-    end
-    @output.print "#{@thisLine}"
-  elsif !@pastHistory && @thisLine =~ /^#{start_of_header_line}\s*File\s*:\s*(.+)\s*$/
-    @file = $1.strip
-    print "Found File: #{@file}\n#{@thisLine}" if @verbose.to_i > 2
-    if @thisLine =~ /use File::/
-      @output.print "#{@thisLine}"
-    elsif @file == @File
-      @output.print "#{@thisLine}"
-    elsif @file == "#{@Parent}/#{@File}"
-      @output.print "#{@thisLine}"
-    elsif @file =~ /^%.+%$/
-      @output.print "#{@thisLine}"
-    elsif (@file =~ /\// || @file =~ /\\/) && @file != "#{@Parent}/#{@File}"
-      # but is it equal to directory/file?
-      print "******* ERROR: #{@file} != #{@Parent}/#{@File}\n"
-      @thisLine.sub!(@file, "#{@Parent}/#{@File}")
-      @output.print @thisLine
-      @changed = true
-    elsif @file != @File
-      # but is it equal to directory/file?
-      print "******* ERROR: #{@file} != #{@File}\n"
-      @thisLine.sub!(@file, @File)
-      @output.print @thisLine
-      @changed = true
-    else
-      @output.print "#{@thisLine}"
-    end
-  elsif !@pastHistory && @thisLine =~ / Version\s*:\s*([^\s]+)/
-    @version = $1
-    print "Found Version: @version\n#{@thisLine}" if @verbose.to_i > 2
-    @MNPB = "@Major.@Minor.@Point.@Build"
-    if @version == @MNPB
-      @output.print "#{@thisLine}"
-    elsif @version != @MNPB
-      print "******* ERROR: @version != @MNPB\n"
-      @thisLine.sub!(@version, @MNPB)
-      @output.print @thisLine
-      @changed = true
-    else
-      @output.print "#{@thisLine}"
-    end
-    #elsif  !@pastHistory && /<\?xml/ && @fileType == "xml"
-    #  print "Found '<?xml..> line\n#{@thisLine}" if  @verbose.to_i > 2
-    #  #print "Found ?xml\n"
-    #  @preBanner = @thisLine
-  elsif (!@pastHistory &&
-      ((@fileType == "tmpl" && @thisLine =~ /^##var/) ||
-       (@multi_line_end.present? && @thisLine =~ Regexp.new("#{Regexp.quote(@multi_line_end)}$")) ||
-       (@single_line.present? && @thisLine =~ Regexp.new("^#{Regexp.quote(@single_line)}$")) ||
-       (@single_line.present? && @thisLine =~ /^$/) ||
-       (@single_line.present? && @thisLine !~ Regexp.new("^#{Regexp.quote(@single_line)}"))))
-    if @nComments < 2
-      print "found end of comments: #{@thisLine}" if @verbose.to_i > 2
-    end
-    @nComments += 1
-    # end of comment?
-    if @inHistory && !@hasComment
-      print "were in history && hasComment is false\n#{@thisLine}" if @verbose.to_i > 2
-      @changed = true
-      writeLine
-      @inHistory = false
-      @pastHistory = true
-      @commented = true
-      #@hasComment = true
-    elsif @inHistory && @hasComment && !@commented
-      print "were in history && hasComment is true\n#{@thisLine}" if @verbose.to_i > 2
-      @commented = true
-      @pastHistory = true
-    elsif @inHistory
-      print "were in history && hasComment but @commented\n#{@thisLine}"; # if  @verbose.to_i > 2
-      #@commented = true
-      #@pastHistory = true
-    else
-      print "were not in history\n#{@thisLine}" if @verbose.to_i > 2
-      if @single_line.present? && @nComments > 3
-        print "ERROR: no history\n#{@thisLine}"; # if  @verbose.to_i > 2
-        @pastHistory = true
-      end
-    end
-    @output.print "#{@thisLine}"
-  elsif @fileType == "sql" && @thisLine =~ /updateConfig\s*\(\s*'(.+)',\s*'([.0-9]+)'\s*\)/i
-    # oracle call
-    @shouldBe = "#{@Major}.#{@Minor}.#{@Point}.#{@Build}#{@Package}"
-    @name = $1
-    @num = $2
+  if @opts.key?('A')
+    @orig_author = @opts['A']
+  end
 
-    @FileName = @File
-    if @FileName =~ /(.+)_s\.sql/
-      @FileName = $1
-    elsif @FileName =~ /(.+)_b\.sql/
-      @FileName = $1
-    elsif @FileName =~ /(.+)\.sql/
-      @FileName = $1
-    end
+  if @opts.key?('E')
+    @just_change_event = 1
+  end
 
-    # No filename keys for updateConfig
-    #schemaupgrade
-    #incrementalupgrade
-    #revisionnumber
-    #databaseversion
-    #baseschema
-    #topclassusername
-    @lcname = @name.downcase
-    if @lcname == "IncrementalUpgrade".downcase
-      @output.print "#{@thisLine}"
+  if @opts.key?('D')
+    if @opts['D'] =~ /([0-9]+)-(...)-([0-9]+)/
+      @date = format_date($3, $2, $1)
     else
-      if @nameExceptions.include?(@lcname)
-      elsif @lcname != @FileName.downcase
-        print "****** ERROR: UpdateConfig #{@name} != #{@FileName}\n"
+      print "ERROR invalid date @opts['D'] should be in form yyyy-mmm-dd e.g. 2011-Aug-12\n"
+    end
+  end
+
+  if @opts.key?('C')
+    @company = @opts['C']
+  end
+
+  if @opts.key?('i')
+    @check_in = 'Y'
+  end
+
+  if @opts.key?('x')
+    @change_event = uc @opts['x']
+  end
+
+  @verbose = @opts['v'].to_i if @opts['v']
+
+  if @opts.key?('o')
+    @check_out = 'Y'
+  end
+
+  if @opts.key?('m')
+    @major = @opts['m']
+  end
+
+  if @opts.key?('n')
+    @minor = @opts['n']
+  end
+
+  if @opts.key?('p')
+    @point = @opts['p']
+  end
+
+  if @opts.key?('b')
+    @build = @opts['b']
+  end
+
+  if @opts.key?('k')
+    @package = @opts['k']
+  end
+
+  if @opts.key?('S')
+    @start_year = @opts['S']
+  end
+
+  if @opts.key?('T')
+    @file_type = @opts['T']
+  end
+
+  @abs_path = File.expand_path(@infile)
+  @drive = if @abs_path =~ /^(.:)/
+             $1
+           else
+             @git_root
+           end
+
+  @outfile = "#{@infile}.new"
+
+  username_map = {}
+
+  unless @author
+    @author = ENV['USER'].downcase unless @author
+    @author = ENV['USERNAME'].downcase unless @author
+    if username_map[@author].present?
+      @author = username_map[@author]
+    end
+  end
+  if @orig_author.blank? && @scc == "clearcase"
+    @orig_author = `cleartool desc -fmt "%u" @infile@@/main/0`
+    if username_map[@orig_author].present?
+      @orig_author = username_map[@orig_author]
+    end
+  end
+  if @orig_author.blank?
+    @orig_author = @author
+  elsif @orig_author == "."
+    @orig_author = ""
+  end
+
+  if @company.blank?
+    if @scc == "git"
+      @email = `git config --get user.email`
+      if @email =~ /wbtsystems.com/
+        @company = "WBT Systems"
       end
-      if @dataExceptions.include?(@lcname)
-        @output.print "#{@thisLine}"
-      elsif @num != @shouldBe && @shouldBe != "..."
-        print "call to updateConfig( '#{@name}', '#{@num}' )\n"
-        print "shouldBe updateConfig( '#{@name}', '#{@shouldBe}' )\n"
-        #@output.print "  updateConfig( '"#{@name}"', '"#{@shouldBe}"' );\n"
-        @thisLine.sub!(@num, @shouldBe)
-        @output.print @thisLine
-        @changed = true
-      else
-        @output.print "#{@thisLine}"
+      if @email =~ /qstream.com/
+        @company = "Qstream"
       end
     end
-  elsif @fileType == "sql" && @thisLine =~ /updateConfig\s*(N?)'(.+)',\s*(N?)'([.0-9]+)'\s*/i
-    #EXECUTE updateConfig N'HELPER_VIEWS_PRE', N'7.3.0.008'
-    # sql server call
-    @shouldBe = "#{@Major}.#{@Minor}.#{@Point}.#{@Build}#{@Package}"
-    @name = $2
-    @num = $4
-    @n1 = $1
-    @n2 = $3
-
-    @FileName = @File.sub(/(.+)\.sql/, '')
-
-    @lcname = @name.downcase
-
-    if @lcname == "IncrementalUpgrade".downcase
-      @output.print @thisLine
+    @company = "eweb" unless @company
+  end
+  if @start_year.blank? && @scc == "clearcase"
+    date = `cleartool desc -fmt "%Nd" @infile@@/main/0`
+    if date =~ /(^[0-9]{4})/
+      @start_year = $1
+    end
+  end
+  if @start_year.blank?
+    if @company == "WBT Systems"
+      @start_year = "1995"
     else
-      if @nameExceptions.include?(@lcname)
-        #print "Found @lcname in \@nameExceptions\n"
-      elsif @lcname != @FileName.downcase
-        print "****** ERROR: UpdateConfig #{@name} != #{@FileName}\n"
-      end
-      if @dataExceptions.include?(@lcname)
-        #print "Found #{@lcname} in \#{@dataExceptions}\n"
-        @output.print @thisLine
-      elsif @num != @shouldBe && @shouldBe != "..."
-        print "call to updateConfig( #{@n1}'#{@name}', #{@n2}'#{@num}' )\n"
-        print "shouldBe updateConfig( #{@n1}'#{@name}', #{@n2}'#{@shouldBe}' )\n"
-        #@output.print "  EXECUTE updateConfig #{@n1}'#{@name}', #{@n2}'#{@shouldBe}';\n"
-        @thisLine.sub!(@num, @shouldBe)
-        @output.print @thisLine
-        @changed = true
-      else
-        @output.print @thisLine
-      end
+      @start_year = @year
     end
-  else
-    #print "lala\n"
-    if @inHistory && !@pastHistory
-      if (@thisLine =~ /\s+([0-9]+)(st|nd|rd|th)?\s+([A-Za-z]+)\s([0-9]+)\s+([a-zA-Z']+)\s+(.*)$/) #'
-        @d, @th, @m, @y, @u, @c = $1, $2, $3, $4, $5, $6
-        @c.sub!(/^(#\?{5}?) Lint/i, '#00007 Lint')
-        @c.sub!(/^(#\?{4}?) Lint/i, '#0007 Lint')
-        @c.sub!(/^Lint/i, '#0007 Lint')
-        @c.sub!(/^(#\?+) MSVC 8/i, '#10544 MSVC 8')
-        @c.sub!(/^(#\?+) CUpdater/i, '#9528 CUpdater')
-        @c.sub!(/^(#\?+) [- :]+/i, '$1 ')
-        @date = formatDate(@d, @m, @y)
-        @newcomment = getCommentLine(@date, @u, @c)
-        if @thisLine != @newcomment
-          print "Old:#{@thisLine}" if @verbose.to_i > 2
-          print "new:#{@newcomment}" if @verbose.to_i > 2
-          @thisLine = @newcomment
-        end
-      elsif @thisLine =~ /(\s{10,})(.+)$/
-        @c = $2
-        @c.sub!(/^(#\?{5}?) Lint/i, '#00007 Lint')
-        @c.sub!(/^(#\?{4}?) Lint/i, '#0007 Lint')
-        @c.sub!(/^Lint/i, '#0007 Lint')
-        @c.sub!(/^(#\?+) MSVC 8/i, '#10544 MSVC 8')
-        @c.sub!(/^(#\?+) CUpdater/i, '#9528 CUpdater')
-        @c.sub!(/^(#\?+) [- :]+/i, '$1 ')
-        @newcomment = getCommentLine("", "", @c)
-        if @thisLine != @newcomment
-          print "Old:#{@thisLine}" if @verbose.to_i > 2
-          print "new:#{@newcomment}" if @verbose.to_i > 2
-          @thisLine = @newcomment
-        end
-      else
-        print "Comment:#{@thisLine}"; # if  @verbose.to_i > 2
-      end
-    end
-    @output.print @thisLine
   end
 end
 
-@input.close
-@output.close
+def main
+  setup_options
+  if @infile =~ %r{(/|\\)yui\1}
+    #print "Part of yui\n"
+    #@orig_author = "-"
+  end
 
-print "changed: #{@changed} inHistory: #{@inHistory} pastHistory: #{@pastHistory} nComments: #{@nComments} hasComment: #{@hasComment} commented: #{@commented} hasBanner: #{@hasBanner} hasHistory: #{@hasHistory} dodgyBanner: #{@dodgyBanner}\n" if @verbose.to_i > 2
+  if @infile.blank?
+    die "No file given\n"
+  end
 
-# had neither a banner nor a history
-if !@changed && !@hasBanner && !@hasHistory
-  puts "!@changed && !@hasBanner && !@hasHistory"
-  @input = open(@infile) or die "can't open @infile\n"
+  # determine filename and immediate parent
+  #(@file, @path) = fileparse(@infile)
+
+  @infile = File.expand_path(@infile)
+
+  @file = File.basename(@infile)
+  @path = File.dirname(@infile)
+
+  print "(#{@file}, #{@path})\n" if @verbose.to_i > 2
+
+  # strip trailing slash
+  @path.sub!(%r{\/$}, '')
+  @path.sub!(%r{\\$}, '')
+
+  #print "(@file, @path)\n"
+
+  @parent = File.dirname(@path)
+
+  @comments.strip! if @comments
+
+  if @validate_comments
+    if @comments =~ /^#[0-9]{4,5} .+/ || @comments =~ /^#[A-Z]+-[0-9]{3,5} .+/
+      @comments = @comments.split(/ +/).join(' ')
+    elsif @comments.blank?
+      puts 'Empty comment'
+    elsif @comments =~ /^#\?+/
+      raise 'ERROR: Invalid comment'
+    else
+      raise 'ERROR: Invalid comment' unless @company == 'Qstream'
+    end
+  end
+
+  if @opts['t']
+    add_to_git_commit_msg(@comments)
+    exit
+  end
+
+  @file_type ||= determine_type(@file)
+  if @file_type.nil?
+    if @change_event == 'Y'
+      chevent(@infile, @comments)
+    end
+    exit
+  end
+  setup_for_type(@file_type)
+
+  puts "File: #{@file} is of type #{@file_type}" if @verbose.to_i > 2
+  #puts [@multi_line_start, @multi_line_end, @multi_line_prefix].join(', ')
+  #puts "#{@single_line} #{@very_first_line}"
+
+  #print "Will try to open @infile\n"
+  @input = open(@infile, 'r') # or die "can't open #{@infile}\n"
+  # binmode @input
   #print "Will try to open @outfile\n"
-  @output = open(@outfile, 'w') or die "can't open @outfile\n"
-  if @FirstLine.present?
-    @output.print @FirstLine
-  elsif @bom
-    @output.print "\xef\xbb\xbf"
-  end
-  writeBanner
-  writeHistory
-  line_no = 0
-  @input.each_line do |l|
-    if line_no == 0
-      l.gsub!(/\xef\xbb\xbf/, '')
-    end
-    if @FirstLine.blank? || line_no > 0
-      @output.print l
-    end
-    line_no += 1
-  end
-  @input.close
-  @output.close
+  @output = open(@outfile, 'w') # or die "can't open #{@outfile}\n"
+  #binmode @output
 
-# neither a history nor a banner but we updated something else?
+  @changed = false
+  @in_history = false
+  @past_history = false
+  @n_comments = 0
+  @has_comment = false
+  @commented = false
+  @has_banner = false
+  @has_history = false
 
-elsif @changed && !@hasBanner && !@hasHistory
-  puts "@changed && @hasBanner && !@hasHistory"
-  File.rename @outfile, "#{@outfile}.tmp"
-  @input = open("#{@outfile}.tmp") or die "can't open #{@outfile}.tmp\n"
-  #print "Will try to open @outfile\n"
-  @output = open(@outfile, 'w') or die "can't open #{@outfile}\n"
-  if @FirstLine.present?
-    @output.print @FirstLine
-  elsif @bom
-    @output.print "\xef\xbb\xbf"
-  end
-  writeBanner
-  writeHistory
-  line_no = 0
-  @input.each_line do |l|
-    if line_no == 0
-      l.gsub!(/\xef\xbb\xbf/, '')
+  @comment_pattern = Regexp.new(quotemeta(@date) + " +" + quotemeta(@author) + " +" + quotemeta(@comments)) # [addcomment.pl don't change]
+
+  print "@comment_pattern [#{@comment_pattern}]\n" if @verbose.to_i > 2
+
+  (@major, @minor, @point, @build) = get_build_number(@drive, @file_type)
+
+  process_lines
+  write_results
+end
+
+def process_lines
+  @dodgy_banner = false
+  @comment_start = nil
+  @comment_end = nil
+  @line = 0
+  @in_comment = nil
+  @line_type = nil
+
+  @input.each_line do |this_line|
+    start_of_header_line = Regexp.escape(@single_line || @multi_line_start)
+    if @line == 0 && this_line =~ /\xef\xbb\xbf/
+      @bom = 1
     end
-    if @FirstLine.blank? || line_no > 0
-      @output.print l
+    if @line == 0 && this_line =~ /<\?xml .+encoding='(.+)'.*\?>/
+      @encoding = $1
     end
-    line_no += 1
-  end
-  @input.close
-  @output.close
-  File.unlink "#{@outfile}.tmp"
-
-# had a history which we updated but no banner
-
-elsif @changed && !@hasBanner && @hasHistory
-  File.rename @outfile, "#{@outfile}.tmp"
-  @input = open("#{@outfile}.tmp") or die "can't open #{@outfile}.tmp\n"
-  #print "Will try to open @outfile\n"
-  @output = open(@outfile, 'w') or die "can't open #{@outfile}\n"
-  if @FirstLine.present?
-    @output.print @FirstLine
-  elsif @bom
-    @output.print "\xef\xbb\xbf"
-  end
-  writeBanner
-  line_no = 0
-  @input.each_line do |l|
-    if line_no == 0
-      l.gsub!(/\xef\xbb\xbf/, '')
+    if @line == 0 && this_line =~ /<\?xml .+encoding="(.+)".*\?>/
+      @encoding = $1
     end
-    if @FirstLine.blank? || line_no > 0
-      @output.print l
+    if this_line =~ /# -\*- coding: (.+) -\*-/
+      @encoding = $1
     end
-    line_no += 1
-  end
-  @input.close
-  @output.close
-  File.unlink "#{@outfile}.tmp"
+    if this_line =~ /# coding: (.+)/
+      @encoding = $1
+    end
 
-# had a banner but no history
+    if @line == 0 && @very_first_line && this_line =~ Regexp.new(@very_first_line)
+      @first_line = "#{this_line}\n"
+    end
 
-elsif @hasBanner && !@hasHistory
-  print "Found hasBanner && !hasHistory\n" if @verbose.to_i > 2
-  File.rename @outfile, "#{@outfile}.tmp"
-  @input = open("#{@outfile}.tmp", 'r') or die "can't open #{@outfile}.tmp\n"
-  #print "Will try to open @outfile\n"
-  @output = open(@outfile, 'w') or die "can't open #{@outfile}\n"
-  #writeBanner
-  comments = 0
-  @writenHistory = false
-  @input.each_line do |l|
-    if ((@multi_line_end.present? && l =~ /^ *\Q@multi_line_end\E *$/) ||
-        (@single_line.present? && l =~ /^ *\Q@single_line\E *$/))
-      #print "end of comments\n"
-      comments += 1
+    @line += 1
+
+    print "#{@line}: #{this_line}" if @verbose.to_i > 4
+    if this_line =~ /[^\r\n]*([\r\n]+)$/
+      @eoln = $1
+      if @eoln != @line_type
+        if @line > 1
+          STDERR.print "ERROR: Mixed line endings at line #{@file}:#{@line}\n"
+        end
+        @chars = @eoln.chars.collect(&:ord)
+        #STDERR.print "eoln: [#{@chars}]\n"
+
+        if @eoln == "\r\n"
+          STDERR.print "ERROR: Dos line end [#{@chars}] at line #{@file}:#{@line}\n" unless RUBY_PLATFORM == "MSWin32"
+        elsif @eoln == "\n"
+          STDERR.print "ERROR: Unix line end [#{@chars}] at line #{@file}:#{@line}\n" if RUBY_PLATFORM == "MSWin32"
+        elsif @eoln == "\r"
+          STDERR.print "ERROR: Mac line end [#{@chars}] at line #{@file}:#{@line}\n"
+        elsif @eoln == "\r\r\n"
+          STDERR.print "ERROR: Netscape line end [#{@chars}] at line #{@file}:#{@line}\n"
+        else
+          STDERR.print "ERROR: Odd line end [#{@chars}] at line #{@file}:#{@line}\n"
+        end
+      end
+      @line_type = @eoln
+      this_line.gsub!(/[\r\n]/, '')
+      this_line = "#{this_line}\n"
+    else
+      STDERR.print "#{@file}:#{@line} No eoln at eof\n"
+    end
+
+    if !@tabs_allowed && this_line =~ /\t/
+      STDERR.print "TABS!!! Tabs found at line #{@file}:#{@line}\n"
+    end
+    if this_line =~ /[ \t][\r\n]/
+      if @strip_trailing_spaces
+        STDERR.print "Space! Trailing space removed from line #{@file}:#{@line}\n"
+        this_line.sub!(/[ \t]+$/, '')
+        @changed = 1
+      else
+        STDERR.print "SPACE!!! Trailing space found at line #{@file}:#{@line}\n"
+      end
+    end
+    if this_line =~ /([^\x20-\x7f\t\n\r]+)/
+      exchars = $1
+      if @bom
+      elsif @file_type == 'rb'
+      elsif @encoding == "utf-8"
+      elsif @infile =~ /resources_..\.properties/
+      elsif @infile =~ /_.+\.dat/ && @infile !~ /english/
+      else
+        # print "[exchars] " . join(',', unpack('U*', exchars)) . "\n"
+        chars = exchars.bytes.collect { |b| '%X' % b }.join
+        #chars = exchars
+        STDERR.print "#{@file}:#{@line} CHAR!!! extended character '#{exchars}' [#{chars}]\n"
+      end
+    end
+    new_line = this_line
+    if this_line =~ /#8[0-9?]{4}/ && this_line !~ /\[addcomment\.pl don\'t change\]/ # [addcomment.pl don't change]
+      STDERR.print "#{this_line}\n"
+    end
+
+    if @multi_line_start.present? && this_line.start_with?(@multi_line_start)
+      print "Found start of multiline\n#{this_line}" if @verbose.to_i > 2
+      @in_comment = true
+      @comment_start = this_line.dup
+      #chomp(@comment_start)
+      @comment_start.sub!(/[\r\n]+$/, '')
+    elsif @multi_line_end.present? && this_line.end_with?(@multi_line_end)
+      print "Found end of multiline\n#{this_line}" if @verbose.to_i > 2
+      @in_comment = nil
+      @comment_end = this_line.dup
+      #chomp(@comment_end)
+      @comment_end.sub!(/[\r\n]+$/, '')
+
+      if @has_banner && !@past_banner
+        @past_banner = true
+        if @comment_end != @multi_line_end
+          print "#{@line}: dodgy end of banner\n[#{@comment_end}]\n[#{@multi_line_end}]\n"; # if  @verbose.to_i > 2
+          @dodgy_banner = true
+        end
+      end
+    elsif @single_line.present? && this_line.start_with?(@single_line)
+      @in_comment = true
+    elsif @single_line.present?
+      @in_comment = nil
+    end
+
+    changeable = this_line !~ /\[addcomment\.pl don\'t change\]/ # [addcomment.pl don't change]
+    if changeable && !@past_history && this_line =~ /(.*)Copyright(.*)(\w+)(.*)([0-9][0-9]+)-([0-9][0-9]+)(.*)/
+      x1, x2, x3, x4, x5, x6, x7 = $1, $2, $3, $4, $5, $6, $7
+      print "Found copyright1\n#{this_line}" if @verbose.to_i > 2
+      if !@in_comment
+        print "Found copyright out of comment line\n#{this_line}"
+        @output.print this_line
+      elsif this_line =~ /Yahoo! Inc./
+        print "Found Yahoo copyright\n#{this_line}" if @verbose.to_i > 2
+        @orig_author = "-"
+        print "Not updating, #{this_line}"
+        print "1: #{x1} 2: #{x2} 3: #{x3} 4: #{x4} 5: #{x5} 6: #{x6} 7: #{x7}\n" if @verbose.to_i > 2
+        @has_banner = true
+        @output.print this_line
+      elsif @orig_author == "-"
+        print "Found copyright but OrigAuthor is -\n#{this_line}" if @verbose.to_i > 2
+        print "Found copyright but not updating\n#{this_line}"
+        print "1: #{x1} 2: #{x2} 3: #{x3} 4: #{x4} 5: #{x5} 6: #{x6} 7: #{x7}\n" if @verbose.to_i > 2
+        @has_banner = true
+        @output.print this_line
+      else
+        print "Found copyright line\n#{this_line}" if @verbose.to_i > 2
+        print "1: #{x1} 2: #{x2} 3: #{x3} 4: #{x4} 5: #{x5} 6: #{x6} 7: #{x7}\n" if @verbose.to_i > 2
+        @has_banner = true
+        scanned_year = x6
+        correct_year = @year
+        if this_line =~ /NeoLogic/
+          correct_year = 1997
+        end
+        if scanned_year != correct_year
+          @changed = true
+        end
+        @output.print "#{x1}Copyright#{x2}#{x3}#{x4}#{x5}-#{correct_year}#{x7}\n"
+        if @multi_line_start.present? && @comment_start != @multi_line_start
+          print "#{@line}: dodgy start of banner\n[#{@comment_start}]\n[#{@multi_line_start}]\n"; # if  @verbose.to_i > 2
+          @dodgy_banner = true
+        end
+      end
+    elsif changeable && !@past_history && this_line =~ /(.*)Copyright(.*)(\w+)(.*)([0-9][0-9]+)(.*)/
+      print "Found copyright2\n#{this_line}" if @verbose.to_i > 2
+      x1, x2, x3, x4, x5, x6 = $1, $2, $3, $4, $5, $6
+      if !@in_comment
+        print "Found copyright out of comment line\n#{this_line}"
+        @output.print this_line
+      elsif this_line =~ /Yahoo! Inc./
+        @orig_author = "-"
+        print "Not updating, #{this_line}"
+        print "1: #{x1} 2: #{x2} 3: #{x3} 4: #{x4} 5: #{x5} 6: #{x6}\n" if @verbose.to_i > 2
+        @has_banner = true
+        @output.print this_line
+      elsif @orig_author == "-"
+        print "Found copyright but not updating\n#{this_line}"
+        print "1: #{x1} 2: #{x2} 3: #{x3} 4: #{x4} 5: #{x5} 6: #{x6}\n" if @verbose.to_i > 2
+        @has_banner = true
+        @output.print this_line
+      else
+        print "Found copyright line\n#{this_line}" if @verbose.to_i > 2
+        print "1: #{x1} 2: #{x2} 3: #{x3} 4: #{x4} 5: #{x5} 6: #{x6}\n" if @verbose.to_i > 2
+        @has_banner = true
+        scanned_year = x5
+        correct_year = @year
+        if this_line =~ /NeoLogic/
+          correct_year = 1997
+        end
+        if scanned_year != correct_year
+          @changed = true
+        end
+        @output.print "#{x1}Copyright#{x2}#{x3}#{x4}#{x5}-#{correct_year}#{x6}\n"
+        if @multi_line_start.present? && @comment_start != @multi_line_start
+          print "#{@line}: dodgy start of banner\n[#{@comment_start}]\n[#{@multi_line_start}]\n"; # if  @verbose.to_i > 2
+          @dodgy_banner = true
+        end
+      end
+    elsif changeable && !@past_history && this_line =~ /Date.*Author.*/
+      # found start of history...
+      print "Found start of history\n" if @verbose.to_i > 2
+      @in_history = true
+      @has_history = true
+      write_date_author_comment
+    elsif changeable && !@past_history && this_line =~ /date.*author.*comment.*/
+      # found start of history...
+      print "Found start of history (2)\n" if @verbose.to_i > 2
+      @in_history = true
+      @has_history = true
+      @changed = true
+      write_date_author_comment
+    elsif !@past_history && this_line =~ /-- Revision History/
+      print "Found 'Revision History' line\n#{this_line}" if @verbose.to_i > 2
+      @in_history = true
+      @has_history = true
+      @changed = true
+      write_date_author_comment
+    elsif !@past_history && this_line =~ @comment_pattern
+      print "Found commentpattern\n#{this_line}" if @verbose.to_i > 2
+      if @in_history
+        # already commented
+        @has_comment = true
+      end
+      @output.print this_line
+    elsif !@past_history && this_line =~ /^#{start_of_header_line}\s*File\s*:\s*(.+)\s*$/
+      file = $1.strip
+      print "Found File: #{file}\n#{this_line}" if @verbose.to_i > 2
+      if this_line =~ /use File::/
+        @output.print this_line
+      elsif file == @file
+        @output.print this_line
+      elsif file == "#{@parent}/#{@file}"
+        @output.print this_line
+      elsif file =~ /^%.+%$/
+        @output.print this_line
+      elsif (file =~ /\// || file =~ /\\/) && file != "#{@parent}/#{@file}"
+        # but is it equal to directory/file?
+        print "******* ERROR: #{file} != #{@parent}/#{@file}\n"
+        this_line.sub!(file, "#{@parent}/#{@file}")
+        @output.print this_line
+        @changed = true
+      elsif file != @file
+        # but is it equal to directory/file?
+        print "******* ERROR: #{file} != #{@file}\n"
+        this_line.sub!(file, @file)
+        @output.print this_line
+        @changed = true
+      else
+        @output.print this_line
+      end
+    elsif !@past_history && this_line =~ / Version\s*:\s*([^\s]+)/
+      version = $1
+      print "Found Version: version\n#{this_line}" if @verbose.to_i > 2
+      mnpb = "@major.@minor.@point.@build"
+      if version == mnpb
+        @output.print this_line
+      elsif version != mnpb
+        print "******* ERROR: version != mnpb\n"
+        this_line.sub!(version, mnpb)
+        @output.print this_line
+        @changed = true
+      else
+        @output.print this_line
+      end
+      #elsif  !@past_history && /<\?xml/ && @file_type == "xml"
+      #  print "Found '<?xml..> line\n#{this_line}" if  @verbose.to_i > 2
+      #  #print "Found ?xml\n"
+      #  @pre_banner = this_line
+    elsif !@past_history &&
+      ((@file_type == "tmpl" && this_line =~ /^##var/) ||
+        (@multi_line_end.present? && this_line =~ Regexp.new("#{Regexp.quote(@multi_line_end)}$")) ||
+        (@single_line.present? && this_line =~ Regexp.new("^#{Regexp.quote(@single_line)}$")) ||
+        (@single_line.present? && this_line =~ /^$/) ||
+        (@single_line.present? && this_line !~ Regexp.new("^#{Regexp.quote(@single_line)}")))
+      if @n_comments < 2
+        print "found end of comments: #{this_line}" if @verbose.to_i > 2
+      end
+      @n_comments += 1
       # end of comment?
-      @output.print l
-      if !@writenHistory
-        if @single_line.blank? || comments == 2
-          writeHistory
-          @writenHistory = true
+      if @in_history && !@has_comment
+        print "were in history && hasComment is false\n#{this_line}" if @verbose.to_i > 2
+        @changed = true
+        write_line
+        @in_history = false
+        @past_history = true
+        @commented = true
+        #@has_comment = true
+      elsif @in_history && @has_comment && !@commented
+        print "were in history && hasComment is true\n#{this_line}" if @verbose.to_i > 2
+        @commented = true
+        @past_history = true
+      elsif @in_history
+        print "were in history && hasComment but @commented\n#{this_line}"; # if  @verbose.to_i > 2
+        #@commented = true
+        #@past_history = true
+      else
+        print "were not in history\n#{this_line}" if @verbose.to_i > 2
+        if @single_line.present? && @n_comments > 3
+          print "ERROR: no history\n#{this_line}"; # if  @verbose.to_i > 2
+          @past_history = true
+        end
+      end
+      @output.print this_line
+    elsif @file_type == "sql" && this_line =~ /updateConfig\s*\(\s*'(.+)',\s*'([.0-9]+)'\s*\)/i
+      # oracle call
+      should_be = "#{@major}.#{@minor}.#{@point}.#{@build}#{@package}"
+      name = $1
+      num = $2
+
+      filename = @file
+      if filename =~ /(.+)_s\.sql/
+        filename = $1
+      elsif filename =~ /(.+)_b\.sql/
+        filename = $1
+      elsif filename =~ /(.+)\.sql/
+        filename = $1
+      end
+
+      # No filename keys for updateConfig
+      #schemaupgrade
+      #incrementalupgrade
+      #revisionnumber
+      #databaseversion
+      #baseschema
+      #topclassusername
+      @lcname = name.downcase
+      if @lcname == "IncrementalUpgrade".downcase
+        @output.print this_line
+      else
+        if name_exceptions.include?(@lcname)
+        elsif @lcname != filename.downcase
+          print "****** ERROR: UpdateConfig #{name} != #{filename}\n"
+        end
+        if data_exceptions.include?(@lcname)
+          @output.print this_line
+        elsif num != should_be && should_be != "..."
+          print "call to updateConfig( '#{name}', '#{num}' )\n"
+          print "shouldBe updateConfig( '#{name}', '#{should_be}' )\n"
+          #@output.print "  updateConfig( '"#{name}"', '"#{should_be}"' );\n"
+          this_line.sub!(num, should_be)
+          @output.print this_line
+          @changed = true
+        else
+          @output.print this_line
+        end
+      end
+    elsif @file_type == "sql" && this_line =~ /updateConfig\s*(N?)'(.+)',\s*(N?)'([.0-9]+)'\s*/i
+      #EXECUTE updateConfig N'HELPER_VIEWS_PRE', N'7.3.0.008'
+      # sql server call
+      should_be = "#{@major}.#{@minor}.#{@point}.#{@build}#{@package}"
+      name = $2
+      num = $4
+      n1 = $1
+      n2 = $3
+
+      filename = @file.sub(/(.+)\.sql/, '')
+
+      @lcname = name.downcase
+
+      if @lcname == "IncrementalUpgrade".downcase
+        @output.print this_line
+      else
+        if name_exceptions.include?(@lcname)
+          #print "Found @lcname in name_exceptions\n"
+        elsif @lcname != filename.downcase
+          print "****** ERROR: UpdateConfig #{name} != #{filename}\n"
+        end
+        if data_exceptions.include?(@lcname)
+          #print "Found #{@lcname} in #{data_exceptions}\n"
+          @output.print this_line
+        elsif num != should_be && should_be != "..."
+          print "call to updateConfig( #{n1}'#{name}', #{n2}'#{num}' )\n"
+          print "shouldBe updateConfig( #{n1}'#{name}', #{n2}'#{should_be}' )\n"
+          #@output.print "  EXECUTE updateConfig #{n1}'#{name}', #{n2}'#{should_be}';\n"
+          this_line.sub!(num, should_be)
+          @output.print this_line
+          @changed = true
+        else
+          @output.print this_line
         end
       end
     else
-      @output.print l
+      #print "lala\n"
+      if @in_history && !@past_history
+        if this_line =~ /\s+([0-9]+)(st|nd|rd|th)?\s+([A-Za-z]+)\s([0-9]+)\s+([a-zA-Z']+)\s+(.*)$/ #'
+          @d, @th, @m, @y, @u, @c = $1, $2, $3, $4, $5, $6
+          @c.sub!(/^(#\?{5}?) Lint/i, '#00007 Lint')
+          @c.sub!(/^(#\?{4}?) Lint/i, '#0007 Lint')
+          @c.sub!(/^Lint/i, '#0007 Lint')
+          @c.sub!(/^(#\?+) MSVC 8/i, '#10544 MSVC 8')
+          @c.sub!(/^(#\?+) CUpdater/i, '#9528 CUpdater')
+          @c.sub!(/^(#\?+) [- :]+/i, '$1 ')
+          date = format_date(@d, @m, @y)
+          new_comment = get_comment_line(date, @u, @c)
+          if this_line != new_comment
+            print "Old:#{this_line}" if @verbose.to_i > 2
+            print "new:#{new_comment}" if @verbose.to_i > 2
+            this_line = new_comment
+          end
+        elsif this_line =~ /(\s{10,})(.+)$/
+          @c = $2
+          @c.sub!(/^(#\?{5}?) Lint/i, '#00007 Lint')
+          @c.sub!(/^(#\?{4}?) Lint/i, '#0007 Lint')
+          @c.sub!(/^Lint/i, '#0007 Lint')
+          @c.sub!(/^(#\?+) MSVC 8/i, '#10544 MSVC 8')
+          @c.sub!(/^(#\?+) CUpdater/i, '#9528 CUpdater')
+          @c.sub!(/^(#\?+) [- :]+/i, '$1 ')
+          new_comment = get_comment_line("", "", @c)
+          if this_line != new_comment
+            print "Old:#{this_line}" if @verbose.to_i > 2
+            print "new:#{new_comment}" if @verbose.to_i > 2
+            this_line = new_comment
+          end
+        else
+          print "Comment:#{this_line}"; # if  @verbose.to_i > 2
+        end
+      end
+      @output.print this_line
     end
   end
+
   @input.close
   @output.close
-  File.unlink "#{@outfile}.tmp"
 
-# had a dodgy banner
+  if @verbose.to_i > 2
+    puts "changed: #{@changed}"
+    puts "in_history: #{@in_history}"
+    puts "past_history: #{@past_history}"
+    puts "n_comments: #{@n_comments}"
+    puts "has_comment: #{@has_comment}"
+    puts "commented: #{@commented}"
+    puts "has_banner: #{@has_banner}"
+    puts "has_history: #{@has_history}"
+    puts "dodgy_banner: #{@dodgy_banner}"
+  end
+end
 
-elsif @dodgyBanner
-  print "Fixing dodgy banner\n"; # if  @verbose.to_i > 2
-  @changed = true
-  File.rename @outfile, "#{@outfile}.tmp"
-  @input = open("#{@outfile}.tmp", 'r') or die "can't open #{@outfile}.tmp\n"
-  #print "Will try to open @outfile\n"
-  @output = open(@outfile, 'w') or die "can't open #{@outfile}\n"
-  #writeBanner()
-  @past = false
-
-  @input.each_line do |l|
-    l.chomp!
-    if @past
-      @output.print "#{l}\n"
-    elsif @multi_line_start.present? && l.start_with?(@multi_line_start)
-      @output.print "#{@multi_line_start}\n"
-      print "start of comments\n" if @verbose.to_i > 2
-    elsif @multi_line_end.present? && l.end_with?(@multi_line_end)
-      @output.print "#{@multi_line_end}\n"
-      @past = 1
-      print "end of comments\n" if @verbose.to_i > 2
-    else
-      if l =~ /^$ *$/
-        #@output.print "#{@multi_line_prefix} File: "#{$1}"\n"
-      elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + ' *File: (.+)')
-        @output.print "#{@multi_line_prefix} File: #{$1}\n"
-      elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + ' *Author: (.+)')
-        @output.print "#{@multi_line_prefix} Author: #{$1}\n"
-      elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + ' *Contents: (.+)')
-        @output.print "#{@multi_line_prefix} Contents: #{$1}\n"
-      elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + ' *Contents:')
-        @output.print "#{@multi_line_prefix} Contents:\n"
-      elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + ' *Copyright (.+), (.+)')
-        @output.print "#{@multi_line_prefix} Copyright #{$1}, #{$2}\n"
-      elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + '( ?)(.+)')
-        @output.print "#{@multi_line_prefix} #{$2}\n"
+def write_results
+  # had neither a banner nor a history
+  if !@changed && !@has_banner && !@has_history
+    puts "!@changed && !@has_banner && !@has_history"
+    @input = open(@infile) or die "can't open @infile\n"
+    #print "Will try to open @outfile\n"
+    @output = open(@outfile, 'w') or die "can't open @outfile\n"
+    if @first_line.present?
+      @output.print @first_line
+    elsif @bom
+      @output.print "\xef\xbb\xbf"
+    end
+    write_banner
+    write_history
+    line_no = 0
+    @input.each_line do |l|
+      if line_no == 0
+        l.gsub!(/\xef\xbb\xbf/, '')
+      end
+      if @first_line.blank? || line_no > 0
+        @output.print l
+      end
+      line_no += 1
+    end
+    @input.close
+    @output.close
+    # neither a history nor a banner but we updated something else?
+  elsif @changed && !@has_banner && !@has_history
+    puts "@changed && @has_banner && !@has_history"
+    File.rename @outfile, "#{@outfile}.tmp"
+    @input = open("#{@outfile}.tmp") or die "can't open #{@outfile}.tmp\n"
+    #print "Will try to open @outfile\n"
+    @output = open(@outfile, 'w') or die "can't open #{@outfile}\n"
+    if @first_line.present?
+      @output.print @first_line
+    elsif @bom
+      @output.print "\xef\xbb\xbf"
+    end
+    write_banner
+    write_history
+    line_no = 0
+    @input.each_line do |l|
+      if line_no == 0
+        l.gsub!(/\xef\xbb\xbf/, '')
+      end
+      if @first_line.blank? || line_no > 0
+        @output.print l
+      end
+      line_no += 1
+    end
+    @input.close
+    @output.close
+    File.unlink "#{@outfile}.tmp"
+    # had a history which we updated but no banner
+  elsif @changed && !@has_banner && @has_history
+    File.rename @outfile, "#{@outfile}.tmp"
+    @input = open("#{@outfile}.tmp") or die "can't open #{@outfile}.tmp\n"
+    #print "Will try to open @outfile\n"
+    @output = open(@outfile, 'w') or die "can't open #{@outfile}\n"
+    if @first_line.present?
+      @output.print @first_line
+    elsif @bom
+      @output.print "\xef\xbb\xbf"
+    end
+    write_banner
+    line_no = 0
+    @input.each_line do |l|
+      if line_no == 0
+        l.gsub!(/\xef\xbb\xbf/, '')
+      end
+      if @first_line.blank? || line_no > 0
+        @output.print l
+      end
+      line_no += 1
+    end
+    @input.close
+    @output.close
+    File.unlink "#{@outfile}.tmp"
+    # had a banner but no history
+  elsif @has_banner && !@has_history
+    print "Found hasBanner && !hasHistory\n" if @verbose.to_i > 2
+    File.rename @outfile, "#{@outfile}.tmp"
+    @input = open("#{@outfile}.tmp", 'r') or die "can't open #{@outfile}.tmp\n"
+    #print "Will try to open @outfile\n"
+    @output = open(@outfile, 'w') or die "can't open #{@outfile}\n"
+    #write_banner
+    comments = 0
+    written_history = false
+    @input.each_line do |l|
+      if (@multi_line_end.present? && l =~ /^ *\Q@multi_line_end\E *$/) ||
+        (@single_line.present? && l =~ /^ *\Q@single_line\E *$/)
+        #print "end of comments\n"
+        comments += 1
+        # end of comment?
+        @output.print l
+        if !written_history
+          if @single_line.blank? || comments == 2
+            write_history
+            written_history = true
+          end
+        end
       else
-        @output.print "#{l}\n"
+        @output.print l
       end
     end
+    @input.close
+    @output.close
+    File.unlink "#{@outfile}.tmp"
+    # had a dodgy banner
+  elsif @dodgy_banner
+    print "Fixing dodgy banner\n"; # if  @verbose.to_i > 2
+    @changed = true
+    File.rename @outfile, "#{@outfile}.tmp"
+    @input = open("#{@outfile}.tmp", 'r') or die "can't open #{@outfile}.tmp\n"
+    #print "Will try to open @outfile\n"
+    @output = open(@outfile, 'w') or die "can't open #{@outfile}\n"
+    #write_banner()
+    @past = false
+
+    @input.each_line do |l|
+      l.chomp!
+      if @past
+        @output.print "#{l}\n"
+      elsif @multi_line_start.present? && l.start_with?(@multi_line_start)
+        @output.print "#{@multi_line_start}\n"
+        print "start of comments\n" if @verbose.to_i > 2
+      elsif @multi_line_end.present? && l.end_with?(@multi_line_end)
+        @output.print "#{@multi_line_end}\n"
+        @past = 1
+        print "end of comments\n" if @verbose.to_i > 2
+      else
+        print "banner line\n" if @verbose.to_i > 2
+        if l =~ /^$ *$/
+          #@output.print "#{@multi_line_prefix} File: "#{$1}"\n"
+        elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + ' *File: (.+)')
+          @output.print "#{@multi_line_prefix} File: #{$1}\n"
+        elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + ' *Author: (.+)')
+          @output.print "#{@multi_line_prefix} Author: #{$1}\n"
+        elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + ' *Contents: (.+)')
+          @output.print "#{@multi_line_prefix} Contents: #{$1}\n"
+        elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + ' *Contents:')
+          @output.print "#{@multi_line_prefix} Contents:\n"
+        elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + ' *Copyright (.+), (.+)')
+          @output.print "#{@multi_line_prefix} Copyright #{$1}, #{$2}\n"
+        elsif l =~ Regexp.new(Regexp.quote(@multi_line_prefix) + '( ?)(.+)')
+          @output.print "#{@multi_line_prefix} #{$2}\n"
+        else
+          @output.print "#{l}\n"
+        end
+      end
+    end
+    @input.close
+    @output.close
+    File.unlink "#{@outfile}.tmp"
   end
-  @input.close
-  @output.close
-  File.unlink "#{@outfile}.tmp"
+
+  if !@changed && @commented
+    print "No change\n" if @verbose.to_i > 2
+    File.unlink @outfile
+  else
+    print "Changed\n" if @verbose.to_i > 2
+    if @check_out == 'Y'
+      CheckOut(@infile, @comments)
+    end
+    perm = File.stat(@infile).mode & 0o7777
+    File.rename @infile, "#{@infile}.old"
+    File.rename @outfile, @infile
+    File.chmod(perm, @infile)
+    # perm = File.stat(@infile).mode & 0o7777
+    if @check_in == 'Y'
+      CheckIn(@infile, @comments)
+    end
+  end
+
+  if @change_event == 'Y'
+    chevent(@infile, @comments)
+  end
 end
 
-if !@changed && @commented
-  print "No change\n" if @verbose.to_i > 2
-  File.unlink @outfile
-else
-  print "Changed\n" if @verbose.to_i > 2
-  if @checkOut == "Y"
-    CheckOut(@infile, @comments)
-  end
-  perm = File.stat(@infile).mode & 07777
-  File.rename @infile, "#{@infile}.old"
-  File.rename @outfile, @infile
-  File.chmod(perm, @infile)
-  perm = File.stat(@infile).mode & 07777
-  if @checkIn == "Y"
-    CheckIn(@infile, @comments)
-  end
-end
-
-if @changeEvent == "Y"
-  chevent(@infile, @comments)
-end
-
-#@line = "   22nd Feb 2008  eweb     #10850 Removed need for tcencrypt.jar\n"
-#print @line
-#@line = map_ids(@line)
-#print @line
-
-
-def runCmd(cmd)
+def run_cmd(cmd)
   print "cmd: #{cmd}\n"
   open(CMD, "#{cmd} 2>&1 |").each_line do |line|
     print line
@@ -1456,7 +1380,7 @@ def add_to_git_commit_msg(comment)
   gitmsg = "#{git_root}/.git/GITGUI_MSG"
   comments = open(gitmsg).lines
   chomp comments
-  unless comments.any?{ |c| c.match(/\Q#{comment}\E/) }
+  unless comments.any? { |c| c.match(/\Q#{comment}\E/) }
     print "Adding #{comment} to commit message\n" if @verbose.to_i > 2
     comments << comment
     comments = sort comments
@@ -1470,6 +1394,4 @@ rescue => e
   print "Error: failed to open #{gitmsg} #{e}\n" if @verbose.to_i > 2
 end
 
-#<path-to-eclipse>\eclipse.exe -vm <path-to-vm>\java.exe -application org.eclipse.jdt.core.JavaCodeFormatter -verbose -config <path-to-config-file>\org.eclipse.jdt.core.prefs <path-to-your-source-files>\*.java
-
-#/dev2/eclipse/eclipse -application org.eclipse.jdt.core.JavaCodeFormatter -verbose -config ~/projects/wacc/java/acc/.settings/org.eclipse.jdt.core.prefs <path-to-your-source-files>\*.java
+main
