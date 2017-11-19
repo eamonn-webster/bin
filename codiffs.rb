@@ -2,7 +2,7 @@
 #
 # File: codiffs.rb
 # Author:
-# Copyright eweb, 2012-2016
+# Copyright eweb, 2012-2017
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -26,6 +26,7 @@
 #  7th Sep 2015  eweb     #0008 Ignore symlinks
 # 16th Dec 2015  eweb     #0008 typechange, unmerged
 # 14th Mar 2016  eweb     #0008 less directory noise
+# 19th Nov 2017  eweb     #0008 git message change
 #
 
 def find_git(where = ".")
@@ -60,7 +61,7 @@ changed_files = []
       #puts line
       if line =~ /On branch (.*)/
         branch = $1
-      elsif line =~ /Your branch is up-to-date with '.+'/
+      elsif line =~ /Your branch is up.to.date with '.+'/
       elsif line =~ /Your branch is ahead of '.+'/
       elsif line =~ /nothing to commit, working directory clean/
       elsif line =~ /Changes to be committed:/
