@@ -96,6 +96,7 @@
 # 14th Mar 2016  eweb     #0008 detect encoding
 # 29th Dec 2016  eweb     #0008 .metrics as ruby
 # 28th Oct 2017  eweb     #0008 tidy up
+# 19th Nov 2017  eweb     #0008 treat lyt files as pl
 #
 
 # DONE change event if comment not present.
@@ -409,7 +410,8 @@ def determine_type(file)
   elsif file =~ /\.pl$/ ||
     file =~ /\.sh$/ ||
     file =~ /\.properties$/ ||
-    file =~ /\.properties.default$/
+    file =~ /\.properties.default$/ ||
+    file =~ /\.lyt$/
     file_type = "pl"
   elsif file =~ /\.tmpl$/
     file_type = "tmpl"
