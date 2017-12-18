@@ -16,6 +16,7 @@
 # 25th Sep 2016  eweb     #0008 remote for first run
 # 14th Jan 2017  eweb     #0008 copy photos
 # 28th Oct 2017  eweb     #0008 other repos
+# 18th Dec 2017  eweb     #0008 exclude Not Added
 #
 
 if Dir.exist?('/Volumes/IOMEGA0')
@@ -47,7 +48,7 @@ if @back
   puts cmd
   system(cmd)
 else
-  cmd = "rsync -rtvi --exclude 'Mobile Applications' --delete-during #{src}/ #{dst}"
+  cmd = "rsync -rtvi --exclude 'Mobile Applications' --exclude 'Not Added' --delete-during #{src}/ #{dst}"
   puts cmd
   system(cmd)
 
