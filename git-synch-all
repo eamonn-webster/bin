@@ -2,7 +2,7 @@
 #
 # File: git-synch-all
 # Author: eweb
-# Copyright qstream, 2013-2017
+# Copyright qstream, 2013-2018
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -24,6 +24,7 @@
 # 14th Jan 2017  eweb     #0008 bye bye edge
 # 28th Oct 2017  eweb     #0008 purge branches
 # 19th Nov 2017  eweb     #0008 git message change
+#  2nd Apr 2018  eweb     #0008 don't fetch tags
 #
 
 require 'open3'
@@ -32,7 +33,7 @@ bin_dir = File.expand_path('../', __FILE__)
 # puts bin_dir
 
 dir_to_do = nil
-do_tags = true
+do_tags = false
 do_apps = true
 
 ARGV.each do |arg|
@@ -69,12 +70,12 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
     remote = %x{git remote -v | grep -e 'origin.\\+fetch'}.chomp
     if remote =~ %r{git@github.com:qstream/(.+)(?:\.git) } ||
        remote =~ %r{https://github.com/qstream/(.+)(?:\.git) }
-      remote = Regexp.last_match(0)
-      repo = $1
+      url = Regexp.last_match(0)
+      repo = Regexp.last_match(1)
       current = `git rev-parse --abbrev-ref HEAD`.chomp
-      puts "\033[0;34m#{dir}\033[0m \033[0;35m#{current}\033[0m \033[0;36m#{remote}\033[0m"
+      puts "\033[0;34m#{dir}\033[0m \033[0;35m#{current}\033[0m \033[0;36m#{url}\033[0m"
 
-      Open3.popen2e("git", "remote", "update", "-p") {|i,oe,t|
+      Open3.popen2e("git", "fetch", "origin", "-p", "--no-tags") {|i,oe,t|
         oe.each {|line|
           line.chomp!
           if /Fetching repository, done./ =~ line
@@ -98,16 +99,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
         do_tags = false
       end
 
-      case repo
-        when 'qs-core', 'spaced-ed'
-          branches = %w{master maintenance sprint}
-        when 'qs-user-admin', 'qs-angular-core'
-          branches = %w{master sprint maintenance}
-        when 'QstreamIOS'
-          branches = %w{master sprint}
-        else
-          branches = %w{master}
-      end
+      branches = %w{master}
 
       branches.each do |br|
         next if br === current
@@ -124,7 +116,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
         end
       end
 
-      Open3.popen2e("git", "pull", "-p") {|i,oe,t|
+      Open3.popen2e("git", "pull", "-p", "--no-tags") {|i,oe,t|
         oe.each {|line|
           line.chomp!
           if /Fetching repository, done./ =~ line
