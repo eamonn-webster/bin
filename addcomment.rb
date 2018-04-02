@@ -2,7 +2,7 @@
 #
 # File: addcomment.rb
 # Author: eweb
-# Copyright eweb, 2003-2017
+# Copyright eweb, 2003-2018
 # Contents: Perl script to add comments to source files
 #
 # Date:          Author:  Comments:
@@ -97,6 +97,7 @@
 # 29th Dec 2016  eweb     #0008 .metrics as ruby
 # 28th Oct 2017  eweb     #0008 tidy up
 # 19th Nov 2017  eweb     #0008 treat lyt files as pl
+#  2nd Apr 2018  eweb     #0008 don't write to git gui msg
 #
 
 # DONE change event if comment not present.
@@ -135,7 +136,7 @@ end
 
 @use_clearcase = true
 @scc = "clearcase"
-@change_event = 'Y'
+@change_event = 'N'
 
 @validate_comments = true
 @strip_trailing_spaces = true
@@ -1379,7 +1380,8 @@ def run_cmd(cmd)
 end
 
 def add_to_git_commit_msg(comment)
-  gitmsg = "#{git_root}/.git/GITGUI_MSG"
+  puts caller
+  gitmsg = "#{@git_root}/.git/GITGUI_MSG"
   comments = open(gitmsg).lines
   chomp comments
   unless comments.any? { |c| c.match(/\Q#{comment}\E/) }
