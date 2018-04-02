@@ -2,7 +2,7 @@
 #
 # File: tag-releases
 # Author: eweb
-# Copyright eweb, 2013-2017
+# Copyright eweb, 2013-2018
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -13,6 +13,7 @@
 # 16th Dec 2015  eweb     #0008 handle rollbacks
 #  5th Apr 2016  eweb     #0008 heroku apps --all
 # 28th Oct 2017  eweb     #0008 don't tag all apps
+#  2nd Apr 2018  eweb     #0008 qs-bleedin is no more
 #
 
 apps = [ARGV[0]].compact
@@ -30,7 +31,7 @@ if apps.empty?
 end
 
 apps.each do |app|
-  next unless %w(qs-alpha qs-bleedin qs-core-eu-1).include?(app)
+  next unless %w(qs-alpha qs-core-eu-1).include?(app)
   displayed = false
   releases = %x{heroku releases --app #{app}}
   releases.each_line do |release|
