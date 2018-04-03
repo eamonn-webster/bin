@@ -100,6 +100,7 @@
 #  2nd Apr 2018  eweb     #0008 don't write to git gui msg
 #  2nd Apr 2018  eweb     #0007 convert to class
 #  3rd Apr 2018  eweb     #0007 split into methods
+#  3rd Apr 2018  eweb     #0007 rubocop
 #
 
 # DONE change event if comment not present.
@@ -150,11 +151,11 @@ class CommentAdder
   end
 
   def name_exceptions
-    %w(schemaupgrade incrementalupgrade revisionnumber databaseversion baseschema topclassusername)
+    %w[schemaupgrade incrementalupgrade revisionnumber databaseversion baseschema topclassusername]
   end
 
   def data_exceptions
-    %w(incrementalupgrade revisionnumber databaseversion topclassusername)
+    %w[incrementalupgrade revisionnumber databaseversion topclassusername]
   end
 
   def getopts(str, opts)
@@ -301,7 +302,7 @@ class CommentAdder
 
     @year = now.year
 
-    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    months = %w[Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec]
 
     @month = months[now.month - 1]
     d = now.day
@@ -636,8 +637,8 @@ class CommentAdder
     username_map = {}
 
     unless @author
-      @author = ENV['USER'].downcase unless @author
-      @author = ENV['USERNAME'].downcase unless @author
+      @author ||= ENV['USER'].downcase
+      @author ||= ENV['USERNAME'].downcase
       if username_map[@author].present?
         @author = username_map[@author]
       end
@@ -664,7 +665,7 @@ class CommentAdder
           @company = "Qstream"
         end
       end
-      @company = "eweb" unless @company
+      @company ||= "eweb"
     end
     if @start_year.blank? && @scc == "clearcase"
       date = `cleartool desc -fmt "%Nd" @infile@@/main/0`
@@ -1199,17 +1200,14 @@ class CommentAdder
       @output.print this_line
     else
       if name_exceptions.include?(@lcname)
-        #print "Found @lcname in name_exceptions\n"
       elsif @lcname != filename.downcase
         print "****** ERROR: UpdateConfig #{name} != #{filename}\n"
       end
       if data_exceptions.include?(@lcname)
-        #print "Found #{@lcname} in #{data_exceptions}\n"
         @output.print this_line
       elsif num != should_be && should_be != "..."
         print "call to updateConfig( #{n1}'#{name}', #{n2}'#{num}' )\n"
         print "shouldBe updateConfig( #{n1}'#{name}', #{n2}'#{should_be}' )\n"
-        #@output.print "  EXECUTE updateConfig #{n1}'#{name}', #{n2}'#{should_be}';\n"
         this_line.sub!(num, should_be)
         @output.print this_line
         @changed = true
@@ -1245,7 +1243,6 @@ class CommentAdder
       elsif num != should_be && should_be != "..."
         print "call to updateConfig( '#{name}', '#{num}' )\n"
         print "shouldBe updateConfig( '#{name}', '#{should_be}' )\n"
-        #@output.print "  updateConfig( '"#{name}"', '"#{should_be}"' );\n"
         this_line.sub!(num, should_be)
         @output.print this_line
         @changed = true
@@ -1255,11 +1252,10 @@ class CommentAdder
     end
   end
 
-
   def write_results_inner(infile, banner, history)
-    @input = open(infile) or die "can't open #{infile}\n"
+    @input = open(infile) # or die "can't open #{infile}\n"
     #print "Will try to open @outfile\n"
-    @output = open(@outfile, 'w') or die "can't open @outfile\n"
+    @output = open(@outfile, 'w') # or die "can't open @outfile\n"
     if @first_line.present?
       @output.print @first_line
     elsif @bom
@@ -1301,9 +1297,9 @@ class CommentAdder
     elsif @has_banner && !@has_history
       print "Found hasBanner && !hasHistory\n" if @verbose.to_i > 2
       File.rename @outfile, "#{@outfile}.tmp"
-      @input = open("#{@outfile}.tmp", 'r') or die "can't open #{@outfile}.tmp\n"
+      @input = open("#{@outfile}.tmp", 'r') # or die "can't open #{@outfile}.tmp\n"
       #print "Will try to open @outfile\n"
-      @output = open(@outfile, 'w') or die "can't open #{@outfile}\n"
+      @output = open(@outfile, 'w') # or die "can't open #{@outfile}\n"
       comments = 0
       written_history = false
       @input.each_line do |l|
@@ -1331,9 +1327,9 @@ class CommentAdder
       print "Fixing dodgy banner\n"; # if  @verbose.to_i > 2
       @changed = true
       File.rename @outfile, "#{@outfile}.tmp"
-      @input = open("#{@outfile}.tmp", 'r') or die "can't open #{@outfile}.tmp\n"
+      @input = open("#{@outfile}.tmp", 'r') # or die "can't open #{@outfile}.tmp\n"
       #print "Will try to open @outfile\n"
-      @output = open(@outfile, 'w') or die "can't open #{@outfile}\n"
+      @output = open(@outfile, 'w') # or die "can't open #{@outfile}\n"
       @past = false
 
       @input.each_line do |l|
@@ -1393,13 +1389,6 @@ class CommentAdder
 
     if @change_event == 'Y'
       chevent(@infile, @comments)
-    end
-  end
-
-  def run_cmd(cmd)
-    print "cmd: #{cmd}\n"
-    open(CMD, "#{cmd} 2>&1 |").each_line do |line|
-      print line
     end
   end
 

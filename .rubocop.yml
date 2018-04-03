@@ -1,18 +1,19 @@
 #
 # File: .rubocop.yml
 # Author: eweb
-# Copyright eweb, 2017-2017
+# Copyright eweb, 2017-2018
 # Contents:
 #
 # Date:          Author:  Comments:
 # 28th Oct 2017  eweb     #0008 rubocop
+#  3rd Apr 2018  eweb     #0007 rubocop
 #
 # https://github.com/bbatsov/rubocop/tree/master/config
 #
 # rubocop -DES -f html -o rubocop.html
 #
 AllCops:
-  TargetRubyVersion: 2.4
+  TargetRubyVersion: 2.5
 
 Style/SafeNavigation:
   Enabled: false
@@ -26,28 +27,28 @@ Style/IfUnlessModifier:
 Style/NestedTernaryOperator:
   Enabled: false
 
-Style/IndentationWidth:
+Layout/IndentationWidth:
   Enabled: true
 
-Style/IndentArray:
+Layout/IndentArray:
   Enabled: true
 
-Style/AlignArray:
+Layout/AlignArray:
   Enabled: false
 
-Style/LeadingCommentSpace:
+Layout/LeadingCommentSpace:
   Enabled: false
 
-Style/CaseIndentation:
+Layout/CaseIndentation:
   Enabled: true
 
 Style/GuardClause:
   Enabled: false
 
-Style/SpaceInsideHashLiteralBraces:
+Layout/SpaceInsideHashLiteralBraces:
   Enabled: false
 
-Style/VariableNumber:
+Naming/VariableNumber:
   Enabled: false
 
 Metrics/LineLength:
@@ -59,7 +60,7 @@ Metrics/MethodLength:
 Style/StringLiterals:
   Enabled: false
 
-Style/MultilineOperationIndentation:
+Layout/MultilineOperationIndentation:
   Enabled: false
 
 Style/Documentation:
@@ -86,10 +87,10 @@ Metrics/ParameterLists:
   Max: 6
 
 # RubyMotion
-Style/MethodName:
+Naming/MethodName:
   Enabled: false
 
-Style/IndentHash:
+Layout/IndentHash:
   Enabled: true
 
 Style/BlockComments:
@@ -101,11 +102,11 @@ Style/MutableConstant:
 Style/NumericLiterals:
   Enabled: false
 
-Style/PredicateName:
+Naming/PredicateName:
   Enabled: false
 
 # TODO turn on Style/AccessorMethodName
-Style/AccessorMethodName:
+Naming/AccessorMethodName:
   Enabled: false
 
 Style/PerlBackrefs:
@@ -159,4 +160,13 @@ Bundler/DuplicatedGem:
   Enabled: false
 
 Performance/RegexpMatch:
+  Enabled: false
+
+Naming/UncommunicativeMethodParamName:
+  Enabled: false
+
+Style/ParallelAssignment:
+  Enabled: false
+
+Security/Open:
   Enabled: false
