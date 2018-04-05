@@ -101,6 +101,8 @@
 #  2nd Apr 2018  eweb     #0007 convert to class
 #  3rd Apr 2018  eweb     #0007 split into methods
 #  3rd Apr 2018  eweb     #0007 rubocop
+#  6th Apr 2018  eweb     #0008 assume xml are utf-8
+#  6th Apr 2018  eweb     #0007 rubocop
 #
 
 # DONE change event if comment not present.
@@ -137,10 +139,33 @@ class NilClass
   end
 end
 
+class Integer
+  def ordinal
+    if (11..13).cover?(abs % 100)
+      "th"
+    else
+      case abs % 10
+      when 1
+        "st"
+      when 2
+        "nd"
+      when 3
+        "rd"
+      else
+        "th"
+      end
+    end
+  end
+
+  def ordinalize
+    "#{self}#{ordinal}"
+  end
+end
+
 class CommentAdder
   def initialize
     @use_clearcase = true
-    @scc = "clearcase"
+    @scc = :clearcase
     @change_event = 'N'
 
     @validate_comments = true
@@ -275,21 +300,14 @@ class CommentAdder
 
   def chevent(_file, comment)
     if comment.blank?
-    elsif @scc == "git"
+    elsif @scc == :git
       add_to_git_commit_msg(comment)
     end
   end
 
   def format_date(d, m, y)
-    th = "th"
     d = d.to_i
-    if d == 1 || d == 21 || d == 31
-      th = "st"
-    elsif d == 2 || d == 22
-      th = "nd"
-    elsif d == 3 || d == 23
-      th = "rd"
-    end
+    th = d.ordinal
     if d < 10
       d = " #{d}"
     end
@@ -540,12 +558,12 @@ class CommentAdder
     @git_root = "."
 
     if find_git
-      @scc = "git"
+      @scc = :git
       @drive = @git_root
     else
       @cwd = Dir.getwd
       if @cwd =~ /p4clients/
-        @scc = "p4"
+        @scc = :p4
       end
     end
 
@@ -643,7 +661,7 @@ class CommentAdder
         @author = username_map[@author]
       end
     end
-    if @orig_author.blank? && @scc == "clearcase"
+    if @orig_author.blank? && @scc == :clearcase
       @orig_author = `cleartool desc -fmt "%u" @infile@@/main/0`
       if username_map[@orig_author].present?
         @orig_author = username_map[@orig_author]
@@ -656,7 +674,7 @@ class CommentAdder
     end
 
     if @company.blank?
-      if @scc == "git"
+      if @scc == :git
         @email = `git config --get user.email`
         if @email =~ /wbtsystems.com/
           @company = "WBT Systems"
@@ -667,18 +685,14 @@ class CommentAdder
       end
       @company ||= "eweb"
     end
-    if @start_year.blank? && @scc == "clearcase"
+    if @start_year.blank? && @scc == :clearcase
       date = `cleartool desc -fmt "%Nd" @infile@@/main/0`
       if date =~ /(^[0-9]{4})/
         @start_year = $1
       end
     end
     if @start_year.blank?
-      if @company == "WBT Systems"
-        @start_year = "1995"
-      else
-        @start_year = @year
-      end
+      @start_year = @year
     end
   end
 
@@ -827,20 +841,25 @@ class CommentAdder
   end
 
   def handle_encoding(this_line)
-    if @line == 0 && this_line =~ /\xef\xbb\xbf/
-      @bom = 1
-    end
-    if @line == 0 && this_line =~ /<\?xml .+encoding='(.+)'.*\?>/
-      @encoding = $1
-    end
-    if @line == 0 && this_line =~ /<\?xml .+encoding="(.+)".*\?>/
-      @encoding = $1
-    end
-    if this_line =~ /# -\*- coding: (.+) -\*-/
-      @encoding = $1
-    end
-    if this_line =~ /# coding: (.+)/
-      @encoding = $1
+    if @line == 0
+      if this_line =~ /\xef\xbb\xbf/
+        @bom = 1
+      end
+      if this_line =~ /<\?xml .+encoding='(.+)'.*\?>/
+        @encoding = $1
+      end
+      if this_line =~ /<\?xml .+encoding="(.+)".*\?>/
+        @encoding = $1
+      end
+      if @file_type == 'xml'
+        @encoding ||= 'utf-8'
+      end
+      if this_line =~ /# -\*- coding: (.+) -\*-/
+        @encoding = $1
+      end
+      if this_line =~ /# coding: (.+)/
+        @encoding = $1
+      end
     end
   end
 
@@ -899,11 +918,11 @@ class CommentAdder
       exchars = $1
       if @bom
       elsif @file_type == 'rb'
-      elsif @encoding == "utf-8"
+      elsif @encoding == 'utf-8'
       elsif @infile =~ /resources_..\.properties/
       elsif @infile =~ /_.+\.dat/ && @infile !~ /english/
       else
-        chars = exchars.bytes.collect { |b| '%X' % b }.join
+        chars = exchars.bytes.collect { |b| format('%02X', b) }.join
         STDERR.print "#{@file}:#{@line} CHAR!!! extended character '#{exchars}' [#{chars}]\n"
       end
     end
