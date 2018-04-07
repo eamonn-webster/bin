@@ -1,10 +1,18 @@
+#
+# File: reorg.rb
+# Author: eweb
+# Copyright eweb, 2018-2018
+# Contents:
+#
+# Date:          Author:  Comments:
+#  7th Apr 2018  eweb     #0007 rubocop
+#
 require 'FileUtils'
 
 root = '/Users/eweb/accounts'
 folder = 'java'
-  begin
-    Dir.new("#{root}/#{folder}").each do |f|
-  begin
+begin
+  Dir.new("#{root}/#{folder}").each do |f|
     if File.directory?("#{root}/#{folder}/#{f}")
       Dir.chdir("#{root}/#{folder}/#{f}")
       Dir.new('.').each do |ff|
@@ -15,13 +23,7 @@ folder = 'java'
         end
       end
     end
-  #rescue
-
-
-  #  puts "oops #{$!}"
   end
-end
-
 ensure
-Dir.chdir(root)
+  Dir.chdir(root)
 end

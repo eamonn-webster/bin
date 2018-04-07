@@ -3,11 +3,12 @@
 #
 # File: tag-angular
 # Author: eweb
-# Copyright eweb, 2016-2016
+# Copyright eweb, 2016-2018
 # Contents:
 #
 # Date:          Author:  Comments:
 # 21st Aug 2016  eweb     #0008 tag angular based of dist in qs-core
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 
 def run(cmd)
@@ -21,20 +22,20 @@ def commit_for_distribution
   run("git log --all --name-status -- dist/scripts/").each_line do |line|
     if line =~ /^commit (.+)$/
       current_commit = $1
-    elsif line =~ %r(^A\s+dist/scripts/(vendor\..+\.js))
-    # commits[current_commit][:vendor] = $1
-    elsif line =~ %r(^A\s+dist/scripts/(scripts\..+\.js))
+    elsif line =~ %r{^A\s+dist/scripts/(vendor\..+\.js)}
+      # commits[current_commit][:vendor] = $1
+    elsif line =~ %r{^A\s+dist/scripts/(scripts\..+\.js)}
       commits[$1] = current_commit
-    elsif line =~ %r(^A\s+dist/scripts/(scripts\..+\.min\.js))
+    elsif line =~ %r{^A\s+dist/scripts/(scripts\..+\.min\.js)}
       commits[$1] = current_commit
-    elsif line =~ %r(^A\s)
+    elsif line =~ %r{^A\s}
       puts line
     end
   end
   commits
 end
 
-def get_current_files(name, commit= 'HEAD')
+def get_current_files(name, commit = 'HEAD')
   cmd = "git ls-tree -r --name-only #{commit} -- public/integrations/#{name}/scripts"
   run(cmd).each_line.collect do |line|
     line.chomp!
@@ -42,7 +43,6 @@ def get_current_files(name, commit= 'HEAD')
     # File.basename(line) if line =~ /scripts\..+\.js/
   end.compact
 end
-
 
 def main(tag)
   files = get_current_files('user_admin', tag)
@@ -66,4 +66,3 @@ def main(tag)
 end
 
 main(ARGV[0])
-

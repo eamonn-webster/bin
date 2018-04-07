@@ -2,23 +2,24 @@
 #
 # File: app_configs
 # Author: eweb
-# Copyright Qstream, 2015-2015
+# Copyright Qstream, 2015-2018
 # Contents:
 #
 # Date:          Author:  Comments:
 # 25th Mar 2015  eweb     Fetch heroku app configs
 # 19th Oct 2015  eweb     Handle eu
 # 16th Dec 2015  eweb     #0008 Only qstream repos
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 
-%x{heroku apps}.each_line do |line|
+`heroku apps --all`.each_line do |line|
   next if line =~ /^===/
   if line =~ /^(.+)\s+(.+)$/
     next unless $2 == 'heroku@qstream.com'
     app = $1.strip
     app.sub!(/ \(.+\)/, '')
     puts app
-    config = %x{heroku config --app #{app}}
+    config = `heroku config --app #{app}`
     File.open("#{app}.env", "w") do |f|
       f.puts(config)
     end

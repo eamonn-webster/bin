@@ -25,11 +25,12 @@
 # 28th Oct 2017  eweb     #0008 purge branches
 # 19th Nov 2017  eweb     #0008 git message change
 #  2nd Apr 2018  eweb     #0008 don't fetch tags
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 
 require 'open3'
 
-bin_dir = File.expand_path('../', __FILE__)
+# bin_dir = File.expand_path('../', __FILE__)
 # puts bin_dir
 
 dir_to_do = nil
@@ -50,7 +51,7 @@ end
 
 def app_list
   apps = []
-  all_apps = %x{heroku apps --all}
+  all_apps = `heroku apps --all`
   all_apps.each_line do |app|
     app.chomp!
     app = app.split(' ')[0]
@@ -65,18 +66,18 @@ end
 Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
   next if !Dir.exist?(dir)
   next if dir_to_do && File.basename(dir) != dir_to_do
-  Dir.chdir(dir) do |dir|
+  Dir.chdir(dir) do |_dir|
     next unless Dir.exist?('.git')
-    remote = %x{git remote -v | grep -e 'origin.\\+fetch'}.chomp
+    remote = `git remote -v | grep -e 'origin.\\+fetch'`.chomp
     if remote =~ %r{git@github.com:qstream/(.+)(?:\.git) } ||
-       remote =~ %r{https://github.com/qstream/(.+)(?:\.git) }
+      remote =~ %r{https://github.com/qstream/(.+)(?:\.git) }
       url = Regexp.last_match(0)
       repo = Regexp.last_match(1)
       current = `git rev-parse --abbrev-ref HEAD`.chomp
       puts "\033[0;34m#{dir}\033[0m \033[0;35m#{current}\033[0m \033[0;36m#{url}\033[0m"
 
-      Open3.popen2e("git", "fetch", "origin", "-p", "--no-tags") {|i,oe,t|
-        oe.each {|line|
+      Open3.popen2e("git", "fetch", "origin", "-p", "--no-tags") do |_i, oe, _t|
+        oe.each do |line|
           line.chomp!
           if /Fetching repository, done./ =~ line
           elsif /Already up-to-date./ =~ line
@@ -85,8 +86,8 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
           else
             puts line
           end
-        }
-      }
+        end
+      end
       print "\033[2K\r"
 
       # for each remote that matches an app
@@ -99,15 +100,15 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
         do_tags = false
       end
 
-      branches = %w{master}
+      branches = %w[master]
 
       branches.each do |br|
-        next if br === current
+        next if br == current
         matching = `git branch --list --remote origin/#{br}`
         unless matching.empty?
           matching.each_line do |line|
             line.chomp!
-            if line =~ %r(origin/(.+))
+            if line =~ %r{origin/(.+)}
               if $1 != current
                 system("git update-ref refs/heads/#{$1} remotes/origin/#{$1}")
               end
@@ -116,8 +117,8 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
         end
       end
 
-      Open3.popen2e("git", "pull", "-p", "--no-tags") {|i,oe,t|
-        oe.each {|line|
+      Open3.popen2e("git", "pull", "-p", "--no-tags") do |_i, oe, _t|
+        oe.each do |line|
           line.chomp!
           if /Fetching repository, done./ =~ line
           elsif /Already up.to.date./ =~ line
@@ -126,8 +127,8 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
           else
             puts line
           end
-        }
-      }
+        end
+      end
       # print "\033[2K\r"
     else
       puts "ignoring [#{dir}] [#{remote}]"
@@ -137,8 +138,8 @@ end
 
 if do_apps
   puts 'app configs'
-  Dir.chdir("#{ENV['HOME']}/projects/qstream/apps") do |dir|
-    %x{./app_configs.rb}
-    %x{git commit -a -m 'fetched'}
+  Dir.chdir("#{ENV['HOME']}/projects/qstream/apps") do |_dir|
+    `./app_configs.rb`
+    `git commit -a -m 'fetched'`
   end
 end

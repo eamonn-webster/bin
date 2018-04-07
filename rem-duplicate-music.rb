@@ -2,11 +2,12 @@
 #
 # File: rem-duplicate-music.rb
 # Author: eweb
-# Copyright eweb, 2013-2013
+# Copyright eweb, 2013-2018
 # Contents:
 #
 # Date:          Author:  Comments:
 #  5th Nov 2013  eweb     #0008 Clearing out windows music files
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 
 itunes_home = "#{ENV['HOME']}/Music/iTunes/iTunes Media/Music"
@@ -24,7 +25,7 @@ Dir.new(iomega_home).each do |artist|
       #puts "removing #{orig}"
       cmd = "rm -rf \"#{iomega_home}/#{artist}/#{orig}\""
       puts cmd
-      %x{#{cmd}}
+      `#{cmd}`
     else
       puts "#{artist}/#{orig}"
     end

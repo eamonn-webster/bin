@@ -2,7 +2,7 @@
 #
 # File: synchmusic.rb
 # Author: eweb
-# Copyright eweb, 2012-2017
+# Copyright eweb, 2012-2018
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -17,6 +17,7 @@
 # 14th Jan 2017  eweb     #0008 copy photos
 # 28th Oct 2017  eweb     #0008 other repos
 # 18th Dec 2017  eweb     #0008 exclude Not Added
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 
 if Dir.exist?('/Volumes/IOMEGA0')
@@ -75,13 +76,12 @@ else
           ["/Volumes/#{drive}/bin", "git@bitbucket.org:eamoon/bin.git"],
           ["/Volumes/#{drive}/projects/metric_fu", "https://github.com/eamonn-webster/metric_fu.git"],
           ["/Volumes/#{drive}/projects/flog", "https://github.com/eamonn-webster/flog.git"],
-          ["/Volumes/#{drive}/projects/simway", "git@bitbucket.org:eamoon/simway.git"],
           # ["/Volumes/#{drive}/projects/wbt", "/Users/eweb/projects/wbt.git"]
-         ]
+          ["/Volumes/#{drive}/projects/simway", "git@bitbucket.org:eamoon/simway.git"]]
 
   dirs.each do |dir, remote|
     puts dir
-    if Dir.exists?(dir)
+    if Dir.exist?(dir)
       Dir.chdir(dir) do
         puts "git fetch --all"
         system("git fetch --all")

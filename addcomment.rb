@@ -103,6 +103,7 @@
 #  3rd Apr 2018  eweb     #0007 rubocop
 #  6th Apr 2018  eweb     #0008 assume xml are utf-8
 #  6th Apr 2018  eweb     #0007 rubocop
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 
 # DONE change event if comment not present.
@@ -162,7 +163,7 @@ class Integer
   end
 end
 
-class CommentAdder
+class CommentAdder # rubocop:disable Metrics/ClassLength
   def initialize
     @use_clearcase = true
     @scc = :clearcase
@@ -508,30 +509,34 @@ class CommentAdder
     end
   end
 
-  def get_comment_line(date, author, comments)
-    if comments.blank?
-      if @multi_line_start.present?
-        format "#{@multi_line_prefix} %-14s %s\n", date, author; # [addcomment.pl don't change]
-      else
-        format "#{@single_line} %-14s %s\n", date, author; # [addcomment.pl don't change]
-      end
-    elsif !comments.blank?
-      if @multi_line_start.present?
-        format "#{@multi_line_prefix} %-14s %-8s %s\n", date, author, comments; # [addcomment.pl don't change]
-      else
-        format "#{@single_line} %-14s %-8s %s\n", date, author, comments; # [addcomment.pl don't change]
-      end
+  def get_comment_line(d, a, c)
+    pdac(comment_line_prefix, d, a, c)
+  end
+
+  def comment_line_prefix
+    if @multi_line_start.present?
+      @multi_line_start
+    else
+      @single_line
+    end
+  end
+
+  def pdac(p, d, a, c)
+    if c.blank?
+      format "#{p} %-14s %-8s\n", d, a
+    else
+      format "#{p} %-14s %-8s #{c}\n", d, a
     end
   end
 
   def write_date_author_comment
-    @output.print get_comment_line("Date:", "Author:", "Comments:"); # [addcomment.pl don't change]
+    @output.print get_comment_line("Date:", "Author:", "Comments:") # [addcomment.pl don't change]
   end
 
   def write_line
     # don't add empty comment.
     if @comments.present?
-      @output.print get_comment_line(@date, @author, @comments); # [addcomment.pl don't change
+      @output.print get_comment_line(@date, @author, @comments) # [addcomment.pl don't change
     end
   end
 
@@ -951,7 +956,7 @@ class CommentAdder
       if @has_banner && !@past_banner
         @past_banner = true
         if @comment_end != @multi_line_end
-          print "#{@line}: dodgy end of banner\n[#{@comment_end}]\n[#{@multi_line_end}]\n"; # if  @verbose.to_i > 2
+          print "#{@line}: dodgy end of banner\n[#{@comment_end}]\n[#{@multi_line_end}]\n" # if  @verbose.to_i > 2
           @dodgy_banner = true
         end
       elsif @single_line.present? && this_line.start_with?(@single_line)
@@ -993,13 +998,13 @@ class CommentAdder
       @commented = true
       @past_history = true
     elsif @in_history
-      print "were in history && hasComment but @commented\n#{this_line}"; # if  @verbose.to_i > 2
+      print "were in history && hasComment but @commented\n#{this_line}" # if  @verbose.to_i > 2
       #@commented = true
       #@past_history = true
     else
       print "were not in history\n#{this_line}" if @verbose.to_i > 2
       if @single_line.present? && @n_comments > 3
-        print "ERROR: no history\n#{this_line}"; # if  @verbose.to_i > 2
+        print "ERROR: no history\n#{this_line}" # if  @verbose.to_i > 2
         @past_history = true
       end
     end
@@ -1124,7 +1129,7 @@ class CommentAdder
         this_line << new_comment
       end
     else
-      print "Comment:#{this_line}"; # if  @verbose.to_i > 2
+      print "Comment:#{this_line}" # if  @verbose.to_i > 2
     end
   end
 
@@ -1160,7 +1165,7 @@ class CommentAdder
       end
       @output.print "#{x1}Copyright#{x2}#{x3}#{x4}#{x5}-#{correct_year}#{x6}\n"
       if @multi_line_start.present? && @comment_start != @multi_line_start
-        print "#{@line}: dodgy start of banner\n[#{@comment_start}]\n[#{@multi_line_start}]\n"; # if  @verbose.to_i > 2
+        print "#{@line}: dodgy start of banner\n[#{@comment_start}]\n[#{@multi_line_start}]\n" # if  @verbose.to_i > 2
         @dodgy_banner = true
       end
     end
@@ -1200,7 +1205,7 @@ class CommentAdder
       end
       @output.print "#{x1}Copyright#{x2}#{x3}#{x4}#{x5}-#{correct_year}#{x7}\n"
       if @multi_line_start.present? && @comment_start != @multi_line_start
-        print "#{@line}: dodgy start of banner\n[#{@comment_start}]\n[#{@multi_line_start}]\n"; # if  @verbose.to_i > 2
+        print "#{@line}: dodgy start of banner\n[#{@comment_start}]\n[#{@multi_line_start}]\n" # if  @verbose.to_i > 2
         @dodgy_banner = true
       end
     end
@@ -1343,7 +1348,7 @@ class CommentAdder
       File.unlink "#{@outfile}.tmp"
       # had a dodgy banner
     elsif @dodgy_banner
-      print "Fixing dodgy banner\n"; # if  @verbose.to_i > 2
+      print "Fixing dodgy banner\n" # if  @verbose.to_i > 2
       @changed = true
       File.rename @outfile, "#{@outfile}.tmp"
       @input = open("#{@outfile}.tmp", 'r') # or die "can't open #{@outfile}.tmp\n"

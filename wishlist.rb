@@ -1,22 +1,21 @@
 #!/usr/bin/env ruby
-
 #
 # File: wishlist.rb
 # Author: eweb
-# Copyright QStream, 2014-2014
+# Copyright QStream, 2014-2018
 # Contents:
 #
 # Date:          Author:  Comments:
 # 24th Jun 2014  eweb     #0008 Download amazon wishlist
+#  7th Apr 2018  eweb     #0007 rubocop
 #
-# -*- coding: utf-8 -*-
 
 require 'nokogiri'
 require 'open-uri'
 
 def handle_row(row)
   item = {}
-  row.children.each_with_index do |cell, i|
+  row.children.each do |cell|
     clzz = cell.attribute('class')
     if clzz
       attr = clzz.value
@@ -29,10 +28,10 @@ def handle_row(row)
       begin
         txt = text.strip
       rescue
-        txt = txt.chars.collect{ |ch| ch == "\xA3" ? "£" : ch }.join.strip
+        txt = txt.chars.collect { |ch| ch == "\xA3" ? "£" : ch }.join.strip
       end
       if attr == 'title'
-        txt.lines.collect(&:strip).reject{|l| l.empty?}.each_with_index do |line, i|
+        txt.lines.collect(&:strip).reject(&:empty?).each_with_index do |line, i|
           if i == 0
             item[attr] = line
           elsif line =~ /^Offered by (.+)/
@@ -54,23 +53,22 @@ def handle_row(row)
       end
     end
   end
-  puts "#{item}"
-        #details = child.children[1]
-        #price = child.children[3]
-        #puts "#{details.inspect} #{price.inspect}"
+  puts item.to_s
+  #details = child.children[1]
+  #price = child.children[3]
+  #puts "#{details.inspect} #{price.inspect}"
 end
 
 def wishlist(listname)
-
   page = 1
-  while true
+  loop do
     url = "http://www.amazon.co.uk/registry/wishlist/#{listname}?layout=compact&page=#{page}"
     puts url
 
     html = open(url)
     doc = Nokogiri::HTML(html)
     #puts doc
-    table = doc.xpath( "//table[@class='a-bordered a-horizontal-stripes  g-compact-items']" )
+    table = doc.xpath("//table[@class='a-bordered a-horizontal-stripes  g-compact-items']")
     #puts table.class
     #puts table.length
     #puts table.methods.to_s
@@ -93,8 +91,6 @@ def wishlist(listname)
   end
 end
 
-
 mylist = '1S1WQYHWM4F41'
 
 wishlist(mylist)
-

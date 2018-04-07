@@ -2,11 +2,12 @@
 #
 # File: nuke-branch
 # Author: eweb
-# Copyright eweb, 2016-2016
+# Copyright eweb, 2016-2018
 # Contents:
 #
 # Date:          Author:  Comments:
 # 14th Mar 2016  eweb     #0008 nuke a branch local and remote
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 
 branch = ARGV[0]
@@ -18,7 +19,7 @@ end
 
 if branch
   exe("git branch -d #{branch}")
-  %w(origin github).each do |remote|
+  %w[origin github].each do |remote|
     exe("git push #{remote} :#{branch}")
   end
 end

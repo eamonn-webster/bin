@@ -1,29 +1,17 @@
 #
 # File: sudoku.rb
 # Author: eweb
-# Copyright eweb, 2016-2016
+# Copyright eweb, 2016-2018
 # Contents:
 #
 # Date:          Author:  Comments:
 # 21st Aug 2016  eweb     #0008 solve sudoku
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 require 'io/console'
 
-board = Array.new(81)
-
 class Board
-
-  def self.pause=(p)
-    @pause = p
-  end
-
-  def self.pause
-    @pause
-  end
-
-  def pause
-    self.class.pause
-  end
+  attr_accessor :pause
 
   def clear
     @board = [0] * 81
@@ -56,18 +44,18 @@ class Board
   end
 
   def rows
-    0.upto(8).map{ |x| board[(x*9)..(x*9+8)] }
+    0.upto(8).map { |x| board[(x * 9)..(x * 9 + 8)] }
   end
 
   def columns
-    0.upto(8).map{ |x| 0.upto(8).map { |y| board[y*9+x] } }
+    0.upto(8).map { |x| 0.upto(8).map { |y| board[y * 9 + x] } }
   end
 
   def squares
-    0.upto(8).map{ |x| [3 * (x / 3), 3 * (x % 3)] }.map do |x, y|
-      board[(x*9+y)..(x*9+y)+2] +
-        board[((x+1)*9+y)..((x+1)*9+y)+2] +
-        board[((x+2)*9+y)..((x+2)*9+y)+2]
+    0.upto(8).map { |x| [3 * (x / 3), 3 * (x % 3)] }.map do |x, y|
+      board[(x * 9 + y)..(x * 9 + y) + 2] +
+        board[((x + 1) * 9 + y)..((x + 1) * 9 + y) + 2] +
+        board[((x + 2) * 9 + y)..((x + 2) * 9 + y) + 2]
     end
   end
 
@@ -76,7 +64,7 @@ class Board
   end
 
   def groups_finished(groups)
-    groups.all?{|x| group_finished(x) }
+    groups.all? { |x| group_finished(x) }
   end
 
   def finished_rows
@@ -93,8 +81,8 @@ class Board
 
   def finished
     finished_rows &&
-    finished_columns &&
-    finished_squares
+      finished_columns &&
+      finished_squares
   end
 
   def no_dupes(x)
@@ -102,39 +90,39 @@ class Board
   end
 
   def check_rows
-    rows.map{|x| no_dupes(x) }
+    rows.map { |x| no_dupes(x) }
   end
 
   def check_columns
-    columns.map{|x| no_dupes(x) }
+    columns.map { |x| no_dupes(x) }
   end
 
   def check_squares
-    squares.map{|x| no_dupes(x) }
+    squares.map { |x| no_dupes(x) }
   end
 
   def check
     [check_rows,
-    check_columns,
-    check_squares]
+     check_columns,
+     check_squares]
   end
 
   def no_dup_rows
-    rows.all?{|x| no_dupes(x) }
+    rows.all? { |x| no_dupes(x) }
   end
 
   def no_dup_columns
-    columns.all?{|x| no_dupes(x) }
+    columns.all? { |x| no_dupes(x) }
   end
 
   def no_dup_squares
-    squares.all?{|x| no_dupes(x) }
+    squares.all? { |x| no_dupes(x) }
   end
 
   def no_dupes_at_all
     no_dup_rows &&
-    no_dup_columns &&
-    no_dup_squares
+      no_dup_columns &&
+      no_dup_squares
   end
 
   def set_cell(p, c)
@@ -148,27 +136,27 @@ class Board
     STDIN.raw!
 
     input = STDIN.getc.chr
-    if input == "\e" then
+    if input == "\e"
       input << STDIN.read_nonblock(3) rescue nil
       input << STDIN.read_nonblock(2) rescue nil
     end
+    input
   ensure
     STDIN.echo = true
     STDIN.cooked!
-    return input
   end
 
-def display_board(msg = nil, p = nil)
+  def display_board(msg = nil)
     print "\033[1;1f"
     puts
     puts msg
     read_char if msg && pause
     puts
     rows.each_with_index do |row, index|
-      puts '+' + ('-----------+') * 3 if index % 3 == 0
-      puts '| ' + row.map{ |cell| cell.zero? ? ' ' : cell }.zip( [' ', ' ', '|'] * 3 ).flatten.join(' ')
+      puts '+' + '-----------+' * 3 if index % 3 == 0
+      puts '| ' + row.map { |cell| cell.zero? ? ' ' : cell }.zip([' ', ' ', '|'] * 3).flatten.join(' ')
     end
-    puts '+' + ('-----------+') * 3
+    puts '+' + '-----------+' * 3
     puts
     # print "\033[19A"
   end
@@ -195,7 +183,7 @@ def display_board(msg = nil, p = nil)
         end
       end
     end
-    squares.map {|s| group_finished(s) }
+    squares.map { |s| group_finished(s) }
   end
 
   def what_to_do_groups(what)
@@ -220,7 +208,7 @@ def display_board(msg = nil, p = nil)
         end
       end
     end
-    send(what).map {|x| x.uniq.size == 9 }
+    send(what).map { |x| x.uniq.size == 9 }
   end
 
   def what_to_do_columns
@@ -241,25 +229,30 @@ def display_board(msg = nil, p = nil)
 
   def what_to_do
     display_board
-    begin
+    loop do
       z0 = number_of_zeros
-      begin
+      loop do
         z1 = number_of_zeros
         what_to_do_all
-      end while number_of_zeros < z1
-      begin
+        break unless number_of_zeros < z1
+      end
+      loop do
         z1 = number_of_zeros
         what_to_do_squares
-      end while number_of_zeros < z1
-      begin
+        break unless number_of_zeros < z1
+      end
+      loop do
         z1 = number_of_zeros
         what_to_do_columns
-      end while number_of_zeros < z1
-      begin
+        break unless number_of_zeros < z1
+      end
+      loop do
         z1 = number_of_zeros
         what_to_do_rows
-      end while number_of_zeros < z1
-    end while number_of_zeros < z0
+        break unless number_of_zeros < z1
+      end
+      break unless number_of_zeros < z0
+    end
   end
 
   def to_board_index(what, which, index)
@@ -282,6 +275,6 @@ def display_board(msg = nil, p = nil)
   end
 
   def square_index_to_board_index(sqr, index)
-    (sqr.div(3) * 3 + index.div(3)) * 9 +  ((sqr % 3) * 3 + index % 3)
+    (sqr.div(3) * 3 + index.div(3)) * 9 + ((sqr % 3) * 3 + index % 3)
   end
 end

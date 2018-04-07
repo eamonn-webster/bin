@@ -3,38 +3,38 @@
 #
 # File: song356.rb
 # Author: eweb
-# Copyright Qstream, 2015-2016
+# Copyright Qstream, 2015-2018
 # Contents:
 #
 # Date:          Author:  Comments:
 #  7th Sep 2015  eweb     #0008 Tagging songs from songs365
 # 25th Sep 2016  eweb     #0008 install taglib
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 
-rvm @global do gem install taglib-ruby
+`rvm @global do gem install taglib-ruby`
 
 require 'taglib'
 
-files = []
 options = {}
 ARGV.each_with_index do |arg, i|
   if arg && arg[0] == '-'
     if arg == '--album'
-      options[:album] = ARGV[i+1]
+      options[:album] = ARGV[i + 1]
     elsif arg == '--artist'
-      options[:artist] = ARGV[i+1]
+      options[:artist] = ARGV[i + 1]
     elsif arg == '--year'
-      options[:year] = ARGV[i+1].to_i
+      options[:year] = ARGV[i + 1].to_i
     end
     ARGV[i] = nil
-    ARGV[i+1] = nil
+    ARGV[i + 1] = nil
   end
 end
 
 @update = true
 
 # Load a file
-files = ARGV.compact.sort_by {|filename| File.mtime(filename) }
+files = ARGV.compact.sort_by { |filename| File.mtime(filename) }
 files.each_with_index do |arg, i|
   options[:track] = i + 1
   # options[:tracks] = files.size
@@ -54,5 +54,5 @@ files.each_with_index do |arg, i|
         fileref.save
       end
     end
-  end  # File is automatically closed at block end
+  end
 end

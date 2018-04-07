@@ -2,22 +2,22 @@
 #
 # File: rebrew-all
 # Author: eweb
-# Copyright eweb, 2013-2013
+# Copyright eweb, 2013-2018
 # Contents:
 #
 # Date:          Author:  Comments:
 #  7th Nov 2013  eweb     #0008 Re-brew everything
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 
-class FirstUnlink < StandardError
-end
+FirstUnlink = StandardError
 
 open("|brew list -1").each_line do |formula|
   puts formula
   begin
     open("|brew reinstall #{formula}").each_line do |line|
       puts line
-      if line ~= /To install this version, first `(brew unlink .+)'/
+      if line =~ /To install this version, first `(brew unlink .+)'/
         raise FirstUnlink
       end
     end

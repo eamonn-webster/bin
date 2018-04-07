@@ -2,12 +2,13 @@
 #
 # File: download_log.rb
 # Author: eweb
-# Copyright qstream, 2013-2014
+# Copyright qstream, 2013-2018
 # Contents:
 #
 # Date:          Author:  Comments:
 #  5th Nov 2013  eweb     #0008 Down load log from logentries
 # 24th Jun 2014  eweb     #0008 Need date
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 
 require 'net/http'
@@ -20,15 +21,15 @@ host_name = 'Heroku'
 require 'getoptlong'
 
 opts = GetoptLong.new(
-  [ '--help', '-h', GetoptLong::NO_ARGUMENT ],
-  [ '--yesterday', '-y', GetoptLong::NO_ARGUMENT ],
-  [ '--date', GetoptLong::REQUIRED_ARGUMENT ]
+  ['--help', '-h', GetoptLong::NO_ARGUMENT],
+  ['--yesterday', '-y', GetoptLong::NO_ARGUMENT],
+  ['--date', GetoptLong::REQUIRED_ARGUMENT]
 )
 
 opts.each do |opt, arg|
   case opt
   when '--help'
-    puts "usage: #{$0} [options] app"
+    puts "usage: #{$PROGRAM_NAME} [options] app"
     puts " --yesterday"
     puts " --date=date"
     puts " where app is the name of the app e.g. qs-alpha or qs-bleedin"
@@ -57,7 +58,7 @@ url = "https://api.logentries.com/#{account_key}/hosts/#{host_name}/#{log_key}/"
 
 t0 = @date || Time.new
 t0 = Time.local(t0.year, t0.month, t0.day)
-t0 = t0 - (60 * 60 * 24) if @yesterday
+t0 -= (60 * 60 * 24) if @yesterday
 t1 = t0 + (60 * 60 * 24)
 #t1 = t0 + (60 * 60)
 
@@ -72,4 +73,4 @@ puts 'Expanding...'
 `gzip -df #{log_file}.gz`
 
 puts "Filtering... filtered-#{log_file}"
-%x{filter_log.rb #{log_file} filtered-#{log_file}}
+`filter_log.rb #{log_file} filtered-#{log_file}`

@@ -3,11 +3,12 @@
 #
 # File: music_sort.rb
 # Author: eweb
-# Copyright eweb, 2017-2017
+# Copyright eweb, 2017-2018
 # Contents:
 #
 # Date:          Author:  Comments:
 # 28th Oct 2017  eweb     #0008 Checks sort terms
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 
 require 'nokogiri'
@@ -19,6 +20,7 @@ class MyDoc < Nokogiri::XML::SAX::Document
     @all_keys = []
     @albums = {}
   end
+
   def characters(chars)
     if @level == 3
       if @reading_key
@@ -32,7 +34,8 @@ class MyDoc < Nokogiri::XML::SAX::Document
       end
     end
   end
-  def start_element(name, attrs = [])
+
+  def start_element(name, _attrs = [])
     if name == 'dict'
       @level += 1
       if @level == 3
@@ -46,21 +49,18 @@ class MyDoc < Nokogiri::XML::SAX::Document
         @value = ''
         @reading_key = true
       end
-    else
-      if @level == 3
-        @reading_key = false
-        @value = ''
-      end
-      # puts "starting: #{name}"
+    elsif @level == 3
+      @reading_key = false
+      @value = ''
     end
   end
 
   def remember_track(hash)
-    artist = hash['Artist']
+    # artist = hash['Artist']
     album_artist = hash['Album Artist']
     album = hash['Album']
-    name = hash['Name']
-    location = hash['Location']
+    # name = hash['Name']
+    # location = hash['Location']
     track = hash['Track Number']
     disc = hash['Disc Number']
     album_key = "#{album_artist} - #{album}"
@@ -71,8 +71,8 @@ class MyDoc < Nokogiri::XML::SAX::Document
 
   def process_albums
     @albums.each do |k, album|
-      artists = album.map { |t, h| h['Artist'] }.compact.uniq
-      album_artists = album.map { |t, h| h['Album Artist'] }.compact.uniq
+      artists = album.map { |_t, h| h['Artist'] }.compact.uniq
+      album_artists = album.map { |_t, h| h['Album Artist'] }.compact.uniq
       if artists.size == 1
         unless album_artists.empty?
           puts "#{k} #{artists[0]} but #{album_artists}"
@@ -101,8 +101,6 @@ class MyDoc < Nokogiri::XML::SAX::Document
         # puts "keys: #{@all_keys}"
         # process_albums
       end
-    else
-      # puts "ending: #{name}"
     end
   end
 
@@ -112,8 +110,6 @@ class MyDoc < Nokogiri::XML::SAX::Document
     if artist && album_artist
       if artist == album_artist
         puts "#{artist} == #{album_artist} on #{hash['Album']}"
-      else
-        # puts "#{artist} != #{album_artist} on #{hash['Album']}"
       end
     end
   end

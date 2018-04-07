@@ -2,7 +2,7 @@
 #
 # File: codiffs.rb
 # Author:
-# Copyright eweb, 2012-2017
+# Copyright eweb, 2012-2018
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -27,6 +27,7 @@
 # 16th Dec 2015  eweb     #0008 typechange, unmerged
 # 14th Mar 2016  eweb     #0008 less directory noise
 # 19th Nov 2017  eweb     #0008 git message change
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 
 def find_git(where = ".")
@@ -54,53 +55,53 @@ script_file = project_root + '/cos.sh'
 
 changed_files = []
 
-  IO.popen("git status") do |f|
-    stage = nil
-    f.each do |line|
-      line.chomp
-      #puts line
-      if line =~ /On branch (.*)/
-        branch = $1
-      elsif line =~ /Your branch is up.to.date with '.+'/
-      elsif line =~ /Your branch is ahead of '.+'/
-      elsif line =~ /nothing to commit, working directory clean/
-      elsif line =~ /Changes to be committed:/
-        stage = :staged
-      elsif line =~ /\tdeleted: +(.*)/
-        #
-      elsif line =~ /\tmodified: +(.*)/ ||
-            line =~ /\ttypechange: +(.*)/ ||
-            line =~ /\trenamed: +(?:.*) -> (.*)/ ||
-            line =~ /\tnew file: +(.*)/
-        file = $1
-        puts "Staged #{file}\n" if stage == :staged && verbose
-        puts "Unstaged #{file}\n" if stage == :unstaged && verbose
-        changed_files << stage
-        changed_files << file
-      elsif line =~ /Untracked files:/
-        stage = :untracked
-      elsif line =~ /Changes not staged for commit:/
-        stage = :unstaged
-      elsif line =~ /Unmerged paths:/
-        stage = :unmerged
-      elsif line =~ /\t(.*)\/$/
-        puts "Ignoring directory #{line}" if verbose
-      elsif line =~ /\t(.*)/
-        file = $1
-        puts "Untracked #{file}" if verbose
-        changed_files << stage
-        changed_files << file
-      elsif line =~ / \(use/
-      elsif line == "\n"
-      elsif line =~ /^[^#]/
-        puts "Unhandled #{line}"
-      else
-        puts "Unhandled #{line}"
-      end
+IO.popen("git status") do |f|
+  stage = nil
+  f.each do |line|
+    line.chomp
+    #puts line
+    if line =~ /On branch (.*)/
+      # branch = $1
+    elsif line =~ /Your branch is up.to.date with '.+'/
+    elsif line =~ /Your branch is ahead of '.+'/
+    elsif line =~ /nothing to commit, working directory clean/
+    elsif line =~ /Changes to be committed:/
+      stage = :staged
+    elsif line =~ /\tdeleted: +(.*)/
+      # skip
+    elsif line =~ /\tmodified: +(.*)/ ||
+      line =~ /\ttypechange: +(.*)/ ||
+      line =~ /\trenamed: +(?:.*) -> (.*)/ ||
+      line =~ /\tnew file: +(.*)/
+      file = $1
+      puts "Staged #{file}\n" if stage == :staged && verbose
+      puts "Unstaged #{file}\n" if stage == :unstaged && verbose
+      changed_files << stage
+      changed_files << file
+    elsif line =~ /Untracked files:/
+      stage = :untracked
+    elsif line =~ /Changes not staged for commit:/
+      stage = :unstaged
+    elsif line =~ /Unmerged paths:/
+      stage = :unmerged
+    elsif line =~ /\t(.*)\/$/
+      puts "Ignoring directory #{line}" if verbose
+    elsif line =~ /\t(.*)/
+      file = $1
+      puts "Untracked #{file}" if verbose
+      changed_files << stage
+      changed_files << file
+    elsif line =~ / \(use/
+    elsif line == "\n"
+    elsif line =~ /^[^#]/
+      puts "Unhandled #{line}"
+    else
+      puts "Unhandled #{line}"
     end
   end
+end
 
-def get_comments file #, diffs
+def get_comments(file)
   comments = []
   # git diff compares working tree with index what could be staged
   # git diff --cached compares index with HEAD what has been staged
@@ -109,8 +110,8 @@ def get_comments file #, diffs
       if line =~ /\+# ([0-9]{1,2}th|st|nd|rd) ([A-Z][a-z]{2}) ([0-9]{4})  (.+)     (.+)/
         puts "Comment: #{$1} #{$2} #{$3} #{$4} #{$5}\n"
         comments << $5
-      else
-        #diffs.puts line
+        # else
+        # diffs.puts line
       end
     end
   end
@@ -122,41 +123,40 @@ end
 
 if changed_files.length
   files_changed = 0
-  File.open( script_file, "w" ) do |script|
+  File.open(script_file, "w") do |script|
     script.puts "pushd #{project_root} > /dev/null"
     stage =
-    changed_files.each do |f|
-      if f.class == Symbol
-        script.puts "### #{f}" if stage != f
-        stage = f
-      elsif f
-        files_changed = files_changed + 1
-        if File.symlink?(f)
-          puts "Ignoring symlink #{f}" if verbose
-          next
-        end
-        comments = get_comments f #, diffs
-        if stage == :untracked
-          # script.puts "#git add #{f}"
-        end
-        if comments.length > 0
-          comments.each do |c|
-            script.puts "##{addcomment} -c \"#{c}\" \"#{f}\""
+      changed_files.each do |f|
+        if f.class == Symbol
+          script.puts "### #{f}" if stage != f
+          stage = f
+        elsif f
+          files_changed += 1
+          if File.symlink?(f)
+            puts "Ignoring symlink #{f}" if verbose
+            next
           end
-        else
-          script.puts "#{addcomment} -c \"\" \"#{f}\""
+          comments = get_comments f #, diffs
+          if stage == :untracked
+            # script.puts "#git add #{f}"
+          end
+          if !comments.empty?
+            comments.each do |c|
+              script.puts "##{addcomment} -c \"#{c}\" \"#{f}\""
+            end
+          else
+            script.puts "#{addcomment} -c \"\" \"#{f}\""
+          end
         end
       end
-    end
     script.puts "popd > /dev/null"
   end
   puts "#{files_changed} files changed"
 
-  mode = File.stat( script_file ).mode & 0777
+  mode = File.stat(script_file).mode & 0o0777
   # executable by owner
-  File.chmod( mode | 0100, script_file )
+  File.chmod(mode | 0o0100, script_file)
   if files_changed > 0
     puts "aquamacs #{script_file}"
   end
 end
-

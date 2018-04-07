@@ -7,6 +7,7 @@
 # Date:          Author:  Comments:
 # 28th Oct 2017  eweb     #0008 rubocop
 #  3rd Apr 2018  eweb     #0007 rubocop
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 # https://github.com/bbatsov/rubocop/tree/master/config
 #
@@ -88,7 +89,7 @@ Metrics/ParameterLists:
 
 # RubyMotion
 Naming/MethodName:
-  Enabled: false
+  Enabled: true
 
 Layout/IndentHash:
   Enabled: true
@@ -169,4 +170,10 @@ Style/ParallelAssignment:
   Enabled: false
 
 Security/Open:
+  Enabled: false
+
+Style/RescueStandardError:
+  Enabled: false
+
+Style/AsciiComments:
   Enabled: false

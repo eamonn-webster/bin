@@ -14,12 +14,13 @@
 #  5th Apr 2016  eweb     #0008 heroku apps --all
 # 28th Oct 2017  eweb     #0008 don't tag all apps
 #  2nd Apr 2018  eweb     #0008 qs-bleedin is no more
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 
 apps = [ARGV[0]].compact
 
 if apps.empty?
-  all_apps = %x{heroku apps --all}
+  all_apps = `heroku apps --all`
   all_apps.each_line do |app|
     app.chomp!
     app = app.split(' ')[0]
@@ -31,9 +32,9 @@ if apps.empty?
 end
 
 apps.each do |app|
-  next unless %w(qs-alpha qs-core-eu-1).include?(app)
+  next unless %w[qs-alpha qs-core-eu-1].include?(app)
   displayed = false
-  releases = %x{heroku releases --app #{app}}
+  releases = `heroku releases --app #{app}`
   releases.each_line do |release|
     #puts release
     fields = release.split(/\s+/)
@@ -41,7 +42,7 @@ apps.each do |app|
       ver = fields[0]
       commit = fields[2]
       tag = "#{app}-#{ver}".upcase
-      x = %x{git tag #{tag} #{commit} 2>&1}
+      x = `git tag #{tag} #{commit} 2>&1`
       if x =~ /fatal: tag '#{tag}' already exists/
         puts tag unless displayed
         displayed = true
@@ -51,7 +52,7 @@ apps.each do |app|
       else
         displayed = true
         puts "created tag #{tag} on commit #{commit}"
-        x = %x{git push origin #{tag} 2>&1}
+        x = `git push origin #{tag} 2>&1`
         if x =~ /fatal:/
           puts x
         end
@@ -61,7 +62,7 @@ apps.each do |app|
       commit = fields[3]
       old_tag = "#{app}-#{commit}".upcase
       tag = "#{app}-#{ver}".upcase
-      x = %x{git tag #{tag} #{old_tag} 2>&1}
+      x = `git tag #{tag} #{old_tag} 2>&1`
       if x =~ /fatal: tag '#{tag}' already exists/
         puts tag unless displayed
         displayed = true
@@ -71,7 +72,7 @@ apps.each do |app|
       else
         displayed = true
         puts "created tag #{tag} on tag #{old_tag}"
-        x = %x{git push origin #{tag} 2>&1}
+        x = `git push origin #{tag} 2>&1`
         if x =~ /fatal:/
           puts x
         end

@@ -2,14 +2,38 @@
 #
 # File: getcomments.rb
 # Author: eweb
-# Copyright eweb, 1995-2014
+# Copyright eweb, 1995-2018
 # Contents:
 #
 # Date:          Author:  Comments:
 # 24th Feb 2010  eweb     #0008 Scrape comments from files
 # 24th Jun 2014  eweb     #0008 Port to ruby
 #  3rd Sep 2014  eweb     #0008 Hint if no comments
+#  7th Apr 2018  eweb     #0007 rubocop
 #
+
+class Integer
+  def ordinal
+    if (11..13).cover?(abs % 100)
+      "th"
+    else
+      case abs % 10
+      when 1
+        "st"
+      when 2
+        "nd"
+      when 3
+        "rd"
+      else
+        "th"
+      end
+    end
+  end
+
+  def ordinalize
+    "#{self}#{ordinal}"
+  end
+end
 
 @comments = []
 
@@ -35,7 +59,7 @@ def getopts(str, opts)
       prev = nil
     elsif arg[0] == '-'
       cmd = arg[1]
-      if valid_opts.has_key?(cmd)
+      if valid_opts.key?(cmd)
         prev = valid_opts[cmd] ? cmd : nil
         opts[cmd] = true
       else
@@ -51,10 +75,10 @@ def getopts(str, opts)
 end
 
 # Was anything other than the defined option entered on the command line?
-if !getopts("s:l:v:d:t:", opts) or ARGV.size > 1
-    print STDERR "Unknown arg #{ARGV[0]}\n" if ARGV.size > 0
-    #Usage()
-    exit
+if !getopts("s:l:v:d:t:", opts) || ARGV.any?
+  print STDERR "Unknown arg #{ARGV[0]}\n" if ARGV.any?
+  #Usage()
+  exit
 end
 
 @cwd = Dir.getwd
@@ -62,7 +86,7 @@ drive = 'c:'
 if @cwd =~ /^([a-z]:)/i
   drive = $1
 end
-if opts.has_key?('d')
+if opts.key?('d')
   drive = opts['d']
 end
 @verbose = opts['v']
@@ -91,33 +115,26 @@ def git_dir
   end
 end
 
-def determinescc
-  if @scc == nil
-    if @cwd =~ /^c:\/p4clients/i or @cwd =~ /^c:\\p4clients/i
-      @scc = :p4
-    elsif git_dir
-      @scc = :git
-    elsif Dir.exist? '\.svn' or Dir.exist? '.svn'
-      @scc = :svn
-    else
-      @scc = :clearcase
-    end
+def determine_scc
+  if @scc.nil?
+    @scc = if @cwd =~ /^c:\/p4clients/i || @cwd =~ /^c:\\p4clients/i
+             :p4
+           elsif git_dir
+             :git
+           elsif Dir.exist?('\.svn') || Dir.exist?('.svn')
+             :svn
+           else
+             :clearcase
+           end
   end
-  if @scc == :git and @rev == ''
+  if @scc == :git || @rev == ''
     @rev = 'HEAD'
   end
 end
 
-def formatDate(d, m ,y)
-  th = 'th'
+def format_date(d, m, y)
   d = d.to_i
-  if d == 1 || d == 21 || d == 31
-    th = 'st'
-  elsif d == 2 || d == 22
-    th = 'nd'
-  elsif d == 3 || d == 23
-    th = 'rd'
-  end
+  th = d.ordinal
   if d < 10
     d = " #{d}"
   end
@@ -140,57 +157,55 @@ def onefile(file, since)
     diffcmd = "svn diff #{file}"
   end
   puts diffcmd if @verbose
-  @oldComments = []
+  @old_comments = []
   l = 0
   `#{diffcmd} 2>&1`.lines.each do |line|
-      line.chomp!
-      l += 1
-      # deal with the file.
-      #print
-      # TODO 1) the add indicator + for git and svn, > for clearcase
-      # TODO 2) the single prefix null, #, -- depening on file type
-      # TODO 3) the history item
-      if line =~ /^(\+|-|> )(#|--)? +([0-9]+)(st|nd|rd|th)? +([A-Z][a-z]+) +([0-9]+) +([^ ]+) +(#[0-9?]+.*)/
-        #print "file: #{line}\n" if @verbose
-        #print file if @verbose
-        puts "[#{line}]" if @verbose
-        mark = $1
-        day = $3
-        month = $4
-        year = $6
-        user = $7
-        comment = $8
-        #puts comment
-        if comment =~ /(#[^ ]+) *(.*)/
-          bugid = $1
-          text = $2
-          text.strip!
-          if mark == '-'
-            puts "saving [#{bugid} #{text}]" if @verbose
-            @oldComments << "#{bugid} #{text}"
-          else
-            puts "looking for [bugid text] in (@oldComments)" if @verbose
-            if @oldComments.none?{ |c| c == "#{bugid} #{text}"}
-              #print "#{bugid} [#{text}]\n"
-              if @comments.none?{ |c| c == comment }
-                @comments << comment
-              end
+    line.chomp!
+    l += 1
+    # deal with the file.
+    #print
+    # TODO 1) the add indicator + for git and svn, > for clearcase
+    # TODO 2) the single prefix null, #, -- depening on file type
+    # TODO 3) the history item
+    if line =~ /^(\+|-|> )(#|--)? +([0-9]+)(st|nd|rd|th)? +([A-Z][a-z]+) +([0-9]+) +([^ ]+) +(#[0-9?]+.*)/
+      #print "file: #{line}\n" if @verbose
+      #print file if @verbose
+      puts "[#{line}]" if @verbose
+      mark = $1
+      # day = $3
+      # month = $4
+      # year = $6
+      # user = $7
+      comment = $8
+      #puts comment
+      if comment =~ /(#[^ ]+) *(.*)/
+        bugid = $1
+        text = $2
+        text.strip!
+        if mark == '-'
+          puts "saving [#{bugid} #{text}]" if @verbose
+          @old_comments << "#{bugid} #{text}"
+        else
+          puts "looking for [bugid text] in (@old_comments)" if @verbose
+          if @old_comments.none? { |c| c == "#{bugid} #{text}" }
+            #print "#{bugid} [#{text}]\n"
+            if @comments.none? { |c| c == comment }
+              @comments << comment
             end
           end
         end
-      else
-        if line =~ /^ / && @oldComments
-          #puts "#{l}: #{line}" if @verbose
-          #puts "clearing oldComments" if @verbose
-          @oldComments = []
-        end
       end
+    elsif line =~ /^ / && @old_comments
+      #puts "#{l}: #{line}" if @verbose
+      #puts "clearing oldComments" if @verbose
+      @old_comments = []
     end
   end
+end
 
 def get_comments
   if @scc == :git
-    since = "#{@rev}"
+    since = @rev.to_s
     cmd = "git diff --name-only #{since}"
   elsif @scc == :p4
     cmd = "p4 diff -sa"
@@ -203,40 +218,51 @@ def get_comments
   end
   puts cmd if @verbose
   `#{cmd} 2>&1`.lines do |line|
-      line.chomp!
-      # deal with the file.
+    line.chomp!
+    # deal with the file.
 
-      if @scc == :svn
-        if line =~ /^[AM].......(.+)/
-          line = $1
-        else
-          next
-        end
+    if @scc == :svn
+      if line =~ /^[AM].......(.+)/
+        line = $1
+      else
+        next
       end
-      onefile(line, since)
+    end
+    onefile(line, since)
   end
   @comments = @comments.sort
   @comments.reverse
 end
 
-determinescc
+determine_scc
 
-editor = 'textpad'
 output = drive.downcase
-output.gsub!(':', '')
+output.delete!(':')
 output.gsub!(/[\/\\]/, '-')
 
-os = %x{uname}.chomp.downcase
+os = `uname`.chomp.downcase
 
-output = ENV['TEMP'] + "\\#{output}-comments.dat" unless os == 'darwin' or os == 'linux'
-output = 'comments.dat' if os == 'darwin' or os == 'linux'
-editor = 'emacs' if os == 'linux'
-editor = 'aquamacs' if os == 'darwin'
+def unix?(os)
+  %w[darwin linux].include?(os)
+end
 
+output = if unix?(os)
+           'comments.dat'
+         else
+           ENV['TEMP'] + "\\#{output}-comments.dat"
+         end
+
+editor = if os == 'linux'
+           'emacs'
+         elsif os == 'darwin'
+           'aquamacs'
+         else
+           'textpad'
+         end
 
 comments = get_comments
 if comments.empty?
-  puts "no comments try #{$0} -l --cached"
+  puts "no comments try #{$PROGRAM_NAME} -l --cached"
   File.delete(output)
 else
   puts "#{comments.size} comments"

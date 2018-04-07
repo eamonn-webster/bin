@@ -3,11 +3,12 @@
 #
 # File: split-log.rb
 # Author: eweb
-# Copyright eweb, 2016-2016
+# Copyright eweb, 2016-2018
 # Contents:
 #
 # Date:          Author:  Comments:
 # 14th Mar 2016  eweb     #0008 split a log file
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 
 file = ARGV[0]
@@ -15,7 +16,7 @@ dir = File.dirname(file)
 base = File.basename(file, ".*")
 ext = File.extname(file)
 dir = '' if dir == '.'
-dir = dir + '/' unless dir.empty?
+dir += '/' unless dir.empty?
 
 File.open(file) do |input|
   first_line = input.readline

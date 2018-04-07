@@ -1,11 +1,12 @@
 #
-# File: apply-tags.rb
+# File: apply_tags.rb
 # Author: eweb
-# Copyright eweb, 2012-2012
+# Copyright eweb, 2012-2018
 # Contents:
 #
 # Date:          Author:  Comments:
 # 25th Oct 2012  eweb     #0008 Create tags for commits that specify versions
+#  7th Apr 2018  eweb     #0007 rubocop
 #
 gitlog = `git log --oneline`
 
@@ -18,11 +19,10 @@ gitlog.each_line do |line|
     minor = $3
     point = $4
     build = $5
-    build = "%03d" % build.to_i
+    build = format("%03d", build.to_i)
     mnp = "#{major}#{minor}#{point}"
     tag = "ACC_#{mnp}_BUILD_#{build}"
     puts "found #{commit} for #{tag}"
     `git tag #{tag} #{commit}`
   end
 end
-
