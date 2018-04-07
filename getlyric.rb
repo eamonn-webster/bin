@@ -20,6 +20,7 @@
 #
 require 'nokogiri'
 require 'open-uri'
+require 'cgi'
 
 def save_lyrics(lyric)
   lyric.gsub!('&amp;', '&')
