@@ -18,6 +18,7 @@
 # 28th Oct 2017  eweb     #0008 other repos
 # 18th Dec 2017  eweb     #0008 exclude Not Added
 #  7th Apr 2018  eweb     #0007 rubocop
+# 25th Apr 2018  eweb     #0008 music now on transcend card
 #
 
 if Dir.exist?('/Volumes/IOMEGA0')
@@ -49,6 +50,11 @@ if @back
   puts cmd
   system(cmd)
 else
+  # sudo rsync -vaE --progress --exclude 'Mobile Applications' --exclude 'Not Added' /Users/eweb/Music/iTunes/ /Volumes/Transcend/Music/iTunes
+
+  src = "/Users/eweb/Music/iTunes"
+  src = "/Volumes/Transcend/Music/iTunes"
+  dst = "/Volumes/#{drive}/iTunes"
   cmd = "rsync -rtvi --exclude 'Mobile Applications' --exclude 'Not Added' --delete-during #{src}/ #{dst}"
   puts cmd
   system(cmd)
