@@ -8,12 +8,18 @@
 # Date:          Author:  Comments:
 # 25th Sep 2016  eweb     #0008 require wacc version
 #  7th Apr 2018  eweb     #0007 rubocop
+# 25th Apr 2018  eweb     #0008 require other files
 #
 
 $LOAD_PATH.unshift '~/projects/wacc/ruby/lib/acc'
 
 require 'FileUtils'
+require 'app_io'
+require 'ecopy_io'
 require 'ecopy'
+require 'ecopy_callbacks'
+require 'ecopy_process_file'
+require 'ecopy_process_folder'
 
 if ARGV.empty?
   puts "usage ecopy.rb -s source -d dest other-options"
