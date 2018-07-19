@@ -17,6 +17,7 @@
 # 29th Dec 2016  eweb     #0008 handle exclamation marks
 # 28th Oct 2017  eweb     #0008 tidy up
 #  7th Apr 2018  eweb     #0007 rubocop
+# 19th Jul 2018  eweb     #0008 fetch from genius
 #
 require 'nokogiri'
 require 'open-uri'
@@ -40,11 +41,14 @@ def tidy(lyric)
   lyric = lyric.gsub(/<div.+?<\/div>/m, '')
   lyric = lyric.gsub(/<script.+?<\/script>/m, '')
   lyric = lyric.gsub(/<!--.+?-->/m, '')
+  lyric = lyric.gsub(/<br>\n/, "\n")
   lyric = lyric.gsub(/<br>/, "\n")
+  lyric = lyric.gsub(/<p>/, "")
+  lyric = lyric.gsub(/<\/p>/, "\n")
   lyric.strip
 end
 
-def fetch_0
+def fetch_lyricsmania
   artist = ARGV[0] if ARGV.any?
   song = ARGV[1..-1].join(' ') if ARGV.length > 1
 
@@ -74,7 +78,7 @@ def fetch_0
   end
 end
 
-def fetch_1
+def fetch_lyrics_wikia
   artist = ARGV[0].dup if ARGV.any?
   song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
 
@@ -106,7 +110,7 @@ def fetch_1
   end
 end
 
-def fetch_2
+def fetch_lyricsmode
   artist = ARGV[0].dup if ARGV.any?
   song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
 
@@ -133,7 +137,7 @@ def fetch_2
   end
 end
 
-def fetch_3
+def fetch_azlyrics
   artist = ARGV[0].dup if ARGV.any?
   song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
 
@@ -150,7 +154,7 @@ def fetch_3
   song = song.downcase
   artist.gsub!(/[^a-z0-9]/, '')
   song.gsub!(/[^a-z0-9]/, '')
-  url = "http://www.azlyrics.com/lyrics/#{artist}/#{song}.html"
+  url = "https://www.azlyrics.com/lyrics/#{artist}/#{song}.html"
   puts url
 
   begin
@@ -167,7 +171,7 @@ def fetch_3
   end
 end
 
-def fetch_4
+def fetch_lyricstime
   artist = ARGV[0].dup if ARGV.any?
   song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
   artist = artist.downcase
@@ -190,7 +194,7 @@ def fetch_4
   end
 end
 
-def fetch_5
+def fetch_irishmusicdb
   artist = ARGV[0].dup if ARGV.any?
   song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
   artist = artist.downcase
@@ -217,8 +221,37 @@ def fetch_5
   end
 end
 
+# https://genius.com/Champion-jack-dupree-im-tired-of-moanin-lyrics
+# https://genius.com/champion-jack-dupree-im-tired-of-moaning-lyrics
+def fetch_genius
+  artist = ARGV[0].dup if ARGV.any?
+  song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
+  artist = artist.downcase
+  song = song.downcase
+  artist.gsub!(/[^a-z0-9]+/, '-')
+  artist[0] = artist[0].upcase
+  song.delete!("'")
+  song.gsub!(/[^a-z0-9]+/, '-')
+  url = "https://genius.com/#{artist}-#{song}-lyrics"
+  puts url
+
+  begin
+    doc = Nokogiri::HTML(open(url))
+    lyric = doc.xpath("//div[@class='lyrics']").inner_html
+
+    lyric = tidy(lyric)
+    if lyric && lyric != ''
+      save_lyrics(lyric)
+      true
+    end
+  rescue => e
+    puts e
+  end
+end
+
 if ARGV.length < 2
-elsif fetch_1
-elsif fetch_2
-elsif fetch_3
+elsif fetch_lyrics_wikia
+elsif fetch_lyricsmode
+elsif fetch_azlyrics
+elsif fetch_genius
 end

@@ -104,6 +104,8 @@
 #  6th Apr 2018  eweb     #0008 assume xml are utf-8
 #  6th Apr 2018  eweb     #0007 rubocop
 #  7th Apr 2018  eweb     #0007 rubocop
+# 19th Jul 2018  eweb     #0008 exclude bb.yaml
+# 19th Jul 2018  eweb     #0008 orig_author and start_year from git
 #
 
 # DONE change event if comment not present.
@@ -397,6 +399,8 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       print "Unhandled file type #{file}\n"
     elsif file == "R.java"
       print "Uncommentable file #{file}\n"
+    elsif file == "bb.yaml"
+      print "Uncommentable file #{file}\n"
     elsif file =~ /\.cpp$/ ||
       file =~ /\.h$/ ||
       file =~ /\.rh$/ ||
@@ -666,8 +670,12 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
         @author = username_map[@author]
       end
     end
-    if @orig_author.blank? && @scc == :clearcase
-      @orig_author = `cleartool desc -fmt "%u" @infile@@/main/0`
+    if @orig_author.blank?
+      if @scc == :clearcase
+        @orig_author = `cleartool desc -fmt "%u" @infile@@/main/0`
+      elsif @scc == :git
+        @orig_author = `git log --pretty=format:"%ae" --follow --diff-filter=A #{@infile}`
+      end
       if username_map[@orig_author].present?
         @orig_author = username_map[@orig_author]
       end
@@ -690,8 +698,13 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       end
       @company ||= "eweb"
     end
-    if @start_year.blank? && @scc == :clearcase
-      date = `cleartool desc -fmt "%Nd" @infile@@/main/0`
+    if @start_year.blank?
+      if @scc == :clearcase
+        date = `cleartool desc -fmt "%Nd" @infile@@/main/0`
+      elsif @scc == :git
+        date = `git log --pretty=format:"%ai" --follow --diff-filter=A #{@infile}`
+      end
+
       if date =~ /(^[0-9]{4})/
         @start_year = $1
       end

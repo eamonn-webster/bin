@@ -19,6 +19,9 @@
 # 18th Dec 2017  eweb     #0008 exclude Not Added
 #  7th Apr 2018  eweb     #0007 rubocop
 # 25th Apr 2018  eweb     #0008 music now on transcend card
+# 19th Jul 2018  eweb     #0008 copy metric_fu data
+# 19th Jul 2018  eweb     #0008 pull rather than fetch
+# 19th Jul 2018  eweb     #0008 wacc to acc
 #
 
 if Dir.exist?('/Volumes/IOMEGA0')
@@ -77,7 +80,15 @@ else
   puts cmd
   system(cmd)
 
-  dirs = [["/Volumes/#{drive}/projects/wacc", "git@bitbucket.org:eamoon/wacc.git"],
+  src = "/Users/eweb/projects/acc"
+  dst = "/Volumes/#{drive}/projects/acc"
+  %w[ruby Accounts Shopping].each do |dir|
+    cmd = "rsync -rtvi '#{src}/#{dir}/tmp/metric_fu/' '#{dst}/#{dir}/tmp/metric_fu'"
+    puts cmd
+    system(cmd)
+  end
+
+  dirs = [["/Volumes/#{drive}/projects/acc", "git@bitbucket.org:eamoon/acc.git"],
           ["/Volumes/#{drive}/accounts/master", "git@bitbucket.org:eamoon/data.git"],
           ["/Volumes/#{drive}/bin", "git@bitbucket.org:eamoon/bin.git"],
           ["/Volumes/#{drive}/projects/metric_fu", "https://github.com/eamonn-webster/metric_fu.git"],
@@ -89,8 +100,8 @@ else
     puts dir
     if Dir.exist?(dir)
       Dir.chdir(dir) do
-        puts "git fetch --all"
-        system("git fetch --all")
+        puts "git pull"
+        system("git pull")
       end
     else
       puts("git clone #{remote} #{dir}")

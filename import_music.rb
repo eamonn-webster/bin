@@ -8,8 +8,11 @@
 #
 # Date:          Author:  Comments:
 #  2nd Apr 2018  eweb     #0008 adding music
+# 19th Jul 2018  eweb     #0008 iTunes on Transcend drive
 #
 
+itunes_dir = "#{ENV['HOME']}/Music/iTunes"
+itunes_dir = "/Volumes/Transcend/Music/iTunes"
 own_dir = "#{ENV['HOME']}/Music/Own"
 downloads = "#{ENV['HOME']}/Downloads"
 
@@ -21,6 +24,7 @@ end
 Dir.chdir("#{own_dir}/temp") do
   shell("mv #{downloads}/*\\ -\\ *.zip .")
   shell("open *.zip")
+  gets
   shell("mv *.zip ..")
-  shell("mv * ../../iTunes/iTunes\\ Media/Automatically\\ Add\\ to\\ iTunes.localized/")
+  shell("mv * #{itunes_dir}/iTunes\\ Media/Automatically\\ Add\\ to\\ iTunes.localized/")
 end
