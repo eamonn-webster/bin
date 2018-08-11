@@ -9,6 +9,7 @@
 # 25th Mar 2015  eweb     #0008 Android hosts file
 # 26th May 2015  eweb     #0008 Commands to set up watch
 #  7th Apr 2018  eweb     #0007 rubocop
+# 11th Aug 2018  eweb     #0008 update path and need to root
 #
 
 cmd = "ifconfig | grep '\\binet\\b' | grep -v 127.0.0.1 | awk '{print $2}'"
@@ -19,8 +20,9 @@ addr = addrs.lines.first.chomp
 # android emulator host ip
 `cat /etc/hosts | awk '{ if (/127.0.0.1/ && c++>0) { sub(/127.0.0.1/, "#{addr}"); } print }' > /tmp/hosts`
 
-`~/android-sdk-macosx/platform-tools/adb remount`
-`~/android-sdk-macosx/platform-tools/adb push /tmp/hosts /system/etc`
+`~/Library/Android/sdk/platform-tools/adb root`
+`~/Library/Android/sdk/platform-tools/adb remount`
+`~/Library/Android/sdk/platform-tools/adb push /tmp/hosts /system/etc`
 
 puts "Hosts file updated!"
 
