@@ -9,9 +9,10 @@
 # 25th Sep 2016  eweb     #0008 require wacc version
 #  7th Apr 2018  eweb     #0007 rubocop
 # 25th Apr 2018  eweb     #0008 require other files
+# 11th Aug 2018  eweb     #0008 update path
 #
 
-$LOAD_PATH.unshift '~/projects/wacc/ruby/lib/acc'
+$LOAD_PATH.unshift '~/projects/acc/ruby/lib/acc'
 
 require 'FileUtils'
 require 'app_io'
