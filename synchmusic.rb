@@ -22,6 +22,7 @@
 # 19th Jul 2018  eweb     #0008 copy metric_fu data
 # 19th Jul 2018  eweb     #0008 pull rather than fetch
 # 19th Jul 2018  eweb     #0008 wacc to acc
+#  2nd Sep 2018  eweb     #0008 exclude .DS_Store
 #
 
 if Dir.exist?('/Volumes/IOMEGA0')
@@ -58,32 +59,32 @@ else
   src = "/Users/eweb/Music/iTunes"
   src = "/Volumes/Transcend/Music/iTunes"
   dst = "/Volumes/#{drive}/iTunes"
-  cmd = "rsync -rtvi --exclude 'Mobile Applications' --exclude 'Not Added' --delete-during #{src}/ #{dst}"
+  cmd = "rsync -rtvi --exclude .DS_Store --exclude 'Mobile Applications' --exclude 'Not Added' --delete-during #{src}/ #{dst}"
   puts cmd
   system(cmd)
 
   src = "/Users/eweb/Music/Own"
   dst = "/Volumes/#{drive}/Own"
-  cmd = "rsync -rtvi #{src}/ #{dst}"
+  cmd = "rsync -rtvi --exclude .DS_Store #{src}/ #{dst}"
   puts cmd
   system(cmd)
 
   src = "/Users/eweb/Pictures/Photos Library.photoslibrary/Masters"
   dst = "/Volumes/#{drive}/Pictures/Masters"
-  cmd = "rsync -rtvi --delete-during '#{src}/' '#{dst}'"
+  cmd = "rsync -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
   puts cmd
   system(cmd)
 
   src = "/Users/eweb/projects/wbt.git"
   dst = "/Volumes/#{drive}/projects/wbt.git"
-  cmd = "rsync -rtvi --delete-during '#{src}/' '#{dst}'"
+  cmd = "rsync -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
   puts cmd
   system(cmd)
 
   src = "/Users/eweb/projects/acc"
   dst = "/Volumes/#{drive}/projects/acc"
   %w[ruby Accounts Shopping].each do |dir|
-    cmd = "rsync -rtvi '#{src}/#{dir}/tmp/metric_fu/' '#{dst}/#{dir}/tmp/metric_fu'"
+    cmd = "rsync -rtvi --exclude .DS_Store '#{src}/#{dir}/tmp/metric_fu/' '#{dst}/#{dir}/tmp/metric_fu'"
     puts cmd
     system(cmd)
   end
