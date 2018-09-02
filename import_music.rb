@@ -9,6 +9,7 @@
 # Date:          Author:  Comments:
 #  2nd Apr 2018  eweb     #0008 adding music
 # 19th Jul 2018  eweb     #0008 iTunes on Transcend drive
+#  2nd Sep 2018  eweb     #0008 sleep between moves
 #
 
 itunes_dir = "#{ENV['HOME']}/Music/iTunes"
@@ -26,5 +27,8 @@ Dir.chdir("#{own_dir}/temp") do
   shell("open *.zip")
   gets
   shell("mv *.zip ..")
-  shell("mv * #{itunes_dir}/iTunes\\ Media/Automatically\\ Add\\ to\\ iTunes.localized/")
+  Dir["*"].each do |f|
+    shell("mv \"#{f}\" #{itunes_dir}/iTunes\\ Media/Automatically\\ Add\\ to\\ iTunes.localized/")
+    sleep(5)
+  end
 end
