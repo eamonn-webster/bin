@@ -95,7 +95,8 @@ else
           ["/Volumes/#{drive}/projects/metric_fu", "https://github.com/eamonn-webster/metric_fu.git"],
           ["/Volumes/#{drive}/projects/flog", "https://github.com/eamonn-webster/flog.git"],
           # ["/Volumes/#{drive}/projects/wbt", "/Users/eweb/projects/wbt.git"]
-          ["/Volumes/#{drive}/projects/simway", "git@bitbucket.org:eamoon/simway.git"]]
+          ["/Volumes/#{drive}/projects/simway", "git@bitbucket.org:eamoon/simway.git"],
+          ["/Volumes/#{drive}/projects/bacon-expect", "https://github.com/eamonn-webster/bacon-expect.git"]]
 
   dirs.each do |dir, remote|
     puts dir
