@@ -71,7 +71,7 @@ GEM
     i18n (0.9.5)
       concurrent-ruby (~> 1.0)
     jaro_winkler (1.5.1)
-    mail (2.7.0)
+    mail (2.7.1)
       mini_mime (>= 0.1.1)
     mailcatcher (0.6.5)
       eventmachine (= 1.0.9.1)
