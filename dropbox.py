@@ -4,7 +4,7 @@
 #
 # dropbox
 # Dropbox frontend script
-# This file is part of nautilus-dropbox 1.6.0.
+# This file is part of nautilus-dropbox 2015.10.28.
 #
 # nautilus-dropbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with nautilus-dropbox.  If not, see <http://www.gnu.org/licenses/>.
 #
+from __future__ import with_statement
 
 import errno
 import locale
@@ -32,19 +33,20 @@ import subprocess
 import sys
 import tarfile
 import tempfile
-import threading
 import thread
+import threading
 import time
 import traceback
 import urllib2
+
+from contextlib import closing, contextmanager
+from posixpath import abspath, commonprefix, curdir, join, pardir, sep
 
 try:
     import gpgme
 except ImportError:
     gpgme = None
 
-from contextlib import closing, contextmanager
-from posixpath import curdir, sep, pardir, join, abspath, commonprefix
 
 INFO = u"Dropbox is the easiest way to share and store your files online. Want to learn more? Head to"
 LINK = u"https://www.dropbox.com/"
@@ -211,7 +213,7 @@ def verify_signature(key_file, sig_file, plain_file):
 
 def download_file_chunk(url, buf):
     opener = urllib2.build_opener()
-    opener.addheaders = [('User-Agent', "DropboxLinuxDownloader/1.6.0")]
+    opener.addheaders = [('User-Agent', "DropboxLinuxDownloader/2015.10.28")]
     sock = opener.open(url)
 
     size = int(sock.info()['content-length'])
@@ -429,6 +431,7 @@ if GUI_AVAILABLE:
                 self.hovering = False
                 self.clicked_link = False
                 self.user_cancelled = False
+                self.task = None
 
                 self.ok = ok = gtk.Button(stock=gtk.STOCK_OK)
                 ok.connect('clicked', self.handle_ok)
@@ -518,7 +521,6 @@ else:
         ESC = "\x1b"
         save = ESC+"7"
         unsave = ESC+"8"
-        clear = ESC+"[2J"
         erase_to_start = ESC+"[1K"
         write = sys.stdout.write
         flush = sys.stdout.flush
@@ -607,7 +609,7 @@ class DropboxCommand(object):
         self.s.settimeout(timeout)
         try:
             self.s.connect(os.path.expanduser(u'~/.dropbox/command_socket'))
-        except socket.error, e:
+        except socket.error:
             raise DropboxCommand.CouldntConnectError()
         self.f = self.s.makefile("r+", 4096)
 
@@ -618,7 +620,7 @@ class DropboxCommand(object):
     def __readline(self):
         try:
             toret = self.f.readline().decode('utf8').rstrip(u"\n")
-        except socket.error, e:
+        except socket.error:
             raise DropboxCommand.BadConnectionError()
         if toret == '':
             raise DropboxCommand.EOFError()
@@ -726,8 +728,8 @@ def start_dropbox():
     if os.access(db_path, os.X_OK):
         f = open("/dev/null", "w")
         # we don't reap the child because we're gonna die anyway, let init do it
-        a = subprocess.Popen([db_path], preexec_fn=os.setsid, cwd=os.path.expanduser("~"),
-                             stderr=sys.stderr, stdout=f, close_fds=True)
+        subprocess.Popen([db_path], preexec_fn=os.setsid, cwd=os.path.expanduser("~"),
+                         stderr=sys.stderr, stdout=f, close_fds=True)
 
         # in seconds
         interval = 0.5
@@ -811,7 +813,7 @@ def columnize(list, display_list=None, display_width=None):
         original_texts = texts[:]
         for col in range(len(texts)):
             texts[col] = texts[col].ljust(colwidths[col])
-            texts[col].replace(original_texts[col], display_texts[col])
+            texts[col] = texts[col].replace(original_texts[col], display_texts[col])
         line = u"  ".join(texts)
         lines.append(line)
     for line in lines:
@@ -856,7 +858,7 @@ options:
 
                     if len(dirs) == 0 and len(nondirs) == 0:
                         #TODO: why?
-                        exit(1)
+                        sys.exit(1)
 
                 dirs.sort(key=methodcaller('lower'))
                 nondirs.sort(key=methodcaller('lower'))
@@ -915,7 +917,7 @@ options:
                             clean, formatted = path_to_string(unicode_abspath(os.path.join(name, subname)))
                             clean_paths.append(clean)
                             formatted_paths.append(formatted)
-                        except (UnicodeEncodeError, UnicodeDecodeError), e:
+                        except (UnicodeEncodeError, UnicodeDecodeError):
                             continue
 
                     columnize(clean_paths, formatted_paths)
@@ -931,7 +933,7 @@ options:
                                 clean, formatted = path_to_string(unicode_abspath(name))
                                 nondir_clean_paths.append(clean)
                                 nondir_formatted_paths.append(formatted)
-                            except (UnicodeEncodeError, UnicodeDecodeError), e:
+                            except (UnicodeEncodeError, UnicodeDecodeError):
                                 continue
 
                         if nondir_clean_paths:
@@ -949,7 +951,7 @@ options:
 
                 except DropboxCommand.EOFError:
                     console_print(u"Dropbox daemon stopped.")
-                except DropboxCommand.BadConnectionError, e:
+                except DropboxCommand.BadConnectionError:
                     console_print(u"Dropbox isn't responding!")
             else:
                 if len(args) == 0:
@@ -965,7 +967,7 @@ options:
                         if type(file) is not unicode:
                             file = file.decode(enc)
                         fp = unicode_abspath(file)
-                    except (UnicodeEncodeError, UnicodeDecodeError), e:
+                    except (UnicodeEncodeError, UnicodeDecodeError):
                         continue
                     if not os.path.exists(fp):
                         console_print(u"%-*s %s" % \
@@ -992,22 +994,144 @@ This is an alias for filestatus -l
 
 @command
 @requires_dropbox_running
-def puburl(args):
-    u"""get public url of a file in your dropbox
-dropbox puburl FILE
+def sharelink(args):
+    u"""get a shared link for a file in your dropbox
+dropbox sharelink FILE
 
-Prints out a public url for FILE.
+Prints out a shared link for FILE.
 """
     if len(args) != 1:
-        console_print(puburl.__doc__,linebreak=False)
+        console_print(sharelink.__doc__, linebreak=False)
         return
 
     try:
         with closing(DropboxCommand()) as dc:
             try:
-                console_print(dc.get_public_link(path=unicode_abspath(args[0].decode(sys.getfilesystemencoding()))).get(u'link', [u'No Link'])[0])
+                path = unicode_abspath(args[0].decode(sys.getfilesystemencoding()))
+                link = dc.get_shared_link(path=path).get('link', [u'No link'])[0]
+                console_print(link)
             except DropboxCommand.CommandError, e:
-                console_print(u"Couldn't get public url: " + str(e))
+                console_print(u"Couldn't get shared link: " + str(e))
+            except DropboxCommand.BadConnectionError, e:
+                console_print(u"Dropbox isn't responding!")
+            except DropboxCommand.EOFError:
+                console_print(u"Dropbox daemon stopped.")
+    except DropboxCommand.CouldntConnectError, e:
+        console_print(u"Dropbox isn't running!")
+
+@command
+@requires_dropbox_running
+def proxy(args):
+    u"""set proxy settings for Dropbox
+dropbox proxy MODE [TYPE] [HOST] [PORT] [USERNAME] [PASSWORD]
+
+Set proxy settings for Dropbox.
+
+MODE - one of "none", "auto", "manual"
+TYPE - one of "http", "socks4", "socks5" (only valid with "manual" mode)
+HOST - proxy hostname (only valid with "manual" mode)
+PORT - proxy port (only valid with "manual" mode)
+USERNAME - (optional) proxy username (only valid with "manual" mode)
+PASSWORD - (optional) proxy password (only valid with "manual" mode)
+"""
+    mode = None
+    type_ = None
+    if len(args) >= 1:
+        mode = args[0].decode(sys.getfilesystemencoding()).lower()
+    if len(args) >= 2:
+        type_ = args[1].decode(sys.getfilesystemencoding()).lower()
+
+    if (len(args) == 0 or
+        mode not in [u'none', u'auto', u'manual'] or
+        (mode == 'manual' and len(args) not in (4, 6)) or
+        (mode != 'manual' and len(args) != 1) or
+        (mode == 'manual' and type_ not in [u'http', u'socks4', u'socks5'])):
+        # Print help
+        console_print(proxy.__doc__, linebreak=False)
+        return
+
+    ARGS = ['mode', 'type', 'host', 'port', 'username', 'password']
+
+    # Load the args into a dictionary
+    kwargs = dict(zip(ARGS, [a.decode(sys.getfilesystemencoding()) for a in args]))
+
+    # Re-set these two because they were coerced to lower case
+    kwargs['mode'] = mode
+    if type_:
+        kwargs['type'] = type_
+
+    try:
+        with closing(DropboxCommand()) as dc:
+            try:
+                dc.set_proxy_settings(**kwargs)
+                console_print(u'set')
+            except DropboxCommand.CommandError, e:
+                console_print(u"Couldn't set proxy: " + str(e))
+            except DropboxCommand.BadConnectionError, e:
+                console_print(u"Dropbox isn't responding!")
+            except DropboxCommand.EOFError:
+                console_print(u"Dropbox daemon stopped.")
+    except DropboxCommand.CouldntConnectError, e:
+        console_print(u"Dropbox isn't running!")
+
+@command
+@requires_dropbox_running
+def throttle(args):
+    u"""set bandwidth limits for Dropbox
+dropbox throttle DOWNLOAD UPLOAD
+
+Set bandwidth limits for file sync.
+
+DOWNLOAD - either "unlimited" or a manual limit in KB/s
+UPLOAD - one of "unlimited", "auto", or a manual limit in KB/s
+"""
+    if len(args) != 2:
+        console_print(throttle.__doc__, linebreak=False)
+        return
+
+    downlimit = args[0].decode(sys.getfilesystemencoding()).lower()
+    uplimit = args[1].decode(sys.getfilesystemencoding()).lower()
+
+    download_limit = None
+    download_mode = None
+    if downlimit == u'unlimited':
+        download_mode = downlimit
+    else:
+        try:
+            download_limit = int(downlimit)
+            download_mode = u'manual'
+        except ValueError:
+            console_print(throttle.__doc__, linebreak=False)
+            return
+
+    upload_limit = None
+    upload_mode = None
+    if uplimit in [u'unlimited', u'auto']:
+        upload_mode = uplimit
+    else:
+        try:
+            upload_limit = int(uplimit)
+            upload_mode = u'manual'
+        except ValueError:
+            console_print(throttle.__doc__, linebreak=False)
+            return
+
+    kwargs = {
+        u'download_mode': download_mode,
+        u'upload_mode': upload_mode,
+    }
+    if download_limit:
+        kwargs[u'download_limit'] = unicode(download_limit)
+    if upload_limit:
+        kwargs[u'upload_limit'] = unicode(upload_limit)
+
+    try:
+        with closing(DropboxCommand()) as dc:
+            try:
+                dc.set_bandwidth_limits(**kwargs)
+                console_print(u'set')
+            except DropboxCommand.CommandError, e:
+                console_print(u"Couldn't set bandwidth limits: " + str(e))
             except DropboxCommand.BadConnectionError, e:
                 console_print(u"Dropbox isn't responding!")
             except DropboxCommand.EOFError:
@@ -1068,11 +1192,11 @@ Stops the dropbox daemon.
         with closing(DropboxCommand()) as dc:
             try:
                 dc.tray_action_hard_exit()
-            except DropboxCommand.BadConnectionError, e:
+            except DropboxCommand.BadConnectionError:
                 console_print(u"Dropbox isn't responding!")
             except DropboxCommand.EOFError:
                 console_print(u"Dropbox daemon stopped.")
-    except DropboxCommand.CouldntConnectError, e:
+    except DropboxCommand.CouldntConnectError:
         console_print(u"Dropbox isn't running!")
 
 #returns true if link is necessary
@@ -1086,13 +1210,13 @@ def grab_link_url_if_necessary():
                     return True
                 else:
                     return False
-            except DropboxCommand.CommandError, e:
+            except DropboxCommand.CommandError:
                 pass
-            except DropboxCommand.BadConnectionError, e:
+            except DropboxCommand.BadConnectionError:
                 console_print(u"Dropbox isn't responding!")
             except DropboxCommand.EOFError:
                 console_print(u"Dropbox daemon stopped.")
-    except DropboxCommand.CouldntConnectError, e:
+    except DropboxCommand.CouldntConnectError:
         console_print(u"Dropbox isn't running!")
 
 @command
