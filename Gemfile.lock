@@ -52,7 +52,7 @@ GEM
     colored2 (3.1.2)
     commander (4.2.1)
       highline (~> 1.6.11)
-    concurrent-ruby (1.0.5)
+    concurrent-ruby (1.1.0)
     daemons (1.2.6)
     domain_name (0.5.20180417)
       unf (>= 0.0.5, < 1.0.0)
