@@ -18,6 +18,8 @@
 # 28th Oct 2017  eweb     #0008 tidy up
 #  7th Apr 2018  eweb     #0007 rubocop
 # 19th Jul 2018  eweb     #0008 fetch from genius
+# 25th Nov 2018  eweb     #0008 return inner_text
+# 25th Nov 2018  eweb     #0008 dryed up
 #
 require 'nokogiri'
 require 'open-uri'
@@ -48,6 +50,14 @@ def tidy(lyric)
   lyric.strip
 end
 
+def process_lyric(lyric)
+  lyric = tidy(lyric)
+  if lyric && lyric != ''
+    save_lyrics(lyric)
+    true
+  end
+end
+
 def fetch_lyricsmania
   artist = ARGV[0] if ARGV.any?
   song = ARGV[1..-1].join(' ') if ARGV.length > 1
@@ -67,12 +77,8 @@ def fetch_lyricsmania
 
   begin
     doc = Nokogiri::HTML(open(url))
-    lyric = doc.xpath("id('songlyrics_h')").inner_html
-    lyric = tidy(lyric)
-    if lyric && lyric != ''
-      save_lyrics(lyric)
-      true
-    end
+    lyric = doc.xpath("id('songlyrics_h')").inner_text
+    process_lyric(lyric)
   rescue => e
     puts "#{e.class} #{e.message}"
   end
@@ -92,19 +98,15 @@ def fetch_lyrics_wikia
   puts url
   begin
     doc = Nokogiri::HTML(open(url))
-    lyric = doc.xpath("//div[@class='lyricbox']").inner_html
+    lyric = doc.xpath("//div[@class='lyricbox']").inner_text
 
-    lyric = tidy(lyric)
     if lyric =~ /Unfortunately, we are not licensed to display the full lyrics/
       lyric = nil
     end
     if lyric =~ /Category:Instrumental/ && lyric =~ /TrebleClef/
       lyric = 'Instrumental'
     end
-    if lyric && lyric != ''
-      save_lyrics(lyric)
-      true
-    end
+    process_lyric(lyric)
   rescue => e
     puts "#{e.class} #{e.message}"
   end
@@ -121,17 +123,13 @@ def fetch_lyricsmode
   artist = artist.downcase
   song = song.downcase
 
-  url = "http://www.lyricsmode.com/lyrics/#{artist[0]}/#{artist}/#{song}.html"
+  url = "https://www.lyricsmode.com/lyrics/#{artist[0]}/#{artist}/#{song}.html"
   puts url
   begin
     doc = Nokogiri::HTML(open(url))
 
-    lyric = doc.xpath("id('songlyrics_h')").inner_html
-    lyric = tidy(lyric)
-    if lyric && lyric != ''
-      save_lyrics(lyric)
-      true
-    end
+    lyric = doc.xpath("id('songlyrics_h')").inner_text
+    process_lyric(lyric)
   rescue => e
     puts "#{e.class} #{e.message}"
   end
@@ -160,12 +158,8 @@ def fetch_azlyrics
   begin
     doc = Nokogiri::HTML(open(url))
 
-    lyric = doc.xpath("id('songlyrics_h')").inner_html
-    lyric = tidy(lyric)
-    if lyric && lyric != ''
-      save_lyrics(lyric)
-      true
-    end
+    lyric = doc.xpath("id('songlyrics_h')").inner_text
+    process_lyric(lyric)
   rescue => e
     puts "#{e.class} #{e.message}"
   end
@@ -184,11 +178,7 @@ def fetch_lyricstime
   begin
     doc = Nokogiri::HTML(open(url))
     lyric = doc.xpath("id('songlyrics')/p").inner_html
-    lyric = tidy(lyric)
-    if lyric && lyric != ''
-      save_lyrics(lyric)
-      true
-    end
+    process_lyric(lyric)
   rescue => e
     puts e
   end
@@ -210,12 +200,8 @@ def fetch_irishmusicdb
     url = "#{url}/#{href}"
     puts url
     doc = Nokogiri::HTML(open(url))
-    lyric = doc.xpath("id('songlyrics')/p").inner_html
-    lyric = tidy(lyric)
-    if lyric && lyric != ''
-      save_lyrics(lyric)
-      true
-    end
+    lyric = doc.xpath("id('songlyrics')/p").inner_text
+    process_lyric(lyric)
   rescue => e
     puts e
   end
@@ -237,13 +223,8 @@ def fetch_genius
 
   begin
     doc = Nokogiri::HTML(open(url))
-    lyric = doc.xpath("//div[@class='lyrics']").inner_html
-
-    lyric = tidy(lyric)
-    if lyric && lyric != ''
-      save_lyrics(lyric)
-      true
-    end
+    lyric = doc.xpath("//div[@class='lyrics']").inner_text
+    process_lyric(lyric)
   rescue => e
     puts e
   end
