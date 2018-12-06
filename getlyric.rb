@@ -20,6 +20,7 @@
 # 19th Jul 2018  eweb     #0008 fetch from genius
 # 25th Nov 2018  eweb     #0008 return inner_text
 # 25th Nov 2018  eweb     #0008 dryed up
+#  6th Dec 2018  eweb     #0008 return inner_html for wikia
 #
 require 'nokogiri'
 require 'open-uri'
@@ -98,7 +99,7 @@ def fetch_lyrics_wikia
   puts url
   begin
     doc = Nokogiri::HTML(open(url))
-    lyric = doc.xpath("//div[@class='lyricbox']").inner_text
+    lyric = doc.xpath("//div[@class='lyricbox']").inner_html
 
     if lyric =~ /Unfortunately, we are not licensed to display the full lyrics/
       lyric = nil
