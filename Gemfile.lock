@@ -199,7 +199,7 @@ GEM
     rack-protection (1.5.5)
       rack
     rainbow (3.0.0)
-    rake (12.3.1)
+    rake (12.3.2)
     redcard (1.1.0)
     reek (5.2.0)
       codeclimate-engine-rb (~> 0.4.0)
@@ -220,7 +220,7 @@ GEM
       open4
     roodi (5.0.0)
       ruby_parser (~> 3.2, >= 3.2.2)
-    rubocop (0.61.0)
+    rubocop (0.61.1)
       jaro_winkler (~> 1.5.1)
       parallel (~> 1.10)
       parser (>= 2.5, != 2.5.1.1)
