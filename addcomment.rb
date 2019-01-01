@@ -2,7 +2,7 @@
 #
 # File: addcomment.rb
 # Author: eweb
-# Copyright eweb, 2003-2018
+# Copyright eweb, 2003-2019
 # Contents: Perl script to add comments to source files
 #
 # Date:          Author:  Comments:
@@ -106,6 +106,10 @@
 #  7th Apr 2018  eweb     #0007 rubocop
 # 19th Jul 2018  eweb     #0008 exclude bb.yaml
 # 19th Jul 2018  eweb     #0008 orig_author and start_year from git
+#  1st Jan 2019  eweb     #0008 spreadsheets
+#  1st Jan 2019  eweb     #0008 percents in comments
+#  1st Jan 2019  eweb     #0008 spaces in filenames
+#  1st Jan 2019  eweb     #0008 error reporting
 #
 
 # DONE change event if comment not present.
@@ -393,6 +397,8 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       print "Don't comment symlinks\n"
     elsif file =~ /\.png$/ || file =~ /\.icns$/
       print "Can't comment images\n"
+    elsif file =~ /\.xlsx$/
+      print "Can't comment spreadsheets\n"
     elsif file =~ /\.dsw$/ ||
       file =~ /\.dsp$/ ||
       file =~ /\.dat$/
@@ -527,9 +533,9 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
 
   def pdac(p, d, a, c)
     if c.blank?
-      format "#{p} %-14s %-8s\n", d, a
+      format "%s %-14s %-8s\n", p, d, a
     else
-      format "#{p} %-14s %-8s #{c}\n", d, a
+      format "%s %-14s %-8s %s\n", p, d, a, c
     end
   end
 
@@ -674,7 +680,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       if @scc == :clearcase
         @orig_author = `cleartool desc -fmt "%u" @infile@@/main/0`
       elsif @scc == :git
-        @orig_author = `git log --pretty=format:"%ae" --follow --diff-filter=A #{@infile}`
+        @orig_author = `git log --pretty=format:"%ae" --follow --diff-filter=A "#{@infile}"`
       end
       if username_map[@orig_author].present?
         @orig_author = username_map[@orig_author]
@@ -702,7 +708,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       if @scc == :clearcase
         date = `cleartool desc -fmt "%Nd" @infile@@/main/0`
       elsif @scc == :git
-        date = `git log --pretty=format:"%ai" --follow --diff-filter=A #{@infile}`
+        date = `git log --pretty=format:"%ai" --follow --diff-filter=A "#{@infile}"`
       end
 
       if date =~ /(^[0-9]{4})/
@@ -790,6 +796,9 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
 
     process_lines
     write_results
+  rescue
+    puts "Error processing file #{@file}"
+    raise
   end
 
   def process_lines

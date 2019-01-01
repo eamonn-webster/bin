@@ -2,7 +2,7 @@
 #
 # File: codiffs.rb
 # Author:
-# Copyright eweb, 2012-2018
+# Copyright eweb, 2012-2019
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -28,6 +28,7 @@
 # 14th Mar 2016  eweb     #0008 less directory noise
 # 19th Nov 2017  eweb     #0008 git message change
 #  7th Apr 2018  eweb     #0007 rubocop
+#  1st Jan 2019  eweb     #0008 ignore temp emacs files
 #
 
 def find_git(where = ".")
@@ -88,9 +89,13 @@ IO.popen("git status") do |f|
       puts "Ignoring directory #{line}" if verbose
     elsif line =~ /\t(.*)/
       file = $1
-      puts "Untracked #{file}" if verbose
-      changed_files << stage
-      changed_files << file
+      if file['~$']
+        puts "Ignoring #{file}" # if verbose
+      else
+        puts "Untracked #{file}" if verbose
+        changed_files << stage
+        changed_files << file
+      end
     elsif line =~ / \(use/
     elsif line == "\n"
     elsif line =~ /^[^#]/
