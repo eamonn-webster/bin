@@ -171,7 +171,7 @@ GEM
     nap (1.1.0)
     net-scp (1.2.1)
       net-ssh (>= 2.6.5)
-    net-ssh (5.0.2)
+    net-ssh (5.1.0)
     net-ssh-gateway (2.0.0)
       net-ssh (>= 4.0.0)
     net-ssh-multi (1.2.1)
@@ -194,6 +194,7 @@ GEM
     powerbar (1.0.18)
       hashie (>= 1.1.0)
     powerpack (0.1.2)
+    psych (3.1.0)
     public_suffix (3.0.3)
     rack (1.6.11)
     rack-protection (1.5.5)
@@ -201,10 +202,11 @@ GEM
     rainbow (3.0.0)
     rake (12.3.2)
     redcard (1.1.0)
-    reek (5.2.0)
+    reek (5.3.0)
       codeclimate-engine-rb (~> 0.4.0)
       kwalify (~> 0.7.0)
       parser (>= 2.5.0.0, < 2.6, != 2.5.1.1)
+      psych (~> 3.1.0)
       rainbow (>= 2.0, < 4.0)
     rest-client (2.0.2)
       http-cookie (>= 1.0.2, < 2.0)
@@ -220,7 +222,7 @@ GEM
       open4
     roodi (5.0.0)
       ruby_parser (~> 3.2, >= 3.2.2)
-    rubocop (0.61.1)
+    rubocop (0.62.0)
       jaro_winkler (~> 1.5.1)
       parallel (~> 1.10)
       parser (>= 2.5, != 2.5.1.1)
@@ -291,4 +293,4 @@ DEPENDENCIES
   taglib-ruby
 
 BUNDLED WITH
-   1.17.2
+   1.17.3
