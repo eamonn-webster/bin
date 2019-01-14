@@ -2,7 +2,7 @@
 #
 # File: synchmusic.rb
 # Author: eweb
-# Copyright eweb, 2012-2018
+# Copyright eweb, 2012-2019
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -23,6 +23,7 @@
 # 19th Jul 2018  eweb     #0008 pull rather than fetch
 # 19th Jul 2018  eweb     #0008 wacc to acc
 #  2nd Sep 2018  eweb     #0008 exclude .DS_Store
+# 14th Jan 2019  eweb     #0008 transferring to new machine
 #
 
 if Dir.exist?('/Volumes/IOMEGA0')
@@ -34,9 +35,6 @@ else
   exit
 end
 
-src = "/Users/eweb/Music/iTunes"
-dst = "/Volumes/#{drive}/iTunes"
-
 # rsyncflags = 'rt'
 # r recursive
 # l preserve symlinks
@@ -46,18 +44,22 @@ dst = "/Volumes/#{drive}/iTunes"
 # o preserve owner
 # D same as --devices --specials
 
+if Dir.exist?('/Volumes/Transcend')
+  src = "/Volumes/Transcend/Music/iTunes"
+else
+  src = "/Users/eweb/Music/iTunes"
+end
+
 if @back
-  cmd = "rsync -rtvi  #{dst}/ #{src}"
+  dst = "/Volumes/#{drive}/iTunes"
+
+  cmd = "rsync -rtvi --exclude .DS_Store #{dst}/ #{src}"
   puts cmd
   system(cmd)
   cmd.gsub!('iTunes', 'Own')
   puts cmd
   system(cmd)
 else
-  # sudo rsync -vaE --progress --exclude 'Mobile Applications' --exclude 'Not Added' /Users/eweb/Music/iTunes/ /Volumes/Transcend/Music/iTunes
-
-  src = "/Users/eweb/Music/iTunes"
-  src = "/Volumes/Transcend/Music/iTunes"
   dst = "/Volumes/#{drive}/iTunes"
   cmd = "rsync -rtvi --exclude .DS_Store --exclude 'Mobile Applications' --exclude 'Not Added' --delete-during #{src}/ #{dst}"
   puts cmd
@@ -110,4 +112,28 @@ else
       system("git clone #{remote} #{dir}")
     end
   end
+end
+
+def transfer_fu
+  src = "/Volumes/eweb/projects/acc"
+  dst = "/Users/eweb/projects/acc"
+
+  %w[ruby Accounts Shopping].each do |dir|
+    cmd = "rsync -rtvi --exclude .DS_Store '#{src}/#{dir}/tmp/metric_fu/' '#{dst}/#{dir}/tmp/metric_fu'"
+    puts cmd
+    system(cmd)
+  end
+end
+
+def get_music
+  drive = 'iomega1'
+  src = "/Users/eweb/Music/iTunes"
+  src = "/Volumes/Transcend/Music/iTunes"
+  dst = "/Volumes/#{drive}/iTunes"
+
+  dst = "/Users/eweb/Music/iTunes"
+  src = "/Volumes/#{drive}/iTunes"
+  cmd = "rsync -rtvi --exclude .DS_Store --exclude 'Mobile Applications' --exclude 'Not Added' --delete-during #{src}/ #{dst}"
+  puts cmd
+  # system(cmd)
 end
