@@ -9,7 +9,7 @@ GIT
 
 GIT
   remote: https://github.com/eamonn-webster/metric_fu.git
-  revision: f0efc68673a8215a5ca82e2eaadd6a950dd74d97
+  revision: d770a60271eb0c894bedf5eee2b124bfdf009cf4
   specs:
     metric_fu (4.13.1)
       cane (>= 2.5.2)
@@ -222,7 +222,7 @@ GEM
       open4
     roodi (5.0.0)
       ruby_parser (~> 3.2, >= 3.2.2)
-    rubocop (0.63.0)
+    rubocop (0.63.1)
       jaro_winkler (~> 1.5.1)
       parallel (~> 1.10)
       parser (>= 2.5, != 2.5.1.1)
