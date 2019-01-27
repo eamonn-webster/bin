@@ -2,7 +2,7 @@
 #
 # File: ecopy.rb
 # Author: eweb
-# Copyright eweb, 2016-2018
+# Copyright eweb, 2016-2019
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -10,11 +10,13 @@
 #  7th Apr 2018  eweb     #0007 rubocop
 # 25th Apr 2018  eweb     #0008 require other files
 # 11th Aug 2018  eweb     #0008 update path
+# 27th Jan 2019  eweb     #0008 need blank
 #
 
 $LOAD_PATH.unshift '~/projects/acc/ruby/lib/acc'
 
 require 'FileUtils'
+require 'blank'
 require 'app_io'
 require 'ecopy_io'
 require 'ecopy'
