@@ -110,6 +110,7 @@
 #  1st Jan 2019  eweb     #0008 percents in comments
 #  1st Jan 2019  eweb     #0008 spaces in filenames
 #  1st Jan 2019  eweb     #0008 error reporting
+# 27th Feb 2019  eweb     #0008 Using multi line start as prefix
 #
 
 # DONE change event if comment not present.
@@ -524,8 +525,8 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
   end
 
   def comment_line_prefix
-    if @multi_line_start.present?
-      @multi_line_start
+    if @multi_line_prefix.present?
+      @multi_line_prefix
     else
       @single_line
     end
@@ -1130,8 +1131,8 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       date = format_date(@d, @m, @y)
       new_comment = get_comment_line(date, @u, @c)
       if this_line != new_comment
-        print "Old:#{this_line}" if @verbose.to_i > 2
-        print "new:#{new_comment}" if @verbose.to_i > 2
+        print "Old1:#{this_line}" if @verbose.to_i > 2
+        print "new1:#{new_comment}" if @verbose.to_i > 2
         this_line.clear
         this_line << new_comment
       end
@@ -1145,8 +1146,8 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       @c.sub!(/^(#\?+) [- :]+/i, '$1 ')
       new_comment = get_comment_line("", "", @c)
       if this_line != new_comment
-        print "Old:#{this_line}" if @verbose.to_i > 2
-        print "new:#{new_comment}" if @verbose.to_i > 2
+        print "Old2:#{this_line}" if @verbose.to_i > 2
+        print "new2:#{new_comment}" if @verbose.to_i > 2
         this_line.clear
         this_line << new_comment
       end
