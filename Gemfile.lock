@@ -140,7 +140,7 @@ GEM
       addressable (~> 2.3)
     mail (2.7.1)
       mini_mime (>= 0.1.1)
-    mailcatcher (0.6.5)
+    mailcatcher (0.7.0)
       eventmachine (= 1.0.9.1)
       mail (~> 2.3)
       rack (~> 1.5)
