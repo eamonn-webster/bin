@@ -190,7 +190,7 @@ GEM
       netrc (~> 0.8)
     roodi (5.0.0)
       ruby_parser (~> 3.2, >= 3.2.2)
-    rubocop (0.69.0)
+    rubocop (0.70.0)
       jaro_winkler (~> 1.5.1)
       parallel (~> 1.10)
       parser (>= 2.6)
