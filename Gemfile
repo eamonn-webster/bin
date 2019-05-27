@@ -23,7 +23,7 @@ gem 'rubocop-performance'
 gem 'taglib-ruby'
 gem 'rest-client'
 gem 'pdf-reader'
-gem 'cocoapods', '~> 1.6.2'
+gem 'cocoapods'
 
 gem 'metric_fu', github: 'eamonn-webster/metric_fu', require: false
 gem 'flog', '4.3.2', github: 'eamonn-webster/flog', branch: 'flogignore', require: false
