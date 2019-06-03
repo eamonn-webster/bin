@@ -24,6 +24,7 @@
 # 19th Jul 2018  eweb     #0008 wacc to acc
 #  2nd Sep 2018  eweb     #0008 exclude .DS_Store
 # 14th Jan 2019  eweb     #0008 transferring to new machine
+#  3rd Jun 2019  eweb     #0008 skip if source not found
 #
 
 if Dir.exist?('/Volumes/IOMEGA0')
@@ -79,9 +80,11 @@ else
 
   src = "/Users/eweb/projects/wbt.git"
   dst = "/Volumes/#{drive}/projects/wbt.git"
-  cmd = "rsync -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
-  puts cmd
-  system(cmd)
+  if Dir.exist?(src)
+    cmd = "rsync -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
+    puts cmd
+    system(cmd)
+  end
 
   src = "/Users/eweb/projects/acc"
   dst = "/Volumes/#{drive}/projects/acc"
