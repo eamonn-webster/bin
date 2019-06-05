@@ -26,5 +26,5 @@ gem 'pdf-reader'
 gem 'cocoapods'
 
 gem 'metric_fu', github: 'eamonn-webster/metric_fu', require: false
-gem 'flog', '4.3.2', github: 'eamonn-webster/flog', branch: 'flogignore', require: false
+gem 'flog', '4.3.2', github: 'eamonn-webster/flog', require: false
 gem 'reek', '>= 4.7.3', require: false
