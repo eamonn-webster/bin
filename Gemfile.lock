@@ -8,7 +8,7 @@ GIT
 
 GIT
   remote: https://github.com/eamonn-webster/metric_fu.git
-  revision: d770a60271eb0c894bedf5eee2b124bfdf009cf4
+  revision: 7ec08c59615d639da23dd925b379b2abfc65ba31
   specs:
     metric_fu (4.13.1)
       cane (>= 2.5.2)
