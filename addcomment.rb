@@ -111,6 +111,8 @@
 #  1st Jan 2019  eweb     #0008 spaces in filenames
 #  1st Jan 2019  eweb     #0008 error reporting
 # 27th Feb 2019  eweb     #0008 Using multi line start as prefix
+#  7th Aug 2019  eweb     #0008 Dockerfile as rb
+#  7th Aug 2019  eweb     #0007 rubocop
 #
 
 # DONE change event if comment not present.
@@ -150,17 +152,17 @@ end
 class Integer
   def ordinal
     if (11..13).cover?(abs % 100)
-      "th"
+      'th'
     else
       case abs % 10
       when 1
-        "st"
+        'st'
       when 2
-        "nd"
+        'nd'
       when 3
-        "rd"
+        'rd'
       else
-        "th"
+        'th'
       end
     end
   end
@@ -231,6 +233,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       if File.expand_path(dir) == File.expand_path(parent)
         break
       end
+
       dir = parent
     end
     dir = File.expand_path(dir)
@@ -243,16 +246,16 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
   end
 
   def verify_clearcase
-    if @verified_clearcase == "N" && @use_clearcase
-      topclass_vob = "/topclass"
-      if RUBY_PLATFORM == "linux"
+    if @verified_clearcase == 'N' && @use_clearcase
+      topclass_vob = '/topclass'
+      if RUBY_PLATFORM == 'linux'
         topclass_vob = "/vobs#{topclass_vob}"
       end
       desc = `cleartool desc -fmt "[%m]" "#{topclass_vob}"`
-      if desc == "[**null meta type**]"
+      if desc == '[**null meta type**]'
         print "Not a clearcase drive\n"
         @use_clearcase = false
-      elsif desc == "[directory version]"
+      elsif desc == '[directory version]'
         print "Is a clearcase drive\n"
         @use_clearcase = true
       elsif desc.blank?
@@ -265,7 +268,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
 
   def get_build_number(drive, file_type = nil)
     build_no_file = "#{drive}/topclass/oracle/topclass/sources/buildno.h"
-    if !File.exist? build_no_file
+    unless File.exist? build_no_file
       version_info_file = "#{drive}/topclass/oracle/topclass/sources/versioninfo.h"
       if File.exist? version_info_file
         build_no_file = version_info_file
@@ -297,11 +300,11 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       end
     end
 
-    build = format("%03d", build)
+    build = format('%03d', build)
 
     [major, minor, point, build]
   rescue Errno::ENOENT
-    if file_type == "sql" && "#{major}#{minor}#{point}#{build}" == ""
+    if file_type == 'sql' && "#{major}#{minor}#{point}#{build}" == ''
       print "**** Cannot open file #{build_no_file} for reading\n"
     end
   end
@@ -339,53 +342,53 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
   def setup_for_type(type)
     case type
     when 'c++'
-      @multi_line_start = "/*"
-      @multi_line_end = "*/"
-      @multi_line_prefix = "  "
+      @multi_line_start = '/*'
+      @multi_line_end = '*/'
+      @multi_line_prefix = '  '
     when 'applescript'
-      @multi_line_start = "(*"
-      @multi_line_end = "*)"
-      @multi_line_prefix = "  "
+      @multi_line_start = '(*'
+      @multi_line_end = '*)'
+      @multi_line_prefix = '  '
       @tabs_allowed = true
     when 'xml'
-      @multi_line_start = "<!--"
-      @multi_line_end = "-->"
-      @multi_line_prefix = "  "
+      @multi_line_start = '<!--'
+      @multi_line_end = '-->'
+      @multi_line_prefix = '  '
       @very_first_line = /<?xml.*>/
     when 'pl'
-      @single_line = "#"
-      @very_first_line = "#!"
+      @single_line = '#'
+      @very_first_line = '#!'
     when 'rb'
-      @single_line = "#"
-      @very_first_line = "#!"
-    when "tmpl"
-      @single_line = "#"
-    when "lsp"
-      @multi_line_start = "#|"
-      @multi_line_end = "|#"
-      @multi_line_prefix = "  "
+      @single_line = '#'
+      @very_first_line = '#!'
+    when 'tmpl'
+      @single_line = '#'
+    when 'lsp'
+      @multi_line_start = '#|'
+      @multi_line_end = '|#'
+      @multi_line_prefix = '  '
       #@single_line = ";"
-    when "bat"
-      @single_line = "::"
-    when "def"
-      @single_line = ";"
-    when "jsp"
-      @multi_line_start = "<%/*"
-      @multi_line_end = "*/%>"
-      @multi_line_prefix = "  "
-    when "html"
-      @multi_line_start = "<!--"
-      @multi_line_end = "-->"
-      @multi_line_prefix = "  "
+    when 'bat'
+      @single_line = '::'
+    when 'def'
+      @single_line = ';'
+    when 'jsp'
+      @multi_line_start = '<%/*'
+      @multi_line_end = '*/%>'
+      @multi_line_prefix = '  '
+    when 'html'
+      @multi_line_start = '<!--'
+      @multi_line_end = '-->'
+      @multi_line_prefix = '  '
       @very_first_line = /<!DOCTYPE.*>/
-    when "asp"
-      @multi_line_start = "<%"
-      @multi_line_end = "%>"
+    when 'asp'
+      @multi_line_start = '<%'
+      @multi_line_end = '%>'
       @multi_line_prefix = "' "
-    when "bas"
+    when 'bas'
       @single_line = "'"
-    when "sql"
-      @single_line = "--"
+    when 'sql'
+      @single_line = '--'
     end
   end
 
@@ -404,9 +407,9 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       file =~ /\.dsp$/ ||
       file =~ /\.dat$/
       print "Unhandled file type #{file}\n"
-    elsif file == "R.java"
+    elsif file == 'R.java'
       print "Uncommentable file #{file}\n"
-    elsif file == "bb.yaml"
+    elsif file == 'bb.yaml'
       print "Uncommentable file #{file}\n"
     elsif file =~ /\.cpp$/ ||
       file =~ /\.h$/ ||
@@ -422,7 +425,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       file =~ /\.g$/ ||
       file =~ /\.java$/ ||
       file =~ /\.idl$/
-      file_type = "c++"
+      file_type = 'c++'
     elsif file =~ /\.xml$/ ||
       file =~ /\.xslt$/ ||
       file =~ /\.dtd$/ ||
@@ -430,9 +433,9 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       file =~ /\.tld$/ ||
       file =~ /\.xsd$/ ||
       file =~ /\.jrxml/
-      file_type = "xml"
+      file_type = 'xml'
     elsif file =~ /\.sql$/
-      file_type = "sql"
+      file_type = 'sql'
     elsif file =~ /\.rb$/ ||
       file =~ /\.feature$/ ||
       file =~ /\.rake$/ ||
@@ -442,32 +445,33 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       file =~ /\.metrics$/ ||
       file =~ /\.simplecov$/ ||
       file =~ /^Rakefile$/ ||
-      file =~ /^Gemfile$/
-      file_type = "rb"
+      file =~ /^Gemfile$/ ||
+      file =~ /^Dockerfile$/
+      file_type = 'rb'
     elsif file =~ /\.pl$/ ||
       file =~ /\.sh$/ ||
       file =~ /\.properties$/ ||
       file =~ /\.properties.default$/ ||
       file =~ /\.lyt$/
-      file_type = "pl"
+      file_type = 'pl'
     elsif file =~ /\.tmpl$/
-      file_type = "tmpl"
+      file_type = 'tmpl'
     elsif file =~ /\.lsp$/
-      file_type = "lsp"
+      file_type = 'lsp'
     elsif file =~ /\.bat$/ || file =~ /\.cmd$/
-      file_type = "bat"
+      file_type = 'bat'
     elsif file =~ /\.def$/ || file =~ /\.cmd$/
-      file_type = "def"
+      file_type = 'def'
     elsif file =~ /\.jsp$/ || file =~ /\.jspf$/
-      file_type = "jsp"
+      file_type = 'jsp'
     elsif file =~ /\.html$/ || file =~ /\.htm$/
-      file_type = "html"
+      file_type = 'html'
     elsif file =~ /\.asp$/
-      file_type = "asp"
+      file_type = 'asp'
     elsif file =~ /\.bas$/ || file =~ /\.vb$/
-      file_type = "bas"
+      file_type = 'bas'
     elsif file =~ /\.applescript$/
-      file_type = "applescript"
+      file_type = 'applescript'
     else
       first_line = File.open(@infile) { |fh| fh.readline.chomp }
       if first_line =~ /^#!.+ruby/
@@ -483,7 +487,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
   end
 
   def quotemeta(str)
-    (str || '').gsub(/([.|()\[\]{}+\$*?^])/) { |ch| "\\#{ch}" }
+    (str || '').gsub(/([.|()\[\]{}+$*?^])/) { |ch| "\\#{ch}" }
   end
 
   def write_history
@@ -502,7 +506,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
   end
 
   def write_banner
-    if @orig_author == "-"
+    if @orig_author == '-'
     elsif @multi_line_start.present?
       @output.print "#{@multi_line_start}\n"
       @output.print "#{@multi_line_prefix} File: #{@file}\n"
@@ -534,14 +538,14 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
 
   def pdac(p, d, a, c)
     if c.blank?
-      format "%s %-14s %-8s\n", p, d, a
+      format("%<prefix>s %-14<date>s %-8<author>s\n", prefix: p, date: d, author: a)
     else
-      format "%s %-14s %-8s %s\n", p, d, a, c
+      format("%<prefix>s %-14<date>s %-8<author>s %<comment>s\n", prefix: p, date: d, author: a, comment: c)
     end
   end
 
   def write_date_author_comment
-    @output.print get_comment_line("Date:", "Author:", "Comments:") # [addcomment.pl don't change]
+    @output.print get_comment_line('Date:', 'Author:', 'Comments:') # [addcomment.pl don't change]
   end
 
   def write_line
@@ -552,9 +556,10 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
   end
 
   def quote_char(ch)
-    return "\\r" if ch == '\r'
-    return "\\n" if ch == '\n'
-    return "\\t" if ch == '\r'
+    return '\\r' if ch == '\r'
+    return '\\n' if ch == '\n'
+    return '\\t' if ch == '\r'
+
     ch
   end
 
@@ -562,7 +567,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
     puts "argv: #{ARGV}" if @verbose.to_i > 2
 
     # Was anything other than the defined option entered on the command line?
-    if !getopts("c:a:A:C:D:Eiom:n:p:b:k:S:v:x:tT:", @opts) || ARGV.size > 1
+    if !getopts('c:a:A:C:D:Eiom:n:p:b:k:S:v:x:tT:', @opts) || ARGV.size > 1
       STDERR.print "Unknown args #{ARGV}\n" unless ARGV.empty?
       #Usage()
       exit
@@ -571,7 +576,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
     puts "argv: #{ARGV}" if @verbose.to_i > 2
     puts "opts: #{@opts}" if @verbose.to_i > 2
 
-    @git_root = "."
+    @git_root = '.'
 
     if find_git
       @scc = :git
@@ -622,7 +627,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
     end
 
     if @opts.key?('x')
-      @change_event = uc @opts['x']
+      @change_event = @opts['x'].upcase
     end
 
     @verbose = @opts['v'].to_i if @opts['v']
@@ -689,21 +694,21 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
     end
     if @orig_author.blank?
       @orig_author = @author
-    elsif @orig_author == "."
-      @orig_author = ""
+    elsif @orig_author == '.'
+      @orig_author = ''
     end
 
     if @company.blank?
       if @scc == :git
         @email = `git config --get user.email`
         if @email =~ /wbtsystems.com/
-          @company = "WBT Systems"
+          @company = 'WBT Systems'
         end
         if @email =~ /qstream.com/
-          @company = "Qstream"
+          @company = 'Qstream'
         end
       end
-      @company ||= "eweb"
+      @company ||= 'eweb'
     end
     if @start_year.blank?
       if @scc == :clearcase
@@ -723,13 +728,13 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
 
   def main
     setup_options
-    if @infile =~ %r{(/|\\)yui\1}
-      #print "Part of yui\n"
-      #@orig_author = "-"
-    end
+    # if @infile =~ %r{(/|\\)yui\1}
+    #   #print "Part of yui\n"
+    #   #@orig_author = "-"
+    # end
 
     if @infile.blank?
-      die "No file given\n"
+      raise "No file given\n"
     end
 
     @infile = File.expand_path(@infile)
@@ -789,7 +794,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
     @has_banner = false
     @has_history = false
 
-    @comment_pattern = Regexp.new(quotemeta(@date) + " +" + quotemeta(@author) + " +" + quotemeta(@comments)) # [addcomment.pl don't change]
+    @comment_pattern = Regexp.new(quotemeta(@date) + ' +' + quotemeta(@author) + ' +' + quotemeta(@comments)) # [addcomment.pl don't change]
 
     print "@comment_pattern [#{@comment_pattern}]\n" if @verbose.to_i > 2
 
@@ -849,9 +854,9 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
         version_line(this_line, $1)
       elsif !@past_history && end_of_comments?(this_line)
         end_of_comments(this_line)
-      elsif @file_type == "sql" && this_line =~ /updateConfig\s*\(\s*'(.+)',\s*'([.0-9]+)'\s*\)/i
+      elsif @file_type == 'sql' && this_line =~ /updateConfig\s*\(\s*'(.+)',\s*'([.0-9]+)'\s*\)/i
         oracle_update_config(this_line, $1, $2)
-      elsif @file_type == "sql" && this_line =~ /updateConfig\s*(N?)'(.+)',\s*(N?)'([.0-9]+)'\s*/i
+      elsif @file_type == 'sql' && this_line =~ /updateConfig\s*(N?)'(.+)',\s*(N?)'([.0-9]+)'\s*/i
         sql_server_update_config(this_line, $2, $4, $1, $3)
       else
         #print "lala\n"
@@ -907,9 +912,9 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
         @chars = @eoln.chars.collect(&:ord)
         #STDERR.print "eoln: [#{@chars}]\n"
         if @eoln == "\r\n"
-          STDERR.print "ERROR: Dos line end [#{@chars}] at line #{@file}:#{@line}\n" unless RUBY_PLATFORM == "MSWin32"
+          STDERR.print "ERROR: Dos line end [#{@chars}] at line #{@file}:#{@line}\n" unless RUBY_PLATFORM == 'MSWin32'
         elsif @eoln == "\n"
-          STDERR.print "ERROR: Unix line end [#{@chars}] at line #{@file}:#{@line}\n" if RUBY_PLATFORM == "MSWin32"
+          STDERR.print "ERROR: Unix line end [#{@chars}] at line #{@file}:#{@line}\n" if RUBY_PLATFORM == 'MSWin32'
         elsif @eoln == "\r"
           STDERR.print "ERROR: Mac line end [#{@chars}] at line #{@file}:#{@line}\n"
         elsif @eoln == "\r\r\n"
@@ -957,7 +962,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
   end
 
   def handle_80000s(this_line)
-    if this_line =~ /#8[0-9?]{4}/ && this_line !~ /\[addcomment\.pl don\'t change\]/ # [addcomment.pl don't change]
+    if this_line =~ /#8[0-9?]{4}/ && this_line !~ /\[addcomment\.pl don't change\]/ # [addcomment.pl don't change]
       STDERR.print "#{this_line}\n"
     end
   end
@@ -995,7 +1000,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
   end
 
   def end_of_comments?(this_line)
-    ((@file_type == "tmpl" && this_line =~ /^##var/) ||
+    ((@file_type == 'tmpl' && this_line =~ /^##var/) ||
       (@multi_line_end.present? && this_line =~ Regexp.new("#{Regexp.quote(@multi_line_end)}$")) ||
       (@single_line.present? && this_line =~ Regexp.new("^#{Regexp.quote(@single_line)}$")) ||
       (@single_line.present? && this_line =~ /^$/) ||
@@ -1036,7 +1041,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
 
   def version_line(this_line, version)
     print "Found Version: version\n#{this_line}" if @verbose.to_i > 2
-    mnpb = "@major.@minor.@point.@build"
+    mnpb = '@major.@minor.@point.@build'
     if version == mnpb
       @output.print this_line
     elsif version != mnpb
@@ -1121,15 +1126,15 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
 
   def history_line(this_line)
     if this_line =~ /\s+([0-9]+)(st|nd|rd|th)?\s+([A-Za-z]+)\s([0-9]+)\s+([a-zA-Z']+)\s+(.*)$/ #'
-      @d, @th, @m, @y, @u, @c = $1, $2, $3, $4, $5, $6
-      @c.sub!(/^(#\?{5}?) Lint/i, '#00007 Lint')
-      @c.sub!(/^(#\?{4}?) Lint/i, '#0007 Lint')
-      @c.sub!(/^Lint/i, '#0007 Lint')
-      @c.sub!(/^(#\?+) MSVC 8/i, '#10544 MSVC 8')
-      @c.sub!(/^(#\?+) CUpdater/i, '#9528 CUpdater')
-      @c.sub!(/^(#\?+) [- :]+/i, '$1 ')
-      date = format_date(@d, @m, @y)
-      new_comment = get_comment_line(date, @u, @c)
+      d, _th, m, y, u, c = $1, $2, $3, $4, $5, $6
+      c.sub!(/^(#\?{5}?) Lint/i, '#00007 Lint')
+      c.sub!(/^(#\?{4}?) Lint/i, '#0007 Lint')
+      c.sub!(/^Lint/i, '#0007 Lint')
+      c.sub!(/^(#\?+) MSVC 8/i, '#10544 MSVC 8')
+      c.sub!(/^(#\?+) CUpdater/i, '#9528 CUpdater')
+      c.sub!(/^(#\?+) [- :]+/i, '$1 ')
+      date = format_date(d, m, y)
+      new_comment = get_comment_line(date, u, c)
       if this_line != new_comment
         print "Old1:#{this_line}" if @verbose.to_i > 2
         print "new1:#{new_comment}" if @verbose.to_i > 2
@@ -1137,14 +1142,14 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
         this_line << new_comment
       end
     elsif this_line =~ /(\s{10,})(.+)$/
-      @c = $2
-      @c.sub!(/^(#\?{5}?) Lint/i, '#00007 Lint')
-      @c.sub!(/^(#\?{4}?) Lint/i, '#0007 Lint')
-      @c.sub!(/^Lint/i, '#0007 Lint')
-      @c.sub!(/^(#\?+) MSVC 8/i, '#10544 MSVC 8')
-      @c.sub!(/^(#\?+) CUpdater/i, '#9528 CUpdater')
-      @c.sub!(/^(#\?+) [- :]+/i, '$1 ')
-      new_comment = get_comment_line("", "", @c)
+      c = $2
+      c.sub!(/^(#\?{5}?) Lint/i, '#00007 Lint')
+      c.sub!(/^(#\?{4}?) Lint/i, '#0007 Lint')
+      c.sub!(/^Lint/i, '#0007 Lint')
+      c.sub!(/^(#\?+) MSVC 8/i, '#10544 MSVC 8')
+      c.sub!(/^(#\?+) CUpdater/i, '#9528 CUpdater')
+      c.sub!(/^(#\?+) [- :]+/i, '$1 ')
+      new_comment = get_comment_line('', '', c)
       if this_line != new_comment
         print "Old2:#{this_line}" if @verbose.to_i > 2
         print "new2:#{new_comment}" if @verbose.to_i > 2
@@ -1164,12 +1169,12 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       print "Found copyright out of comment line\n#{this_line}"
       @output.print this_line
     elsif this_line =~ /Yahoo! Inc./
-      @orig_author = "-"
+      @orig_author = '-'
       print "Not updating, #{this_line}"
       print "1: #{x1} 2: #{x2} 3: #{x3} 4: #{x4} 5: #{x5} 6: #{x6}\n" if @verbose.to_i > 2
       @has_banner = true
       @output.print this_line
-    elsif @orig_author == "-"
+    elsif @orig_author == '-'
       print "Found copyright but not updating\n#{this_line}"
       print "1: #{x1} 2: #{x2} 3: #{x3} 4: #{x4} 5: #{x5} 6: #{x6}\n" if @verbose.to_i > 2
       @has_banner = true
@@ -1203,12 +1208,12 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       @output.print this_line
     elsif this_line =~ /Yahoo! Inc./
       print "Found Yahoo copyright\n#{this_line}" if @verbose.to_i > 2
-      @orig_author = "-"
+      @orig_author = '-'
       print "Not updating, #{this_line}"
       print "1: #{x1} 2: #{x2} 3: #{x3} 4: #{x4} 5: #{x5} 6: #{x6} 7: #{x7}\n" if @verbose.to_i > 2
       @has_banner = true
       @output.print this_line
-    elsif @orig_author == "-"
+    elsif @orig_author == '-'
       print "Found copyright but OrigAuthor is -\n#{this_line}" if @verbose.to_i > 2
       print "Found copyright but not updating\n#{this_line}"
       print "1: #{x1} 2: #{x2} 3: #{x3} 4: #{x4} 5: #{x5} 6: #{x6} 7: #{x7}\n" if @verbose.to_i > 2
@@ -1243,7 +1248,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
 
     @lcname = name.downcase
 
-    if @lcname == "IncrementalUpgrade".downcase
+    if @lcname == 'IncrementalUpgrade'.downcase
       @output.print this_line
     else
       if name_exceptions.include?(@lcname)
@@ -1252,7 +1257,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       end
       if data_exceptions.include?(@lcname)
         @output.print this_line
-      elsif num != should_be && should_be != "..."
+      elsif num != should_be && should_be != '...'
         print "call to updateConfig( #{n1}'#{name}', #{n2}'#{num}' )\n"
         print "shouldBe updateConfig( #{n1}'#{name}', #{n2}'#{should_be}' )\n"
         this_line.sub!(num, should_be)
@@ -1278,7 +1283,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
     end
 
     @lcname = name.downcase
-    if @lcname == "IncrementalUpgrade".downcase
+    if @lcname == 'IncrementalUpgrade'.downcase
       @output.print this_line
     else
       if name_exceptions.include?(@lcname)
@@ -1287,7 +1292,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       end
       if data_exceptions.include?(@lcname)
         @output.print this_line
-      elsif num != should_be && should_be != "..."
+      elsif num != should_be && should_be != '...'
         print "call to updateConfig( '#{name}', '#{num}' )\n"
         print "shouldBe updateConfig( '#{name}', '#{should_be}' )\n"
         this_line.sub!(num, should_be)
@@ -1327,11 +1332,11 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
   def write_results
     # had neither a banner nor a history
     if !@changed && !@has_banner && !@has_history
-      puts "!@changed && !@has_banner && !@has_history"
+      puts '!@changed && !@has_banner && !@has_history'
       write_results_inner(@infile, true, true)
       # neither a history nor a banner but we updated something else?
     elsif @changed && !@has_banner && !@has_history
-      puts "@changed && @has_banner && !@has_history"
+      puts '@changed && @has_banner && !@has_history'
       File.rename @outfile, "#{@outfile}.tmp"
       write_results_inner("#{@outfile}.tmp", true, true)
       File.unlink "#{@outfile}.tmp"
@@ -1356,7 +1361,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
           comments += 1
           # end of comment?
           @output.print l
-          if !written_history
+          unless written_history
             if @single_line.blank? || comments == 2
               write_history
               written_history = true

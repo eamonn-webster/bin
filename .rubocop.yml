@@ -31,7 +31,7 @@ Style/NestedTernaryOperator:
 Layout/IndentationWidth:
   Enabled: true
 
-Layout/IndentArray:
+Layout/IndentFirstArrayElement:
   Enabled: true
 
 Layout/AlignArray:
@@ -59,7 +59,7 @@ Metrics/MethodLength:
   Max: 200
 
 Style/StringLiterals:
-  Enabled: false
+  Enabled: true
 
 Layout/MultilineOperationIndentation:
   Enabled: false
@@ -91,7 +91,7 @@ Metrics/ParameterLists:
 Naming/MethodName:
   Enabled: true
 
-Layout/IndentHash:
+Layout/IndentFirstHashElement:
   Enabled: true
 
 Style/BlockComments:
@@ -158,9 +158,6 @@ Bundler/OrderedGems:
   Enabled: false
 
 Bundler/DuplicatedGem:
-  Enabled: false
-
-Performance/RegexpMatch:
   Enabled: false
 
 Naming/UncommunicativeMethodParamName:
