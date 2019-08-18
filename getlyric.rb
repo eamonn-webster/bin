@@ -2,7 +2,7 @@
 #
 # File: getlyric.rb
 # Author: eweb
-# Copyright eweb, 2013-2018
+# Copyright eweb, 2013-2019
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -21,6 +21,7 @@
 # 25th Nov 2018  eweb     #0008 return inner_text
 # 25th Nov 2018  eweb     #0008 dryed up
 #  6th Dec 2018  eweb     #0008 return inner_html for wikia
+# 18th Aug 2019  eweb     #0008 wikia moved to fandom
 #
 require 'nokogiri'
 require 'open-uri'
@@ -94,7 +95,7 @@ def fetch_lyrics_wikia
   artist = CGI.escape(artist)
   song = CGI.escape(song)
 
-  url = "http://lyrics.wikia.com/#{artist}:#{song}"
+  url = "https://lyrics.fandom.com/#{artist}:#{song}"
 
   puts url
   begin
