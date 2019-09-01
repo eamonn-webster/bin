@@ -48,7 +48,7 @@ GEM
     cane (3.0.0)
       parallel
     chronic (0.10.2)
-    churn (1.0.2)
+    churn (1.0.4)
       chronic (>= 0.2.3)
       hirb
       json_pure
