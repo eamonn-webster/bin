@@ -14,7 +14,7 @@
 # rubocop -DES -f html -o rubocop.html
 #
 AllCops:
-  TargetRubyVersion: 2.5
+  TargetRubyVersion: 2.6
 
 Style/SafeNavigation:
   Enabled: false
