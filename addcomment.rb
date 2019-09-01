@@ -113,6 +113,7 @@
 # 27th Feb 2019  eweb     #0008 Using multi line start as prefix
 #  7th Aug 2019  eweb     #0008 Dockerfile as rb
 #  7th Aug 2019  eweb     #0007 rubocop
+#  1st Sep 2019  eweb     #0008 frozen string comment
 #
 
 # DONE change event if comment not present.
@@ -515,6 +516,10 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       @output.print "#{@multi_line_prefix} Contents:\n"
       @output.print "#{@multi_line_end}\n"
     else
+      if @file_type == 'rb'
+        @output.print "# frozen_string_literal: true\n"
+        @output.print "\n"
+      end
       @output.print "#{@single_line}\n"
       @output.print "#{@single_line} File: #{@file}\n"
       @output.print "#{@single_line} Author: #{@orig_author}\n"
