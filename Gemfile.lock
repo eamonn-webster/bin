@@ -161,7 +161,7 @@ GEM
     nokogiri (1.10.4)
       mini_portile2 (~> 2.4.0)
     parallel (1.17.0)
-    parser (2.6.4.0)
+    parser (2.6.4.1)
       ast (~> 2.4.0)
     path_expander (1.0.4)
     pdf-reader (2.2.1)
