@@ -121,7 +121,7 @@ GEM
     erubis (2.7.0)
     escape (0.0.4)
     eventmachine (1.0.9.1)
-    excon (0.67.0)
+    excon (0.68.0)
     executable-hooks (1.6.0)
     faraday (0.17.0)
       multipart-post (>= 1.2, < 3)
