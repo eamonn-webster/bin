@@ -234,7 +234,7 @@ GEM
       fattr (~> 2.2, >= 2.2.0)
       map (~> 6.1, >= 6.1.0)
     map (6.6.0)
-    memoist (0.16.0)
+    memoist (0.16.1)
     metric_fu-Saikuro (1.1.3)
     mime-types (3.3)
       mime-types-data (~> 3.2015)
