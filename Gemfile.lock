@@ -52,10 +52,9 @@ GEM
     cane (3.0.0)
       parallel
     chronic (0.10.2)
-    churn (1.0.4)
+    churn (1.0.5)
       chronic (>= 0.2.3)
       hirb
-      json_pure
       main
       rest-client (>= 1.6.0)
       ruby_parser (~> 3.0)
@@ -213,7 +212,6 @@ GEM
     ice_nine (0.11.2)
     jaro_winkler (1.5.4)
     json (2.2.0)
-    json_pure (2.2.0)
     jwt (2.1.0)
     kwalify (0.7.2)
     launchy (2.4.3)
