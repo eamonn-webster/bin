@@ -1,19 +1,20 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 #
 # File: dependency.rb
 # Author: HipByte
-# Copyright (c) 2012-2018, HipByte SPRL and contributors
+# Copyright (c) 2012-2019, HipByte SPRL and contributors
 # All rights reserved.
-#.
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-#.
+#
 # 1. Redistributions of source code must retain the above copyright notice, this
 #    list of conditions and the following disclaimer.
 # 2. Redistributions in binary form must reproduce the above copyright notice,
 #    this list of conditions and the following disclaimer in the documentation
 #    and/or other materials provided with the distribution.
-#.
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -29,6 +30,9 @@
 #  2nd Apr 2018  eweb     #0008 cyclic dependency check
 #  7th Apr 2018  eweb     #0007 rubocop
 # 19th Jul 2018  eweb     #0008 ruby dependencies
+#  5th Aug 2018  eweb     #0008 pass folder to search
+# 23rd Nov 2018  eweb     #0007 rubocop
+# 16th Nov 2019  eweb     #0008 pass dirs to check and dirs to ignore
 
 require 'ripper'
 
@@ -128,7 +132,7 @@ module Dependencies
         type, name, _position = args
         if type == :@const
           @referred << name
-          return [:referred, name]
+          [:referred, name]
         end
       end
 
@@ -147,7 +151,7 @@ module Dependencies
         type, name, _position = const
         if type == :@const
           @defined << name
-          return [:defined, name]
+          [:defined, name]
         end
       end
 
@@ -170,7 +174,7 @@ module Dependencies
               register_defined_constants(name, children[i + 1])
             end
           end
-          return [:defined, name]
+          [:defined, name]
         end
       end
 
@@ -196,9 +200,24 @@ module Dependencies
   end
 end
 
-def main
+def main(argv)
   dependencies = {}
-  files = Dir.glob('app/**/*.rb') + Dir.glob('lib/**/*.rb') + Dir.glob('config/**/*.rb')
+  if argv.empty?
+    files = Dir.glob('app/**/*.rb') + Dir.glob('lib/**/*.rb') + Dir.glob('config/**/*.rb')
+  else
+    files = []
+    argv.each do |arg|
+      if arg[0] == '-'
+        if arg['*']
+          files -= Dir.glob(arg[1..-1])
+        else
+          files -= Dir.glob("#{arg[1..-1]}/**/*.rb")
+        end
+      else
+        files += Dir.glob("#{arg}/**/*.rb")
+      end
+    end
+  end
   d = Dependencies::Dependency.new(files, dependencies)
   d.run
   puts d.warnings.uniq
@@ -206,5 +225,5 @@ def main
 end
 
 if $PROGRAM_NAME == __FILE__
-  main
+  main(ARGV)
 end
