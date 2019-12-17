@@ -5,16 +5,16 @@
 # Author: HipByte
 # Copyright (c) 2012-2019, HipByte SPRL and contributors
 # All rights reserved.
-#
+##
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-#
+##
 # 1. Redistributions of source code must retain the above copyright notice, this
 #    list of conditions and the following disclaimer.
 # 2. Redistributions in binary form must reproduce the above copyright notice,
 #    this list of conditions and the following disclaimer in the documentation
 #    and/or other materials provided with the distribution.
-#
+##
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -33,6 +33,9 @@
 #  5th Aug 2018  eweb     #0008 pass folder to search
 # 23rd Nov 2018  eweb     #0007 rubocop
 # 16th Nov 2019  eweb     #0008 pass dirs to check and dirs to ignore
+# 17th Dec 2019  eweb     #0008 ignore built in classes
+# 17th Dec 2019  eweb     #0008 ignore constant assigns
+# 17th Dec 2019  eweb     #0008 ignore modules
 
 require 'ripper'
 
@@ -121,6 +124,8 @@ module Dependencies
       end
 
       def on_const_ref(args)
+        return if %w[String Symbol Hash Array Class Module NilClass TrueClass FalseClass Object Integer Numeric].include?(args[1])
+
         args
       end
 
@@ -147,7 +152,7 @@ module Dependencies
         args
       end
 
-      def on_assign(const, *_args)
+      def not_on_assign(const, *_args)
         type, name, _position = const
         if type == :@const
           @defined << name
@@ -156,7 +161,7 @@ module Dependencies
       end
 
       def on_module(const, *args)
-        handle_module_class_event(const, args)
+        # handle_module_class_event(const, args)
       end
 
       def on_class(const, *args)
