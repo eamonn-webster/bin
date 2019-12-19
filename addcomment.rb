@@ -114,6 +114,7 @@
 #  7th Aug 2019  eweb     #0008 Dockerfile as rb
 #  7th Aug 2019  eweb     #0007 rubocop
 #  1st Sep 2019  eweb     #0008 frozen string comment
+# 19th Dec 2019  eweb     #0008 handle sh files
 #
 
 # DONE change event if comment not present.
@@ -478,7 +479,8 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       if first_line =~ /^#!.+ruby/
         file_type = 'rb'
       elsif first_line =~ /^#!.+perl/ ||
-        first_line =~ /^#!.+bash/
+        first_line =~ /^#!.+bash/ ||
+        first_line =~ /^#!.+sh/
         file_type = 'pl'
       else
         print "Unhandled file type #{file}\n"

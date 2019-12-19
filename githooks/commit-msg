@@ -1,0 +1,21 @@
+#!/bin/sh
+
+#
+# File: commit-msg
+# Author: eweb
+# Copyright eweb, 2019-2019
+# Contents:
+#
+# Date:          Author:  Comments:
+# 19th Dec 2019  eweb     #0008 validate commit message
+#
+
+# to install
+# cp ~/bin/githooks/commit-msg .git/hooks
+
+test "" = "$(grep '^#\d\{4\} ' "$1")" && {
+   echo >&2 "******  Commit message must start with a # followed by a 4 digit task-id!"
+   exit 1
+}
+
+exit 0
