@@ -27,5 +27,5 @@ gem 'cocoapods'
 gem 'xcode-install', require: false
 
 gem 'metric_fu', github: 'eamonn-webster/metric_fu', require: false
-gem 'flog', '4.3.2', github: 'eamonn-webster/flog', require: false
+gem 'flog', github: 'eamonn-webster/flog', require: false
 gem 'reek', '>= 4.7.3', require: false
