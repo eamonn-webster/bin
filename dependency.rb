@@ -3,7 +3,7 @@
 #
 # File: dependency.rb
 # Author: HipByte
-# Copyright (c) 2012-2019, HipByte SPRL and contributors
+# Copyright (c) 2012-2020, HipByte SPRL and contributors
 # All rights reserved.
 ##
 # Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 # 17th Dec 2019  eweb     #0008 ignore built in classes
 # 17th Dec 2019  eweb     #0008 ignore constant assigns
 # 17th Dec 2019  eweb     #0008 ignore modules
+#  1st Jan 2020  eweb     #0008 ignore ruby built ins
 
 require 'ripper'
 
@@ -90,6 +91,7 @@ module Dependencies
         parser.referred.each do |const|
           consts_referred[const] ||= []
           consts_referred[const] << path
+          consts_referred[const].uniq!
         end
       end
 
@@ -110,6 +112,10 @@ module Dependencies
           end
         end
       end
+      # pp 'consts_defined = '
+      # pp consts_defined
+      # pp 'consts_referred = '
+      # pp consts_referred.select { |k, _v| consts_defined.key?(k) }
       dependency
     end
 
@@ -123,8 +129,27 @@ module Dependencies
         super
       end
 
+      def ignore?(name)
+        %w[String
+           Symbol
+           Hash
+           Array
+           Class
+           Module
+           NilClass
+           TrueClass
+           FalseClass
+           Object
+           Integer
+           Numeric
+           File
+           Dir
+           StandardError
+           Regexp].include?(name)
+      end
+
       def on_const_ref(args)
-        return if %w[String Symbol Hash Array Class Module NilClass TrueClass FalseClass Object Integer Numeric].include?(args[1])
+        return if ignore?(args[1])
 
         args
       end
@@ -134,6 +159,8 @@ module Dependencies
       end
 
       def on_var_ref(args)
+        return if ignore?(args[1])
+
         type, name, _position = args
         if type == :@const
           @referred << name
@@ -142,6 +169,8 @@ module Dependencies
       end
 
       def on_const_path_ref(parent, args)
+        return if ignore?(args[1])
+
         type, name, _position = args
         if type == :@const
           @referred << name
