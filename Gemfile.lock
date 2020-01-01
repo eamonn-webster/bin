@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/eamonn-webster/flog.git
-  revision: b0f3c8d338dbafcbf1d6d87ad0ddfb7b18803685
+  revision: e61c55b4ab82532bcd807e5941ccccfbdb359e01
   specs:
     flog (4.6.4)
       ruby_parser (~> 3.1, > 3.1.0)
