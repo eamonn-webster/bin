@@ -324,7 +324,7 @@ GEM
       executable-hooks (>= 1.5.0)
     rubyzip (1.3.0)
     security (0.1.3)
-    sexp_processor (4.14.0)
+    sexp_processor (4.14.1)
     signet (0.12.0)
       addressable (~> 2.3)
       faraday (~> 0.9)
