@@ -278,7 +278,7 @@ GEM
     plist (3.5.0)
     psych (3.1.0)
     public_suffix (2.0.5)
-    puma (4.3.1)
+    puma (4.3.2)
       nio4r (~> 2.0)
     rack (1.6.13)
     rack-protection (1.5.5)
