@@ -206,7 +206,7 @@ GEM
       unicode-display_width (>= 1.4.0, < 2.0)
     rubocop-performance (1.5.2)
       rubocop (>= 0.71.0)
-    rubrowser (2.7.1)
+    rubrowser (2.8.0)
       litecable
       parser (~> 2.3, >= 2.3.0)
       puma
