@@ -2,7 +2,7 @@
 #
 # File: synchmusic.rb
 # Author: eweb
-# Copyright eweb, 2012-2019
+# Copyright eweb, 2012-2020
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -25,6 +25,7 @@
 #  2nd Sep 2018  eweb     #0008 exclude .DS_Store
 # 14th Jan 2019  eweb     #0008 transferring to new machine
 #  3rd Jun 2019  eweb     #0008 skip if source not found
+#  2nd May 2020  eweb     #0008 including Running
 #
 
 if Dir.exist?('/Volumes/IOMEGA0')
@@ -95,6 +96,7 @@ else
   end
 
   dirs = [["/Volumes/#{drive}/projects/acc", "git@bitbucket.org:eamoon/acc.git"],
+          ["/Volumes/#{drive}/projects/Running", "git@bitbucket.org:eamoon/running.git"],
           ["/Volumes/#{drive}/accounts/master", "git@bitbucket.org:eamoon/data.git"],
           ["/Volumes/#{drive}/bin", "git@bitbucket.org:eamoon/bin.git"],
           ["/Volumes/#{drive}/projects/metric_fu", "https://github.com/eamonn-webster/metric_fu.git"],
@@ -118,10 +120,12 @@ else
 end
 
 def transfer_fu
-  src = "/Volumes/eweb/projects/acc"
-  dst = "/Users/eweb/projects/acc"
+  transfer_fu_inner("/Volumes/eweb/projects/acc", "/Users/eweb/projects/acc", %w[ruby Accounts Shopping])
+  transfer_fu_inner("/Volumes/eweb/projects/Running", "/Users/eweb/projects/Running", %w[Running])
+end
 
-  %w[ruby Accounts Shopping].each do |dir|
+def transfer_fu_inner(src, dst, folders)
+  folders.each do |dir|
     cmd = "rsync -rtvi --exclude .DS_Store '#{src}/#{dir}/tmp/metric_fu/' '#{dst}/#{dir}/tmp/metric_fu'"
     puts cmd
     system(cmd)
