@@ -90,7 +90,7 @@ GEM
       nap
     cocoapods-search (1.0.0)
     cocoapods-stats (1.1.0)
-    cocoapods-trunk (1.4.1)
+    cocoapods-trunk (1.5.0)
       nap (>= 0.8, < 2.0)
       netrc (~> 0.11)
     cocoapods-try (1.2.0)
@@ -125,6 +125,9 @@ GEM
     httpclient (2.8.3)
     i18n (0.9.5)
       concurrent-ruby (~> 1.0)
+    io-console (0.5.6)
+    irb (1.2.4)
+      reline (>= 0.0.1)
     jaro_winkler (1.5.4)
     json (2.3.0)
     kwalify (0.7.2)
@@ -188,6 +191,8 @@ GEM
       parser (>= 2.5.0.0, < 2.8, != 2.5.1.1)
       psych (~> 3.1.0)
       rainbow (>= 2.0, < 4.0)
+    reline (0.1.4)
+      io-console (~> 0.5)
     rest-client (2.1.0)
       http-accept (>= 1.7.0, < 2.0)
       http-cookie (>= 1.0.2, < 2.0)
@@ -212,7 +217,7 @@ GEM
       puma
       websocket
     ruby-macho (1.4.0)
-    ruby-next-core (0.7.0)
+    ruby-next-core (0.8.0)
     ruby-progressbar (1.10.1)
     ruby-rc4 (0.1.5)
     ruby_parser (3.14.2)
@@ -260,6 +265,7 @@ DEPENDENCIES
   bundler
   cocoapods
   flog!
+  irb
   mailcatcher
   metric_fu!
   nokogiri
