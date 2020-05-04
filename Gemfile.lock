@@ -49,11 +49,10 @@ GEM
     cane (3.0.0)
       parallel
     chronic (0.10.2)
-    churn (1.0.5)
+    churn (1.0.6)
       chronic (>= 0.2.3)
       hirb
       main
-      rest-client (>= 1.6.0)
       ruby_parser (~> 3.0)
       sexp_processor (~> 4.1)
     claide (1.0.3)
