@@ -8,7 +8,7 @@ GIT
 
 GIT
   remote: https://github.com/eamonn-webster/metric_fu.git
-  revision: 37240c9c1e160becfef4fcf07359d7bab6b22358
+  revision: 1a7480f3b0711bcae53db68d0c1872874da1fb83
   specs:
     metric_fu (4.13.1)
       cane (>= 2.5.2)
@@ -49,7 +49,7 @@ GEM
     cane (3.0.0)
       parallel
     chronic (0.10.2)
-    churn (1.0.6)
+    churn (1.0.8)
       chronic (>= 0.2.3)
       hirb
       main
