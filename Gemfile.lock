@@ -37,7 +37,7 @@ GEM
     addressable (2.7.0)
       public_suffix (>= 2.0.2, < 5.0)
     afm (0.2.2)
-    algoliasearch (1.27.2)
+    algoliasearch (1.27.3)
       httpclient (~> 2.8, >= 2.8.3)
       json (>= 1.5.1)
     anyway_config (2.0.5)
