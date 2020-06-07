@@ -14,13 +14,15 @@
 
 `heroku apps --all`.each_line do |line|
   next if line =~ /^===/
+
   if line =~ /^(.+)\s+(.+)$/
     next unless $2 == 'heroku@qstream.com'
+
     app = $1.strip
     app.sub!(/ \(.+\)/, '')
     puts app
     config = `heroku config --app #{app}`
-    File.open("#{app}.env", "w") do |f|
+    File.open("#{app}.env", 'w') do |f|
       f.puts(config)
     end
   end

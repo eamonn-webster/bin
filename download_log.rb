@@ -30,9 +30,9 @@ opts.each do |opt, arg|
   case opt
   when '--help'
     puts "usage: #{$PROGRAM_NAME} [options] app"
-    puts " --yesterday"
-    puts " --date=date"
-    puts " where app is the name of the app e.g. qs-alpha or qs-bleedin"
+    puts ' --yesterday'
+    puts ' --date=date'
+    puts ' where app is the name of the app e.g. qs-alpha or qs-bleedin'
     exit
   when '--yesterday'
     @yesterday = true

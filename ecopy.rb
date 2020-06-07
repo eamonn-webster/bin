@@ -27,7 +27,7 @@ require 'ecopy_process_folder'
 require 'option_file_matcher'
 
 if ARGV.empty?
-  puts "usage ecopy.rb -s source -d dest other-options"
+  puts 'usage ecopy.rb -s source -d dest other-options'
 else
   ECopy.run(ARGV)
 end

@@ -37,6 +37,7 @@ class Board
     loop do
       ch = read_char
       break if ch == 'q'
+
       @board[pos] = ch.to_i
       pos += 1
       display_board(nil, pos)

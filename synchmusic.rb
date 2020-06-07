@@ -28,100 +28,101 @@
 #  2nd May 2020  eweb     #0008 including Running
 #
 
-if Dir.exist?('/Volumes/IOMEGA0')
-  drive = 'IOMEGA0'
-elsif Dir.exist?('/Volumes/iomega1')
-  drive = 'iomega1'
-else
-  puts 'Removeable drive not found'
-  exit
-end
+def main
+  if Dir.exist?('/Volumes/IOMEGA0')
+    drive = 'IOMEGA0'
+  elsif Dir.exist?('/Volumes/iomega1')
+    drive = 'iomega1'
+  else
+    puts 'Removeable drive not found'
+    exit
+  end
 
-# rsyncflags = 'rt'
-# r recursive
-# l preserve symlinks
-# p preserve permissions
-# t preserve times
-# g preserve group
-# o preserve owner
-# D same as --devices --specials
+  # rsyncflags = 'rt'
+  # r recursive
+  # l preserve symlinks
+  # p preserve permissions
+  # t preserve times
+  # g preserve group
+  # o preserve owner
+  # D same as --devices --specials
 
-if Dir.exist?('/Volumes/Transcend')
-  src = "/Volumes/Transcend/Music/iTunes"
-else
-  src = "/Users/eweb/Music/iTunes"
-end
+  src = if Dir.exist?('/Volumes/Transcend')
+          '/Volumes/Transcend/Music/iTunes'
+        else
+          '/Users/eweb/Music/iTunes'
+        end
 
-if @back
   dst = "/Volumes/#{drive}/iTunes"
 
-  cmd = "rsync -rtvi --exclude .DS_Store #{dst}/ #{src}"
-  puts cmd
-  system(cmd)
-  cmd.gsub!('iTunes', 'Own')
-  puts cmd
-  system(cmd)
-else
-  dst = "/Volumes/#{drive}/iTunes"
-  cmd = "rsync -rtvi --exclude .DS_Store --exclude 'Mobile Applications' --exclude 'Not Added' --delete-during #{src}/ #{dst}"
-  puts cmd
-  system(cmd)
+  if @back
+    cmd = "rsync -rtvi --exclude .DS_Store #{dst}/ #{src}"
+    puts cmd
+    system(cmd)
+    cmd.gsub!('iTunes', 'Own')
+    puts cmd
+    system(cmd)
+  else
+    cmd = "rsync -rtvi --exclude .DS_Store --exclude 'Mobile Applications' --exclude 'Not Added' --delete-during #{src}/ #{dst}"
+    puts cmd
+    system(cmd)
 
-  src = "/Users/eweb/Music/Own"
-  dst = "/Volumes/#{drive}/Own"
-  cmd = "rsync -rtvi --exclude .DS_Store #{src}/ #{dst}"
-  puts cmd
-  system(cmd)
+    src = '/Users/eweb/Music/Own'
+    dst = "/Volumes/#{drive}/Own"
+    cmd = "rsync -rtvi --exclude .DS_Store #{src}/ #{dst}"
+    puts cmd
+    system(cmd)
 
-  src = "/Users/eweb/Pictures/Photos Library.photoslibrary/Masters"
-  dst = "/Volumes/#{drive}/Pictures/Masters"
-  cmd = "rsync -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
-  puts cmd
-  system(cmd)
-
-  src = "/Users/eweb/projects/wbt.git"
-  dst = "/Volumes/#{drive}/projects/wbt.git"
-  if Dir.exist?(src)
+    src = '/Users/eweb/Pictures/Photos Library.photoslibrary/Masters'
+    dst = "/Volumes/#{drive}/Pictures/Masters"
     cmd = "rsync -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
     puts cmd
     system(cmd)
-  end
 
-  src = "/Users/eweb/projects/acc"
-  dst = "/Volumes/#{drive}/projects/acc"
-  %w[ruby Accounts Shopping].each do |dir|
-    cmd = "rsync -rtvi --exclude .DS_Store '#{src}/#{dir}/tmp/metric_fu/' '#{dst}/#{dir}/tmp/metric_fu'"
-    puts cmd
-    system(cmd)
-  end
+    src = '/Users/eweb/projects/wbt.git'
+    dst = "/Volumes/#{drive}/projects/wbt.git"
+    if Dir.exist?(src)
+      cmd = "rsync -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
+      puts cmd
+      system(cmd)
+    end
 
-  dirs = [["/Volumes/#{drive}/projects/acc", "git@bitbucket.org:eamoon/acc.git"],
-          ["/Volumes/#{drive}/projects/Running", "git@bitbucket.org:eamoon/running.git"],
-          ["/Volumes/#{drive}/accounts/master", "git@bitbucket.org:eamoon/data.git"],
-          ["/Volumes/#{drive}/bin", "git@bitbucket.org:eamoon/bin.git"],
-          ["/Volumes/#{drive}/projects/metric_fu", "https://github.com/eamonn-webster/metric_fu.git"],
-          ["/Volumes/#{drive}/projects/flog", "https://github.com/eamonn-webster/flog.git"],
-          # ["/Volumes/#{drive}/projects/wbt", "/Users/eweb/projects/wbt.git"]
-          ["/Volumes/#{drive}/projects/simway", "git@bitbucket.org:eamoon/simway.git"],
-          ["/Volumes/#{drive}/projects/bacon-expect", "https://github.com/eamonn-webster/bacon-expect.git"]]
+    src = '/Users/eweb/projects/acc'
+    dst = "/Volumes/#{drive}/projects/acc"
+    %w[ruby Accounts Shopping].each do |dir|
+      cmd = "rsync -rtvi --exclude .DS_Store '#{src}/#{dir}/tmp/metric_fu/' '#{dst}/#{dir}/tmp/metric_fu'"
+      puts cmd
+      system(cmd)
+    end
 
-  dirs.each do |dir, remote|
-    puts dir
-    if Dir.exist?(dir)
-      Dir.chdir(dir) do
-        puts "git pull"
-        system("git pull")
+    dirs = [["/Volumes/#{drive}/projects/acc", 'git@bitbucket.org:eamoon/acc.git'],
+            ["/Volumes/#{drive}/projects/Running", 'git@bitbucket.org:eamoon/running.git'],
+            ["/Volumes/#{drive}/accounts/master", 'git@bitbucket.org:eamoon/data.git'],
+            ["/Volumes/#{drive}/bin", 'git@bitbucket.org:eamoon/bin.git'],
+            ["/Volumes/#{drive}/projects/metric_fu", 'https://github.com/eamonn-webster/metric_fu.git'],
+            ["/Volumes/#{drive}/projects/flog", 'https://github.com/eamonn-webster/flog.git'],
+            # ["/Volumes/#{drive}/projects/wbt", "/Users/eweb/projects/wbt.git"]
+            ["/Volumes/#{drive}/projects/simway", 'git@bitbucket.org:eamoon/simway.git'],
+            ["/Volumes/#{drive}/projects/bacon-expect", 'https://github.com/eamonn-webster/bacon-expect.git']]
+
+    dirs.each do |dir, remote|
+      puts dir
+      if Dir.exist?(dir)
+        Dir.chdir(dir) do
+          puts 'git pull'
+          system('git pull')
+        end
+      else
+        puts("git clone #{remote} #{dir}")
+        system("git clone #{remote} #{dir}")
       end
-    else
-      puts("git clone #{remote} #{dir}")
-      system("git clone #{remote} #{dir}")
     end
   end
 end
 
 def transfer_fu
-  transfer_fu_inner("/Volumes/eweb/projects/acc", "/Users/eweb/projects/acc", %w[ruby Accounts Shopping])
-  transfer_fu_inner("/Volumes/eweb/projects/Running", "/Users/eweb/projects/Running", %w[Running])
+  transfer_fu_inner('/Volumes/eweb/projects/acc', '/Users/eweb/projects/acc', %w[ruby Accounts Shopping])
+  transfer_fu_inner('/Volumes/eweb/projects/Running', '/Users/eweb/projects/Running', %w[Running])
 end
 
 def transfer_fu_inner(src, dst, folders)
@@ -134,13 +135,17 @@ end
 
 def get_music
   drive = 'iomega1'
-  src = "/Users/eweb/Music/iTunes"
-  src = "/Volumes/Transcend/Music/iTunes"
-  dst = "/Volumes/#{drive}/iTunes"
+  # src = "/Users/eweb/Music/iTunes"
+  # src = "/Volumes/Transcend/Music/iTunes"
+  # dst = "/Volumes/#{drive}/iTunes"
 
-  dst = "/Users/eweb/Music/iTunes"
+  dst = '/Users/eweb/Music/iTunes'
   src = "/Volumes/#{drive}/iTunes"
   cmd = "rsync -rtvi --exclude .DS_Store --exclude 'Mobile Applications' --exclude 'Not Added' --delete-during #{src}/ #{dst}"
   puts cmd
   # system(cmd)
+end
+
+if $PROGRAM_NAME == __FILE__
+  main
 end

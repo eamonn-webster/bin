@@ -31,7 +31,7 @@
 #  1st Jan 2019  eweb     #0008 ignore temp emacs files
 #
 
-def find_git(where = ".")
+def find_git(where = '.')
   where = File.expand_path where
   if File.directory?("#{where}/.git")
     where
@@ -56,7 +56,7 @@ script_file = project_root + '/cos.sh'
 
 changed_files = []
 
-IO.popen("git status") do |f|
+IO.popen('git status') do |f|
   stage = nil
   f.each do |line|
     line.chomp
@@ -121,14 +121,14 @@ def get_comments(file)
     end
   end
   comments
-rescue => e
+rescue StandardError => e
   puts "Error scanning file #{file} for comments #{e}"
   []
 end
 
 if changed_files.length
   files_changed = 0
-  File.open(script_file, "w") do |script|
+  File.open(script_file, 'w') do |script|
     script.puts "pushd #{project_root} > /dev/null"
     stage =
       changed_files.each do |f|
@@ -154,7 +154,7 @@ if changed_files.length
           end
         end
       end
-    script.puts "popd > /dev/null"
+    script.puts 'popd > /dev/null'
   end
   puts "#{files_changed} files changed"
 

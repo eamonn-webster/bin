@@ -19,7 +19,7 @@ gitlog.each_line do |line|
     minor = $3
     point = $4
     build = $5
-    build = format("%03d", build.to_i)
+    build = format('%03d', build.to_i)
     mnp = "#{major}#{minor}#{point}"
     tag = "ACC_#{mnp}_BUILD_#{build}"
     puts "found #{commit} for #{tag}"

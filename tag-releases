@@ -33,6 +33,7 @@ end
 
 apps.each do |app|
   next unless %w[qs-alpha qs-core-eu-1].include?(app)
+
   displayed = false
   releases = `heroku releases --app #{app}`
   releases.each_line do |release|

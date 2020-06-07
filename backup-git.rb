@@ -15,13 +15,13 @@ cur_dir = Dir.pwd
 
 root = nil
 if cur_dir =~ /^(.):/
-  root = "$1:/"
+  root = '$1:/'
 elsif cur_dir =~ /^\/cygdrive\/(.)/
-  root = "/cygdrive/$1/"
+  root = '/cygdrive/$1/'
 elsif RUBY_PLATFORM =~ /darwin/
   root = ''
 elsif cur_dir =~ /^\/(.)/
-  root = "/$1/"
+  root = '/$1/'
 end
 
 # puts "root: #{root}"
@@ -70,20 +70,20 @@ end
   end
 end
 
-if mnp == ""
+if mnp == ''
   mnp = '800'
 end
 
 # puts "mnp: #{mnp}"
 
-backups = "/cygdrive/c/backups/"
+backups = '/cygdrive/c/backups/'
 if RUBY_PLATFORM =~ /darwin/
   backups = "#{ENV['HOME']}/backups/"
 end
 
 t = Time.now
 
-date = format("%04d-%02d-%02d", t.year, t.mon, t.day)
+date = format('%04d-%02d-%02d', t.year, t.mon, t.day)
 
 tar = "#{backups}#{prefix}#{mnp}-git-#{date}.tar.gz"
 cmd = "tar -czf #{tar} #{root}.git"

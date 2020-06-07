@@ -66,8 +66,10 @@ end
 Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
   next if !Dir.exist?(dir)
   next if dir_to_do && File.basename(dir) != dir_to_do
+
   Dir.chdir(dir) do |_dir|
     next unless Dir.exist?('.git')
+
     remote = `git remote -v | grep -e 'origin.\\+fetch'`.chomp
     if remote =~ %r{git@github.com:qstream/(.+)(?:\.git) } ||
       remote =~ %r{https://github.com/qstream/(.+)(?:\.git) }
@@ -76,7 +78,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
       current = `git rev-parse --abbrev-ref HEAD`.chomp
       puts "\033[0;34m#{dir}\033[0m \033[0;35m#{current}\033[0m \033[0;36m#{url}\033[0m"
 
-      Open3.popen2e("git", "fetch", "origin", "-p", "--no-tags") do |_i, oe, _t|
+      Open3.popen2e('git', 'fetch', 'origin', '-p', '--no-tags') do |_i, oe, _t|
         oe.each do |line|
           line.chomp!
           if /Fetching repository, done./ =~ line
@@ -91,7 +93,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
       print "\033[2K\r"
 
       # for each remote that matches an app
-      if (repo == 'qs-core' || repo == 'spaced-ed') && do_tags
+      if repo == 'qs-core' && do_tags
         app_list.each do |app|
           #tags = `#{bin_dir}/tag-releases.rb #{app}`.chomp
           tags = `tag-releases #{app}`.chomp
@@ -104,6 +106,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
 
       branches.each do |br|
         next if br == current
+
         matching = `git branch --list --remote origin/#{br}`
         unless matching.empty?
           matching.each_line do |line|
@@ -117,7 +120,7 @@ Dir["#{ENV['HOME']}/projects/qstream/*"].each do |dir|
         end
       end
 
-      Open3.popen2e("git", "pull", "-p", "--no-tags") do |_i, oe, _t|
+      Open3.popen2e('git', 'pull', '-p', '--no-tags') do |_i, oe, _t|
         oe.each do |line|
           line.chomp!
           if /Fetching repository, done./ =~ line

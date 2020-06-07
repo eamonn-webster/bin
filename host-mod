@@ -24,7 +24,7 @@ addr = addrs.lines.first.chomp
 `~/Library/Android/sdk/platform-tools/adb remount`
 `~/Library/Android/sdk/platform-tools/adb push /tmp/hosts /system/etc`
 
-puts "Hosts file updated!"
+puts 'Hosts file updated!'
 
 # ~/bin/host-mod
 # fswatch /etc ~/bin/host-mod

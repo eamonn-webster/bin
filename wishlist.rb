@@ -24,11 +24,12 @@ def handle_row(row)
       next if attr == 'requested'
       next if attr == 'received'
       next if attr == 'priority'
+
       txt = cell.text
       begin
         txt = text.strip
-      rescue
-        txt = txt.chars.collect { |ch| ch == "\xA3" ? "£" : ch }.join.strip
+      rescue StandardError
+        txt = txt.chars.collect { |ch| ch == "\xA3" ? '£' : ch }.join.strip
       end
       if attr == 'title'
         txt.lines.collect(&:strip).reject(&:empty?).each_with_index do |line, i|
@@ -87,6 +88,7 @@ def wishlist(listname)
     link = doc.xpath("//li[@class='a-last']")
     #puts link
     break if link.empty?
+
     page += 1
   end
 end

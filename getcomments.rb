@@ -15,17 +15,17 @@
 class Integer
   def ordinal
     if (11..13).cover?(abs % 100)
-      "th"
+      'th'
     else
       case abs % 10
       when 1
-        "st"
+        'st'
       when 2
-        "nd"
+        'nd'
       when 3
-        "rd"
+        'rd'
       else
-        "th"
+        'th'
       end
     end
   end
@@ -75,7 +75,7 @@ def getopts(str, opts)
 end
 
 # Was anything other than the defined option entered on the command line?
-if !getopts("s:l:v:d:t:", opts) || ARGV.any?
+if !getopts('s:l:v:d:t:', opts) || ARGV.any?
   print STDERR "Unknown arg #{ARGV[0]}\n" if ARGV.any?
   #Usage()
   exit
@@ -186,7 +186,7 @@ def onefile(file, since)
           puts "saving [#{bugid} #{text}]" if @verbose
           @old_comments << "#{bugid} #{text}"
         else
-          puts "looking for [bugid text] in (@old_comments)" if @verbose
+          puts 'looking for [bugid text] in (@old_comments)' if @verbose
           if @old_comments.none? { |c| c == "#{bugid} #{text}" }
             #print "#{bugid} [#{text}]\n"
             if @comments.none? { |c| c == comment }
@@ -208,12 +208,12 @@ def get_comments
     since = @rev.to_s
     cmd = "git diff --name-only #{since}"
   elsif @scc == :p4
-    cmd = "p4 diff -sa"
+    cmd = 'p4 diff -sa'
   elsif @scc == :clearcase
-    cmd = "cleartool lsco -cview -avobs -short"
+    cmd = 'cleartool lsco -cview -avobs -short'
     #cmd = "dir /b *.pl"
   elsif @scc == :svn
-    cmd = "svn status -q"
+    cmd = 'svn status -q'
     #cmd = "dir /b *.pl"
   end
   puts cmd if @verbose

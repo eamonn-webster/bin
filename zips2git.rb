@@ -11,11 +11,12 @@
 #
 
 def getkey
-  system("stty raw -echo") #=> Raw mode, no echo
+  system('stty raw -echo') #=> Raw mode, no echo
   char = STDIN.getc
-  system("stty -raw echo") #=> Reset terminal mode
+  system('stty -raw echo') #=> Reset terminal mode
   exit if char.ord == 3
   raise '^C' if char.ord == 3
+
   char
 end
 

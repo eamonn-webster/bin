@@ -14,7 +14,7 @@
 #  7th Nov 2019  eweb     #0008 use unzip
 #
 
-itunes_dir = "/Volumes/Transcend/Music/iTunes"
+itunes_dir = '/Volumes/Transcend/Music/iTunes'
 if !Dir.exist?(itunes_dir)
   itunes_dir = "#{ENV['HOME']}/Music/iTunes"
 end
@@ -30,12 +30,12 @@ end
 Dir.chdir("#{own_dir}/temp") do
   puts Dir["#{downloads}/*\\ -\\ *.zip"]
   shell("mv #{downloads}/*\\ -\\ *.zip .")
-  Dir["*.zip"].map do |z|
-    b = File.basename(z, ".zip")
+  Dir['*.zip'].map do |z|
+    b = File.basename(z, '.zip')
     shell("unzip \"#{z}\" -d \"#{b}\"")
   end
-  shell("mv *.zip ..")
-  Dir["*"].each do |f|
+  shell('mv *.zip ..')
+  Dir['*'].each do |f|
     shell("mv \"#{f}\" #{itunes_dir}/iTunes\\ Media/Automatically\\ Add\\ to\\ iTunes.localized/")
     sleep(5)
   end

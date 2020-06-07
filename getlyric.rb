@@ -36,7 +36,7 @@ def save_lyrics(lyric)
   lyric.gsub!('<i>', '(')
   lyric.gsub!('</i>', ')')
   puts lyric
-  puts "**** Contains entities" if lyric[/&.+;/]
+  puts '**** Contains entities' if lyric[/&.+;/]
 
   IO.popen('pbcopy', 'w').puts lyric
 end
@@ -47,7 +47,7 @@ def tidy(lyric)
   lyric = lyric.gsub(/<!--.+?-->/m, '')
   lyric = lyric.gsub(/<br>\n/, "\n")
   lyric = lyric.gsub(/<br>/, "\n")
-  lyric = lyric.gsub(/<p>/, "")
+  lyric = lyric.gsub(/<p>/, '')
   lyric = lyric.gsub(/<\/p>/, "\n")
   lyric.strip
 end
@@ -62,7 +62,7 @@ end
 
 def fetch_lyricsmania
   artist = ARGV[0] if ARGV.any?
-  song = ARGV[1..-1].join(' ') if ARGV.length > 1
+  song = ARGV[1..].join(' ') if ARGV.length > 1
 
   artist = artist.downcase
   song = song.downcase
@@ -81,14 +81,14 @@ def fetch_lyricsmania
     doc = Nokogiri::HTML(open(url))
     lyric = doc.xpath("id('songlyrics_h')").inner_text
     process_lyric(lyric)
-  rescue => e
+  rescue StandardError => e
     puts "#{e.class} #{e.message}"
   end
 end
 
 def fetch_lyrics_wikia
   artist = ARGV[0].dup if ARGV.any?
-  song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
+  song = ARGV[1..].join(' ').dup if ARGV.length > 1
 
   artist.tr!(' ', '_')
   song.tr!(' ', '_')
@@ -109,14 +109,14 @@ def fetch_lyrics_wikia
       lyric = 'Instrumental'
     end
     process_lyric(lyric)
-  rescue => e
+  rescue StandardError => e
     puts "#{e.class} #{e.message}"
   end
 end
 
 def fetch_lyricsmode
   artist = ARGV[0].dup if ARGV.any?
-  song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
+  song = ARGV[1..].join(' ').dup if ARGV.length > 1
 
   artist.tr!(' ', '_')
   song.tr!(' ', '_')
@@ -132,14 +132,14 @@ def fetch_lyricsmode
 
     lyric = doc.xpath("id('songlyrics_h')").inner_text
     process_lyric(lyric)
-  rescue => e
+  rescue StandardError => e
     puts "#{e.class} #{e.message}"
   end
 end
 
 def fetch_azlyrics
   artist = ARGV[0].dup if ARGV.any?
-  song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
+  song = ARGV[1..].join(' ').dup if ARGV.length > 1
 
   artist.tr!(' ', '_')
   song.tr!(' ', '_')
@@ -162,14 +162,14 @@ def fetch_azlyrics
 
     lyric = doc.xpath("id('songlyrics_h')").inner_text
     process_lyric(lyric)
-  rescue => e
+  rescue StandardError => e
     puts "#{e.class} #{e.message}"
   end
 end
 
 def fetch_lyricstime
   artist = ARGV[0].dup if ARGV.any?
-  song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
+  song = ARGV[1..].join(' ').dup if ARGV.length > 1
   artist = artist.downcase
   song = song.downcase
   artist.gsub!(/[^a-z0-9]+/, '-')
@@ -181,14 +181,14 @@ def fetch_lyricstime
     doc = Nokogiri::HTML(open(url))
     lyric = doc.xpath("id('songlyrics')/p").inner_html
     process_lyric(lyric)
-  rescue => e
+  rescue StandardError => e
     puts e
   end
 end
 
 def fetch_irishmusicdb
   artist = ARGV[0].dup if ARGV.any?
-  song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
+  song = ARGV[1..].join(' ').dup if ARGV.length > 1
   artist = artist.downcase
   song = song.downcase
   artist.gsub!(/[^a-z0-9]+/, '')
@@ -204,7 +204,7 @@ def fetch_irishmusicdb
     doc = Nokogiri::HTML(open(url))
     lyric = doc.xpath("id('songlyrics')/p").inner_text
     process_lyric(lyric)
-  rescue => e
+  rescue StandardError => e
     puts e
   end
 end
@@ -213,7 +213,7 @@ end
 # https://genius.com/champion-jack-dupree-im-tired-of-moaning-lyrics
 def fetch_genius
   artist = ARGV[0].dup if ARGV.any?
-  song = ARGV[1..-1].join(' ').dup if ARGV.length > 1
+  song = ARGV[1..].join(' ').dup if ARGV.length > 1
   artist = artist.downcase
   song = song.downcase
   artist.gsub!(/[^a-z0-9]+/, '-')
@@ -227,7 +227,7 @@ def fetch_genius
     doc = Nokogiri::HTML(open(url))
     lyric = doc.xpath("//div[@class='lyrics']").inner_text
     process_lyric(lyric)
-  rescue => e
+  rescue StandardError => e
     puts e
   end
 end

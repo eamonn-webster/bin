@@ -31,13 +31,13 @@ class Comment
   end
 
   def self.display_missing
-    @missing_ids.values.each do |v|
+    @missing_ids.each_value do |v|
       puts v.format
     end
   end
 
   def self.display_with
-    @with_ids.values.each do |v|
+    @with_ids.each_value do |v|
       puts v.format
     end
   end
@@ -92,6 +92,7 @@ def process_file(file, input)
 
   input.each do |line|
     next unless line.valid_encoding?
+
     line.chomp!
     if multiline.nil?
       if line =~ /^#/
@@ -122,7 +123,7 @@ def process_file(file, input)
 
     if history
       if multiline == false
-        line = line[(prefix.length)..-1]
+        line = line[(prefix.length)..]
       end
       if line =~ /^\s+([0-9]{1,2}(?:st|nd|rd|th) [A-Z][a-z][a-z] [0-9]{4})\s+([^ ]+)\s+(.+)/
         date = $1
@@ -150,6 +151,7 @@ else
   ARGV.each do |arg|
     next if arg.start_with?('-')
     next if File.directory? arg
+
     # puts arg
     process_file arg, File.open(arg)
   end

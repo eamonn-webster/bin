@@ -12,7 +12,7 @@
 
 FirstUnlink = StandardError
 
-open("|brew list -1").each_line do |formula|
+open('|brew list -1').each_line do |formula|
   puts formula
   begin
     open("|brew reinstall #{formula}").each_line do |line|

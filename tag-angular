@@ -19,7 +19,7 @@ end
 def commit_for_distribution
   current_commit = nil
   commits = {}
-  run("git log --all --name-status -- dist/scripts/").each_line do |line|
+  run('git log --all --name-status -- dist/scripts/').each_line do |line|
     if line =~ /^commit (.+)$/
       current_commit = $1
     elsif line =~ %r{^A\s+dist/scripts/(vendor\..+\.js)}
@@ -49,6 +49,7 @@ def main(tag)
   # puts "files: #{files}"
   file = files.first
   return unless file
+
   puts file
   repo = 'qs-user-admin'
   Dir.chdir("../#{repo}") do

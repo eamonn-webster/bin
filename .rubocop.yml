@@ -31,10 +31,10 @@ Style/NestedTernaryOperator:
 Layout/IndentationWidth:
   Enabled: true
 
-Layout/IndentFirstArrayElement:
+Layout/FirstArrayElementIndentation:
   Enabled: true
 
-Layout/AlignArray:
+Layout/ArrayAlignment:
   Enabled: false
 
 Layout/LeadingCommentSpace:
@@ -52,8 +52,8 @@ Layout/SpaceInsideHashLiteralBraces:
 Naming/VariableNumber:
   Enabled: false
 
-Metrics/LineLength:
-  Max: 160
+Layout/LineLength:
+  Max: 200
 
 Metrics/MethodLength:
   Max: 200
@@ -91,7 +91,7 @@ Metrics/ParameterLists:
 Naming/MethodName:
   Enabled: true
 
-Layout/IndentFirstHashElement:
+Layout/FirstHashElementIndentation:
   Enabled: true
 
 Style/BlockComments:
@@ -160,7 +160,7 @@ Bundler/OrderedGems:
 Bundler/DuplicatedGem:
   Enabled: false
 
-Naming/UncommunicativeMethodParamName:
+Naming/MethodParameterName:
   Enabled: false
 
 Style/ParallelAssignment:
@@ -170,7 +170,49 @@ Security/Open:
   Enabled: false
 
 Style/RescueStandardError:
-  Enabled: false
+  Enabled: true
 
 Style/AsciiComments:
   Enabled: false
+
+Style/FormatStringToken:
+  Enabled: false
+
+Layout/EmptyLinesAroundAttributeAccessor: # (0.83)
+  Enabled: true
+
+Layout/SpaceAroundMethodCallOperator: # (0.82)
+  Enabled: true
+
+Lint/DeprecatedOpenSSLConstant: # (0.84)
+  Enabled: true
+
+Lint/MixedRegexpCaptureTypes: # (0.85)
+  Enabled: true
+
+Lint/RaiseException: # (0.81)
+  Enabled: true
+
+Lint/StructNewOverride: # (0.81)
+  Enabled: true
+
+Style/ExponentialNotation: # (0.82)
+  Enabled: true
+
+Style/HashEachMethods: # (0.80)
+  Enabled: true
+
+Style/HashTransformKeys: # (0.80)
+  Enabled: true
+
+Style/HashTransformValues: # (0.80)
+  Enabled: true
+
+Style/RedundantRegexpCharacterClass: # (0.85)
+  Enabled: true
+
+Style/RedundantRegexpEscape: # (0.85)
+  Enabled: true
+
+Style/SlicingWithRange: # (0.83)
+  Enabled: true

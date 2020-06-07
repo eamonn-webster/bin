@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
+
 #
 # File: dependency.rb
 # Author: HipByte
@@ -242,11 +243,11 @@ def main(argv)
     files = []
     argv.each do |arg|
       if arg[0] == '-'
-        if arg['*']
-          files -= Dir.glob(arg[1..-1])
-        else
-          files -= Dir.glob("#{arg[1..-1]}/**/*.rb")
-        end
+        files -= if arg['*']
+                   Dir.glob(arg[1..])
+                 else
+                   Dir.glob("#{arg[1..]}/**/*.rb")
+                 end
       else
         files += Dir.glob("#{arg}/**/*.rb")
       end

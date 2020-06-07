@@ -19,7 +19,7 @@ base ||= 'master'
 
 if ARGV.empty?
   puts "usage #{$PROGRAM_NAME} issue [head:#{head}] [base:#{base}]"
-  puts "hub pull-request -i <issue> -b <base> -h qstream:<head>"
+  puts 'hub pull-request -i <issue> -b <base> -h qstream:<head>'
 else
   #cmd = "curl -ss --user eamonn-webster --request POST --data '{\"issue\": \"#{issue}\", \"head\": \"#{head}\", \"base\": \"#{base}\"}' https://api.github.com/repos/qstream/spaced-ed/pulls"
   cmd = "hub pull-request -i #{issue} -b #{base} -h qstream:#{head}"

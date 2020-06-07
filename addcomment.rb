@@ -752,7 +752,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
     print "(#{@file}, #{@path})\n" if @verbose.to_i > 2
 
     # strip trailing slash
-    @path.sub!(%r{\/$}, '')
+    @path.sub!(%r{/$}, '')
     @path.sub!(%r{\\$}, '')
 
     #print "(@file, @path)\n"
@@ -809,7 +809,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
 
     process_lines
     write_results
-  rescue
+  rescue StandardError
     puts "Error processing file #{@file}"
     raise
   end
@@ -1466,7 +1466,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
         end
       end
     end
-  rescue => e
+  rescue StandardError => e
     print "Error: failed to open #{gitmsg} #{e}\n" if @verbose.to_i > 2
   end
 end

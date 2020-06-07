@@ -16,8 +16,10 @@ iomega_home = "#{ENV['HOME']}/iomega0/Documents and Settings/eweb/My Documents/M
 Dir.new(iomega_home).each do |artist|
   next if artist =~ /^\./
   next unless File.directory?("#{iomega_home}/#{artist}")
+
   Dir.new("#{iomega_home}/#{artist}").each do |album|
     next if album =~ /^\./
+
     orig = album
     album = album.gsub(/ Disc [1-9]$/, '')
     album = album.gsub(/ \[.+\]$/, '')
