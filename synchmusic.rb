@@ -26,6 +26,7 @@
 # 14th Jan 2019  eweb     #0008 transferring to new machine
 #  3rd Jun 2019  eweb     #0008 skip if source not found
 #  2nd May 2020  eweb     #0008 including Running
+# 15th Jun 2020  eweb     #0008 exclude movies
 #
 
 def main
@@ -63,7 +64,7 @@ def main
     puts cmd
     system(cmd)
   else
-    cmd = "rsync -rtvi --exclude .DS_Store --exclude 'Mobile Applications' --exclude 'Not Added' --delete-during #{src}/ #{dst}"
+    cmd = "rsync -rtvi --exclude .DS_Store --exclude 'Mobile Applications' --exclude 'Not Added' --exclude 'Movies' --delete-during #{src}/ #{dst}"
     puts cmd
     system(cmd)
 
