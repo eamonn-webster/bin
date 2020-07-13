@@ -200,7 +200,7 @@ GEM
     rexml (3.2.4)
     roodi (5.0.0)
       ruby_parser (~> 3.2, >= 3.2.2)
-    rubocop (0.87.1)
+    rubocop (0.88.0)
       parallel (~> 1.10)
       parser (>= 2.7.1.1)
       rainbow (>= 2.2.2, < 4.0)
