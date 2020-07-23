@@ -3,7 +3,7 @@
 #
 # File: import_music.rb
 # Author: eweb
-# Copyright eweb, 2018-2019
+# Copyright eweb, 2018-2020
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -12,6 +12,7 @@
 #  2nd Sep 2018  eweb     #0008 sleep between moves
 #  1st Feb 2019  eweb     #0008 iTunes not on Transcend
 #  7th Nov 2019  eweb     #0008 use unzip
+# 23rd Jul 2020  eweb     #0008 Music has moved
 #
 
 itunes_dir = '/Volumes/Transcend/Music/iTunes'
@@ -36,7 +37,7 @@ Dir.chdir("#{own_dir}/temp") do
   end
   shell('mv *.zip ..')
   Dir['*'].each do |f|
-    shell("mv \"#{f}\" #{itunes_dir}/iTunes\\ Media/Automatically\\ Add\\ to\\ iTunes.localized/")
+    shell("mv \"#{f}\" #{itunes_dir}/iTunes\\ Media/Automatically\\ Add\\ to\\ Music.localized/")
     sleep(5)
   end
 end
