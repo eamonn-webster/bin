@@ -27,6 +27,9 @@
 #  3rd Jun 2019  eweb     #0008 skip if source not found
 #  2nd May 2020  eweb     #0008 including Running
 # 15th Jun 2020  eweb     #0008 exclude movies
+# 31st Aug 2020  eweb     #0008 use brewed rsync
+# 31st Aug 2020  eweb     #0008 specify utf-8-mac
+# 31st Aug 2020  eweb     #0008 exclude Automatically Added
 #
 
 def main
@@ -56,34 +59,36 @@ def main
 
   dst = "/Volumes/#{drive}/iTunes"
 
+  rsync = '/usr/local/bin/rsync'
+
   if @back
-    cmd = "rsync -rtvi --exclude .DS_Store #{dst}/ #{src}"
+    cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store #{dst}/ #{src}"
     puts cmd
     system(cmd)
     cmd.gsub!('iTunes', 'Own')
     puts cmd
     system(cmd)
   else
-    cmd = "rsync -rtvi --exclude .DS_Store --exclude 'Mobile Applications' --exclude 'Not Added' --exclude 'Movies' --delete-during #{src}/ #{dst}"
+    cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store --exclude 'Mobile Applications' --exclude 'Automatically Add to *.localized' --exclude 'Movies' --delete-during #{src}/ #{dst}"
     puts cmd
     system(cmd)
 
     src = '/Users/eweb/Music/Own'
     dst = "/Volumes/#{drive}/Own"
-    cmd = "rsync -rtvi --exclude .DS_Store #{src}/ #{dst}"
+    cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store #{src}/ #{dst}"
     puts cmd
     system(cmd)
 
     src = '/Users/eweb/Pictures/Photos Library.photoslibrary/Masters'
     dst = "/Volumes/#{drive}/Pictures/Masters"
-    cmd = "rsync -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
+    cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
     puts cmd
     system(cmd)
 
     src = '/Users/eweb/projects/wbt.git'
     dst = "/Volumes/#{drive}/projects/wbt.git"
     if Dir.exist?(src)
-      cmd = "rsync -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
+      cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
       puts cmd
       system(cmd)
     end
@@ -91,7 +96,7 @@ def main
     src = '/Users/eweb/projects/acc'
     dst = "/Volumes/#{drive}/projects/acc"
     %w[ruby Accounts Shopping].each do |dir|
-      cmd = "rsync -rtvi --exclude .DS_Store '#{src}/#{dir}/tmp/metric_fu/' '#{dst}/#{dir}/tmp/metric_fu'"
+      cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store '#{src}/#{dir}/tmp/metric_fu/' '#{dst}/#{dir}/tmp/metric_fu'"
       puts cmd
       system(cmd)
     end
@@ -128,7 +133,7 @@ end
 
 def transfer_fu_inner(src, dst, folders)
   folders.each do |dir|
-    cmd = "rsync -rtvi --exclude .DS_Store '#{src}/#{dir}/tmp/metric_fu/' '#{dst}/#{dir}/tmp/metric_fu'"
+    cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store '#{src}/#{dir}/tmp/metric_fu/' '#{dst}/#{dir}/tmp/metric_fu'"
     puts cmd
     system(cmd)
   end
@@ -142,7 +147,7 @@ def get_music
 
   dst = '/Users/eweb/Music/iTunes'
   src = "/Volumes/#{drive}/iTunes"
-  cmd = "rsync -rtvi --exclude .DS_Store --exclude 'Mobile Applications' --exclude 'Not Added' --delete-during #{src}/ #{dst}"
+  cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store --exclude 'Mobile Applications' --exclude 'Not Added' --delete-during #{src}/ #{dst}"
   puts cmd
   # system(cmd)
 end
