@@ -38,6 +38,7 @@
 # 17th Dec 2019  eweb     #0008 ignore constant assigns
 # 17th Dec 2019  eweb     #0008 ignore modules
 #  1st Jan 2020  eweb     #0008 ignore ruby built ins
+# 14th Sep 2020  eweb     #0008 revert changes
 
 require 'ripper'
 
@@ -182,7 +183,7 @@ module Dependencies
         args
       end
 
-      def not_on_assign(const, *_args)
+      def on_assign(const, *_args)
         type, name, _position = const
         if type == :@const
           @defined << name
@@ -191,7 +192,7 @@ module Dependencies
       end
 
       def on_module(const, *args)
-        # handle_module_class_event(const, args)
+        handle_module_class_event(const, args)
       end
 
       def on_class(const, *args)
