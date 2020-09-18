@@ -39,6 +39,7 @@
 # 17th Dec 2019  eweb     #0008 ignore modules
 #  1st Jan 2020  eweb     #0008 ignore ruby built ins
 # 14th Sep 2020  eweb     #0008 revert changes
+# 18th Sep 2020  eweb     #0008 options for changes
 
 require 'ripper'
 
@@ -51,6 +52,8 @@ module Dependencies
       @dependencies = dependencies
     end
 
+    attr_accessor :dump, :multi_defs, :ignore_consts
+
     def warnings
       @warnings ||= []
     end
@@ -61,6 +64,8 @@ module Dependencies
     end
 
     def cyclic?(dependencies, def_path, ref_path, const)
+      return if ignore_const?(const)
+
       deps = dependencies[def_path]
       if deps
         if deps.include?(ref_path)
@@ -83,11 +88,20 @@ module Dependencies
       @consts_referred ||= {}
     end
 
+    def ignore_const?(const)
+      ignore_consts && %w[Acc DB Acc::CalcEquiv Acc::CalcExchange BubbleWrap].include?(const)
+    end
+
     def run
       @file_paths.each do |path|
         parser = Constant.new(File.read(path))
         parser.parse
         parser.defined.each do |const|
+          next if ignore_const?(const)
+
+          if consts_defined[const] && consts_defined[const] != path
+            puts "changing #{const} from #{consts_defined[const]} to #{path}" if multi_defs
+          end
           consts_defined[const] = path
         end
         parser.referred.each do |const|
@@ -114,10 +128,12 @@ module Dependencies
           end
         end
       end
-      # pp 'consts_defined = '
-      # pp consts_defined
-      # pp 'consts_referred = '
-      # pp consts_referred.select { |k, _v| consts_defined.key?(k) }
+      if dump
+        pp 'consts_defined = '
+        pp consts_defined
+        pp 'consts_referred = '
+        pp consts_referred.select { |k, _v| consts_defined.key?(k) }
+      end
       dependency
     end
 
@@ -223,14 +239,12 @@ module Dependencies
       end
 
       def construct_nest_constants!(consts, parent, child)
-        nested = []
-        consts.each do |const|
+        consts.each_with_index do |const, i|
           md = const.match(/^([^:]+)/)
-          if md
-            nested << "#{parent}::#{const}" if md[0] == child
+          if md && md[0] == child
+            consts[i] = "#{parent}::#{const}"
           end
         end
-        consts.concat(nested)
       end
     end
   end
@@ -238,6 +252,10 @@ end
 
 def main(argv)
   dependencies = {}
+  dump = argv.delete('--dump')
+  multi_defs = argv.delete('--multi')
+  ignore_consts = argv.delete('--consts')
+
   if argv.empty?
     files = Dir.glob('app/**/*.rb') + Dir.glob('lib/**/*.rb') + Dir.glob('config/**/*.rb')
   else
@@ -255,6 +273,9 @@ def main(argv)
     end
   end
   d = Dependencies::Dependency.new(files, dependencies)
+  d.dump = dump
+  d.multi_defs = multi_defs
+  d.ignore_consts = ignore_consts
   d.run
   puts d.warnings.uniq
   puts d.warnings.uniq.count
