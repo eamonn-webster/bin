@@ -220,7 +220,7 @@ GEM
       puma
       websocket
     ruby-macho (1.4.0)
-    ruby-next-core (0.10.3)
+    ruby-next-core (0.10.4)
     ruby-progressbar (1.10.1)
     ruby-rc4 (0.1.5)
     ruby_parser (3.15.0)
