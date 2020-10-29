@@ -30,7 +30,17 @@
 # 31st Aug 2020  eweb     #0008 use brewed rsync
 # 31st Aug 2020  eweb     #0008 specify utf-8-mac
 # 31st Aug 2020  eweb     #0008 exclude Automatically Added
+# 29th Oct 2020  eweb     #0008 add colour
 #
+
+Green = "\033[0;32m"
+Norm = "\033[0m"
+
+class String
+  def in_green
+    "#{Green}#{self}#{Norm}"
+  end
+end
 
 def main
   if Dir.exist?('/Volumes/IOMEGA0')
@@ -69,22 +79,26 @@ def main
     puts cmd
     system(cmd)
   else
+    puts 'iTunes'.in_green
     cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store --exclude 'Mobile Applications' --exclude 'Automatically Add to *.localized' --exclude 'Movies' --delete-during #{src}/ #{dst}"
     puts cmd
     system(cmd)
 
+    puts 'Own'.in_green
     src = '/Users/eweb/Music/Own'
     dst = "/Volumes/#{drive}/Own"
     cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store #{src}/ #{dst}"
     puts cmd
     system(cmd)
 
+    puts 'Photos'.in_green
     src = '/Users/eweb/Pictures/Photos Library.photoslibrary/Masters'
     dst = "/Volumes/#{drive}/Pictures/Masters"
     cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
     puts cmd
     system(cmd)
 
+    puts 'wbt'.in_green
     src = '/Users/eweb/projects/wbt.git'
     dst = "/Volumes/#{drive}/projects/wbt.git"
     if Dir.exist?(src)
@@ -96,6 +110,7 @@ def main
     src = '/Users/eweb/projects/acc'
     dst = "/Volumes/#{drive}/projects/acc"
     %w[ruby Accounts Shopping].each do |dir|
+      puts dir.in_green
       cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store '#{src}/#{dir}/tmp/metric_fu/' '#{dst}/#{dir}/tmp/metric_fu'"
       puts cmd
       system(cmd)
@@ -112,7 +127,7 @@ def main
             ["/Volumes/#{drive}/projects/bacon-expect", 'https://github.com/eamonn-webster/bacon-expect.git']]
 
     dirs.each do |dir, remote|
-      puts dir
+      puts dir.in_green
       if Dir.exist?(dir)
         Dir.chdir(dir) do
           puts 'git pull'
