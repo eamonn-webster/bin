@@ -10,3 +10,4 @@ apktool
 /*.app/
 /*.scptd/
 /.idea/
+.DS_store
