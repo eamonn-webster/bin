@@ -2,7 +2,7 @@
 #
 # File: getlyric.rb
 # Author: eweb
-# Copyright eweb, 2013-2019
+# Copyright eweb, 2013-2020
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -22,6 +22,7 @@
 # 25th Nov 2018  eweb     #0008 dryed up
 #  6th Dec 2018  eweb     #0008 return inner_html for wikia
 # 18th Aug 2019  eweb     #0008 wikia moved to fandom
+# 29th Nov 2020  eweb     #0008 genius first try 3 times
 #
 require 'nokogiri'
 require 'open-uri'
@@ -224,17 +225,24 @@ def fetch_genius
   puts url
 
   begin
-    doc = Nokogiri::HTML(open(url))
-    lyric = doc.xpath("//div[@class='lyrics']").inner_text
-    process_lyric(lyric)
+    3.times.detect do
+      doc = Nokogiri::HTML(open(url))
+      lyric = doc.xpath("//div[@class='lyrics']").inner_text
+      if process_lyric(lyric)
+        true
+      else
+        puts url
+        false
+      end
+    end
   rescue StandardError => e
     puts e
   end
 end
 
 if ARGV.length < 2
+elsif fetch_genius
 elsif fetch_lyrics_wikia
 elsif fetch_lyricsmode
 elsif fetch_azlyrics
-elsif fetch_genius
 end
