@@ -15,6 +15,7 @@
 # 23rd Jul 2020  eweb     #0008 Music has moved
 #  5th Sep 2020  eweb     #0008 output music items
 #  5th Sep 2020  eweb     #0007 turned onto a class
+#  8th Dec 2020  eweb     #0008 typo
 #
 
 class ImportMusic
@@ -85,10 +86,10 @@ class ImportMusic
              else
                format('%0.02f=', 0.08 * c)
              end
-    %(M "#{album}" "#{artist}" "mp3va" "" #{todays_date} 0000-00-00 0000-00-00 0000-00-00 "MP3" "Dowloaded" #{amount} "mp3va")
+    %(M "#{album}" "#{artist}" "mp3va" "" #{date} 0000-00-00 0000-00-00 0000-00-00 "MP3" "Downloaded" #{amount} "mp3va")
   end
 
-  def todays_date
+  def date
     Time.now.strftime('%Y-%m-%d')
   end
 
