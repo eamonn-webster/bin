@@ -176,7 +176,7 @@ GEM
       ttfunk
     psych (3.2.0)
     public_suffix (4.0.6)
-    puma (5.1.0)
+    puma (5.1.1)
       nio4r (~> 2.0)
     rack (1.6.13)
     rack-protection (1.5.5)
@@ -200,7 +200,7 @@ GEM
     rexml (3.2.4)
     roodi (5.0.0)
       ruby_parser (~> 3.2, >= 3.2.2)
-    rubocop (1.5.2)
+    rubocop (1.6.1)
       parallel (~> 1.10)
       parser (>= 2.7.1.5)
       rainbow (>= 2.2.2, < 4.0)
