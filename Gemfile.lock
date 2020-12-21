@@ -267,6 +267,7 @@ PLATFORMS
 DEPENDENCIES
   bundler
   cocoapods
+  executable-hooks
   flog!
   irb
   mailcatcher

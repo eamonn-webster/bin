@@ -1,13 +1,14 @@
 #
 # File: Gemfile
 # Author: eweb
-# Copyright eweb, 2016-2018
+# Copyright eweb, 2016-2020
 # Contents:
 #
 # Date:          Author:  Comments:
 # 28th Oct 2017  eweb     #0008 tidy up
 # 11th Aug 2018  eweb     #0008 rake & cocoapods
 # 26th Nov 2018  eweb     #0008 include metric_fu etc
+# 21st Dec 2020  eweb     #0008 executable-hooks
 #
 source 'https://rubygems.org'
 
@@ -15,6 +16,7 @@ git_source(:github) { |repo_name| "https://github.com/#{repo_name}.git" }
 
 gem 'bundler'
 gem 'rubygems-bundler'
+gem 'executable-hooks'
 gem 'rake'
 gem 'mailcatcher'
 gem 'irb'
