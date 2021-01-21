@@ -239,7 +239,7 @@ GEM
       eventmachine (~> 1.0.0)
       thin (>= 1.5, < 1.7)
     sqlite3 (1.4.2)
-    taglib-ruby (1.0.1)
+    taglib-ruby (1.1.0)
     thin (1.5.1)
       daemons (>= 1.0.9)
       eventmachine (>= 0.12.6)
