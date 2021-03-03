@@ -177,7 +177,7 @@ GEM
       ttfunk
     psych (3.3.1)
     public_suffix (4.0.6)
-    puma (5.2.1)
+    puma (5.2.2)
       nio4r (~> 2.0)
     racc (1.5.2)
     rack (1.6.13)
@@ -202,7 +202,7 @@ GEM
     rexml (3.2.4)
     roodi (5.0.0)
       ruby_parser (~> 3.2, >= 3.2.2)
-    rubocop (1.10.0)
+    rubocop (1.11.0)
       parallel (~> 1.10)
       parser (>= 3.0.0.0)
       rainbow (>= 2.2.2, < 4.0)
@@ -213,7 +213,7 @@ GEM
       unicode-display_width (>= 1.4.0, < 3.0)
     rubocop-ast (1.4.1)
       parser (>= 2.7.1.5)
-    rubocop-performance (1.9.2)
+    rubocop-performance (1.10.1)
       rubocop (>= 0.90.0, < 2.0)
       rubocop-ast (>= 0.4.0)
     rubrowser (2.9.1)
@@ -286,4 +286,4 @@ DEPENDENCIES
   taglib-ruby
 
 BUNDLED WITH
-   2.2.11
+   2.2.12
