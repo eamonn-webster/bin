@@ -2,7 +2,7 @@
 #
 # File: synchmusic.rb
 # Author: eweb
-# Copyright eweb, 2012-2020
+# Copyright eweb, 2012-2021
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -31,14 +31,20 @@
 # 31st Aug 2020  eweb     #0008 specify utf-8-mac
 # 31st Aug 2020  eweb     #0008 exclude Automatically Added
 # 29th Oct 2020  eweb     #0008 add colour
+#  4th Mar 2021  eweb     #0008 check dir before synching
 #
 
-Green = "\033[0;32m"
-Norm = "\033[0m"
+RED = "\033[0;31m"
+GREEN = "\033[0;32m"
+NORM = "\033[0m"
 
 class String
+  def in_red
+    "#{RED}#{self}#{NORM}"
+  end
+
   def in_green
-    "#{Green}#{self}#{Norm}"
+    "#{GREEN}#{self}#{NORM}"
   end
 end
 
@@ -91,20 +97,26 @@ def main
     puts cmd
     system(cmd)
 
-    puts 'Photos'.in_green
     src = '/Users/eweb/Pictures/Photos Library.photoslibrary/Masters'
     dst = "/Volumes/#{drive}/Pictures/Masters"
-    cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
-    puts cmd
-    system(cmd)
-
-    puts 'wbt'.in_green
-    src = '/Users/eweb/projects/wbt.git'
-    dst = "/Volumes/#{drive}/projects/wbt.git"
     if Dir.exist?(src)
+      puts 'Photos'.in_green
       cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
       puts cmd
       system(cmd)
+    else
+      puts 'Photos'.in_red
+    end
+
+    src = '/Users/eweb/projects/wbt.git'
+    dst = "/Volumes/#{drive}/projects/wbt.git"
+    if Dir.exist?(src)
+      puts 'wbt'.in_green
+      cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
+      puts cmd
+      system(cmd)
+    else
+      puts 'wbt'.in_red
     end
 
     src = '/Users/eweb/projects/acc'
