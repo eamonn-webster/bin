@@ -1,7 +1,7 @@
 #
 # File: Gemfile
 # Author: eweb
-# Copyright eweb, 2016-2020
+# Copyright eweb, 2016-2021
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -9,6 +9,7 @@
 # 11th Aug 2018  eweb     #0008 rake & cocoapods
 # 26th Nov 2018  eweb     #0008 include metric_fu etc
 # 21st Dec 2020  eweb     #0008 executable-hooks
+# 21st Apr 2021  eweb     #0008 remove rubocop
 #
 source 'https://rubygems.org'
 
@@ -21,15 +22,15 @@ gem 'rake'
 gem 'mailcatcher'
 gem 'irb'
 gem 'nokogiri'
-gem 'rubocop'
-gem 'rubocop-performance'
+# gem 'rubocop'
+# gem 'rubocop-performance'
 gem 'taglib-ruby'
 gem 'rest-client'
 gem 'pdf-reader'
 gem 'cocoapods'
 # gem 'xcode-install', require: false
 
-gem 'metric_fu', github: 'eamonn-webster/metric_fu', require: false
-gem 'flog', github: 'eamonn-webster/flog', require: false
-gem 'reek', '>= 4.7.3', require: false
-gem 'rubrowser', require: false
+# gem 'metric_fu', github: 'eamonn-webster/metric_fu', require: false
+# gem 'flog', github: 'eamonn-webster/flog', require: false
+# gem 'reek', '>= 4.7.3', require: false
+# gem 'rubrowser', require: false

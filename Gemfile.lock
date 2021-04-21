@@ -1,29 +1,3 @@
-GIT
-  remote: https://github.com/eamonn-webster/flog.git
-  revision: fd99a80e6009ef68cc72655cb3c8a4d7a7d078b6
-  specs:
-    flog (4.6.4)
-      ruby_parser (~> 3.1, > 3.1.0)
-      sexp_processor (~> 4.4)
-
-GIT
-  remote: https://github.com/eamonn-webster/metric_fu.git
-  revision: f1e871c111eaf5fbe0dde7008b9b37b3911ea565
-  specs:
-    metric_fu (4.13.1)
-      cane (>= 2.5.2)
-      churn (>= 1.0.2)
-      code_metrics (~> 0.1)
-      coderay
-      flay (~> 2.1, >= 2.0.1)
-      flog (~> 4.1, >= 4.1.1)
-      launchy (~> 2.0)
-      metric_fu-Saikuro (~> 1.1, >= 1.1.3)
-      multi_json
-      redcard
-      reek (>= 1.3.4)
-      roodi (~> 5.0.0)
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -40,21 +14,8 @@ GEM
     algoliasearch (1.27.5)
       httpclient (~> 2.8, >= 2.8.3)
       json (>= 1.5.1)
-    anyway_config (2.1.0)
-      ruby-next-core (>= 0.11.0)
-    arrayfields (4.9.2)
-    ast (2.4.2)
     atomos (0.1.3)
     bundler-unload (1.0.2)
-    cane (3.0.0)
-      parallel
-    chronic (0.10.2)
-    churn (1.0.8)
-      chronic (>= 0.2.3)
-      hirb
-      main
-      ruby_parser (~> 3.0)
-      sexp_processor (~> 4.1)
     claide (1.0.3)
     cocoapods (1.10.1)
       addressable (~> 2.6)
@@ -93,31 +54,21 @@ GEM
       nap (>= 0.8, < 2.0)
       netrc (~> 0.11)
     cocoapods-try (1.2.0)
-    code_metrics (0.1.3)
-    coderay (1.1.3)
     colored2 (3.1.2)
     concurrent-ruby (1.1.8)
     daemons (1.3.1)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
-    erubis (2.7.0)
     escape (0.0.4)
     ethon (0.12.0)
       ffi (>= 1.3.0)
     eventmachine (1.0.9.1)
     executable-hooks (1.6.1)
-    fattr (2.4.0)
     ffi (1.15.0)
-    flay (2.12.1)
-      erubis (~> 2.7.0)
-      path_expander (~> 1.0)
-      ruby_parser (~> 3.0)
-      sexp_processor (~> 4.0)
     fourflusher (2.3.1)
     fuzzy_match (2.0.4)
     gh_inspector (1.1.3)
     hashery (2.1.2)
-    hirb (0.7.3)
     http-accept (1.7.0)
     http-cookie (1.0.3)
       domain_name (~> 0.5)
@@ -128,11 +79,6 @@ GEM
     irb (1.3.5)
       reline (>= 0.1.5)
     json (2.5.1)
-    kwalify (0.7.2)
-    launchy (2.5.0)
-      addressable (~> 2.7)
-    litecable (0.7.1)
-      anyway_config (>= 1.0)
     mail (2.7.1)
       mini_mime (>= 0.1.1)
     mailcatcher (0.7.1)
@@ -143,13 +89,6 @@ GEM
       skinny (~> 0.2.3)
       sqlite3 (~> 1.3)
       thin (~> 1.5.0)
-    main (6.2.3)
-      arrayfields (~> 4.7, >= 4.7.4)
-      chronic (~> 0.6, >= 0.6.2)
-      fattr (~> 2.2, >= 2.2.0)
-      map (~> 6.1, >= 6.1.0)
-    map (6.6.0)
-    metric_fu-Saikuro (1.1.3)
     mime-types (3.3.1)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2021.0225)
@@ -157,41 +96,24 @@ GEM
     mini_portile2 (2.5.0)
     minitest (5.14.4)
     molinillo (0.6.6)
-    multi_json (1.15.0)
     nanaimo (0.3.0)
     nap (1.1.0)
     netrc (0.11.0)
-    nio4r (2.5.7)
     nokogiri (1.11.3)
       mini_portile2 (~> 2.5.0)
       racc (~> 1.4)
-    parallel (1.20.1)
-    parser (3.0.1.0)
-      ast (~> 2.4.1)
-    path_expander (1.1.0)
     pdf-reader (2.4.2)
       Ascii85 (~> 1.0)
       afm (~> 0.2.1)
       hashery (~> 2.0)
       ruby-rc4
       ttfunk
-    psych (3.3.1)
     public_suffix (4.0.6)
-    puma (5.2.2)
-      nio4r (~> 2.0)
     racc (1.5.2)
     rack (1.6.13)
     rack-protection (1.5.5)
       rack
-    rainbow (3.0.0)
     rake (13.0.3)
-    redcard (1.1.0)
-    reek (6.0.3)
-      kwalify (~> 0.7.0)
-      parser (~> 3.0.0)
-      psych (~> 3.1)
-      rainbow (>= 2.0, < 4.0)
-    regexp_parser (2.1.1)
     reline (0.2.5)
       io-console (~> 0.5)
     rest-client (2.1.0)
@@ -199,38 +121,11 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
-    rexml (3.2.5)
-    roodi (5.0.0)
-      ruby_parser (~> 3.2, >= 3.2.2)
-    rubocop (1.12.1)
-      parallel (~> 1.10)
-      parser (>= 3.0.0.0)
-      rainbow (>= 2.2.2, < 4.0)
-      regexp_parser (>= 1.8, < 3.0)
-      rexml
-      rubocop-ast (>= 1.2.0, < 2.0)
-      ruby-progressbar (~> 1.7)
-      unicode-display_width (>= 1.4.0, < 3.0)
-    rubocop-ast (1.4.1)
-      parser (>= 2.7.1.5)
-    rubocop-performance (1.10.2)
-      rubocop (>= 0.90.0, < 2.0)
-      rubocop-ast (>= 0.4.0)
-    rubrowser (2.9.1)
-      litecable
-      parser
-      puma
-      websocket
     ruby-macho (1.4.0)
-    ruby-next-core (0.12.0)
-    ruby-progressbar (1.11.0)
     ruby-rc4 (0.1.5)
-    ruby_parser (3.15.1)
-      sexp_processor (~> 4.9)
     rubygems-bundler (1.4.5)
       bundler-unload (>= 1.0.2)
       executable-hooks (>= 1.5.0)
-    sexp_processor (4.15.2)
     sinatra (1.4.8)
       rack (~> 1.5)
       rack-protection (~> 1.4)
@@ -254,8 +149,6 @@ GEM
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.7.7)
-    unicode-display_width (2.0.0)
-    websocket (1.2.9)
     xcodeproj (1.19.0)
       CFPropertyList (>= 2.3.3, < 4.0)
       atomos (~> 0.1.3)
@@ -270,18 +163,12 @@ DEPENDENCIES
   bundler
   cocoapods
   executable-hooks
-  flog!
   irb
   mailcatcher
-  metric_fu!
   nokogiri
   pdf-reader
   rake
-  reek (>= 4.7.3)
   rest-client
-  rubocop
-  rubocop-performance
-  rubrowser
   rubygems-bundler
   taglib-ruby
 
