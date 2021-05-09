@@ -2,7 +2,7 @@
 #
 # File: getlyric.rb
 # Author: eweb
-# Copyright eweb, 2013-2020
+# Copyright eweb, 2013-2021
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -23,6 +23,7 @@
 #  6th Dec 2018  eweb     #0008 return inner_html for wikia
 # 18th Aug 2019  eweb     #0008 wikia moved to fandom
 # 29th Nov 2020  eweb     #0008 genius first try 3 times
+#  9th May 2021  eweb     #0007 URI.open
 #
 require 'nokogiri'
 require 'open-uri'
@@ -79,7 +80,7 @@ def fetch_lyricsmania
   puts url
 
   begin
-    doc = Nokogiri::HTML(open(url))
+    doc = Nokogiri::HTML(URI.open(url))
     lyric = doc.xpath("id('songlyrics_h')").inner_text
     process_lyric(lyric)
   rescue StandardError => e
@@ -100,7 +101,7 @@ def fetch_lyrics_wikia
 
   puts url
   begin
-    doc = Nokogiri::HTML(open(url))
+    doc = Nokogiri::HTML(URI.open(url))
     lyric = doc.xpath("//div[@class='lyricbox']").inner_html
 
     if lyric =~ /Unfortunately, we are not licensed to display the full lyrics/
@@ -129,7 +130,7 @@ def fetch_lyricsmode
   url = "https://www.lyricsmode.com/lyrics/#{artist[0]}/#{artist}/#{song}.html"
   puts url
   begin
-    doc = Nokogiri::HTML(open(url))
+    doc = Nokogiri::HTML(URI.open(url))
 
     lyric = doc.xpath("id('songlyrics_h')").inner_text
     process_lyric(lyric)
@@ -159,7 +160,7 @@ def fetch_azlyrics
   puts url
 
   begin
-    doc = Nokogiri::HTML(open(url))
+    doc = Nokogiri::HTML(URI.open(url))
 
     lyric = doc.xpath("id('songlyrics_h')").inner_text
     process_lyric(lyric)
@@ -179,7 +180,7 @@ def fetch_lyricstime
   puts url
 
   begin
-    doc = Nokogiri::HTML(open(url))
+    doc = Nokogiri::HTML(URI.open(url))
     lyric = doc.xpath("id('songlyrics')/p").inner_html
     process_lyric(lyric)
   rescue StandardError => e
@@ -198,11 +199,11 @@ def fetch_irishmusicdb
   puts url
 
   begin
-    doc = Nokogiri::HTML(open(url))
+    doc = Nokogiri::HTML(URI.open(url))
     href = doc.css('a').detect { |a| a.attribute('href').to_s =~ /lyrics/ }.attribute('href')
     url = "#{url}/#{href}"
     puts url
-    doc = Nokogiri::HTML(open(url))
+    doc = Nokogiri::HTML(URI.open(url))
     lyric = doc.xpath("id('songlyrics')/p").inner_text
     process_lyric(lyric)
   rescue StandardError => e
@@ -226,7 +227,7 @@ def fetch_genius
 
   begin
     3.times.detect do
-      doc = Nokogiri::HTML(open(url))
+      doc = Nokogiri::HTML(URI.open(url))
       lyric = doc.xpath("//div[@class='lyrics']").inner_text
       if process_lyric(lyric)
         true
