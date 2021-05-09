@@ -2,7 +2,7 @@
 #
 # File: addcomment.rb
 # Author: eweb
-# Copyright eweb, 2003-2019
+# Copyright eweb, 2003-2021
 # Contents: Perl script to add comments to source files
 #
 # Date:          Author:  Comments:
@@ -115,6 +115,7 @@
 #  7th Aug 2019  eweb     #0007 rubocop
 #  1st Sep 2019  eweb     #0008 frozen string comment
 # 19th Dec 2019  eweb     #0008 handle sh files
+#  9th May 2021  eweb     #0008 treat .m as .cpp
 #
 
 # DONE change event if comment not present.
@@ -415,6 +416,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       print "Uncommentable file #{file}\n"
     elsif file =~ /\.cpp$/ ||
       file =~ /\.h$/ ||
+      file =~ /\.m$/ ||
       file =~ /\.rh$/ ||
       file =~ /\.inc$/ ||
       file =~ /\.js$/ ||
