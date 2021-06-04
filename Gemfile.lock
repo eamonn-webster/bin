@@ -93,13 +93,13 @@ GEM
       mime-types-data (~> 3.2015)
     mime-types-data (3.2021.0225)
     mini_mime (1.1.0)
-    mini_portile2 (2.5.1)
+    mini_portile2 (2.5.3)
     minitest (5.14.4)
     molinillo (0.6.6)
     nanaimo (0.3.0)
     nap (1.1.0)
     netrc (0.11.0)
-    nokogiri (1.11.6)
+    nokogiri (1.11.7)
       mini_portile2 (~> 2.5.0)
       racc (~> 1.4)
     pdf-reader (2.4.2)
@@ -173,4 +173,4 @@ DEPENDENCIES
   taglib-ruby
 
 BUNDLED WITH
-   2.2.18
+   2.2.19
