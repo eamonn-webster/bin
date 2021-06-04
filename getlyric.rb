@@ -24,6 +24,7 @@
 # 18th Aug 2019  eweb     #0008 wikia moved to fandom
 # 29th Nov 2020  eweb     #0008 genius first try 3 times
 #  9th May 2021  eweb     #0007 URI.open
+#  4th Jun 2021  eweb     #0008 trim hyphens
 #
 require 'nokogiri'
 require 'open-uri'
@@ -222,6 +223,8 @@ def fetch_genius
   artist[0] = artist[0].upcase
   song.delete!("'")
   song.gsub!(/[^a-z0-9]+/, '-')
+  song.gsub!(/^-/, '')
+  song.gsub!(/-$/, '')
   url = "https://genius.com/#{artist}-#{song}-lyrics"
   puts url
 
