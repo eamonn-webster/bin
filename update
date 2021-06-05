@@ -1,0 +1,53 @@
+#!/usr/bin/env zsh
+
+#
+# File: update
+# Author: eweb
+# Copyright eweb, 2021-2021
+# Contents: update the machine after a period of inactivity
+#
+# Date:          Author:  Comments:
+#  5th Jun 2021  eweb     #0008 update after inactivity
+#
+
+# bash needed echo -e "..."
+for dir in ~/bin ~/accounts/master
+do
+  echo "\033[32m$dir\033[0m" &&
+  cd "$dir" &&
+  test -d .git &&
+  git fetch --all &&
+  git pull &&
+  test -f Gemfile &&
+  bundle --quiet
+done
+
+for dir in ~/projects/*
+do
+  echo "\033[32m$dir\033[0m" &&
+  cd "$dir" &&
+  test -d .git &&
+  git fetch --all &&
+  git pull
+done
+
+for dir in ~/projects/qstream/*
+do
+  echo "\033[32m$dir\033[0m" &&
+  cd "$dir" &&
+  test -d .git &&
+  git fetch --all &&
+  git pull
+done
+
+for dir in ~/projects/acc/*/
+do
+  echo "\033[32m$dir\033[0m" &&
+  cd "$dir" &&
+  test -f Gemfile &&
+  bundle --quiet
+done
+
+# brew update
+# brew upgrade
+
