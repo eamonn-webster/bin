@@ -113,7 +113,7 @@ GEM
     rack (1.6.13)
     rack-protection (1.5.5)
       rack
-    rake (13.0.4)
+    rake (13.0.6)
     reline (0.2.6)
       io-console (~> 0.5)
     rest-client (2.1.0)
@@ -175,4 +175,4 @@ DEPENDENCIES
   taglib-ruby
 
 BUNDLED WITH
-   2.2.22
+   2.2.23
