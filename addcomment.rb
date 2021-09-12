@@ -116,6 +116,7 @@
 #  1st Sep 2019  eweb     #0008 frozen string comment
 # 19th Dec 2019  eweb     #0008 handle sh files
 #  9th May 2021  eweb     #0008 treat .m as .cpp
+# 12th Sep 2021  eweb     #0008 don't create .old
 #
 
 # DONE change event if comment not present.
@@ -1439,7 +1440,8 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
         CheckOut(@infile, @comments)
       end
       perm = File.stat(@infile).mode & 0o7777
-      File.rename @infile, "#{@infile}.old"
+      # File.rename @infile, "#{@infile}.old"
+      File.unlink @infile
       File.rename @outfile, @infile
       File.chmod(perm, @infile)
       # perm = File.stat(@infile).mode & 0o7777
