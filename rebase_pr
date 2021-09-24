@@ -1,0 +1,16 @@
+#!/usr/bin/env zsh
+
+#
+# File: rebase_pr
+# Author: eweb
+# Copyright eweb, 2021-2021
+# Contents:
+#
+# Date:          Author:  Comments:
+# 24th Sep 2021  eweb     #0008 rebase and push a pr
+#
+
+(git fetch -p &&
+ git branch -f master origin/master &&
+ git rebase --autostash origin/master &&
+ git push origin --force)
