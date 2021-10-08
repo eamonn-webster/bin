@@ -8,9 +8,19 @@
 #
 # Date:          Author:  Comments:
 #  5th Jun 2021  eweb     #0008 update after inactivity
+#  8th Oct 2021  eweb     #0008 get latest bundler & launch instaweb
 #
 
 # bash needed echo -e "..."
+
+(cd ~/bin
+ # gem update rubygems
+ gem update --system
+ # rvm @global do gem update rubygems
+ gem install bundler
+ # bundle update --bundler
+)
+
 for dir in ~/bin ~/accounts/master
 do
   echo "\033[32m$dir\033[0m" &&
@@ -51,3 +61,4 @@ done
 # brew update
 # brew upgrade
 
+git -C ~/projects/acc instaweb
