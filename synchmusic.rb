@@ -32,6 +32,7 @@
 # 31st Aug 2020  eweb     #0008 exclude Automatically Added
 # 29th Oct 2020  eweb     #0008 add colour
 #  4th Mar 2021  eweb     #0008 check dir before synching
+# 20th Oct 2021  eweb     #0008 bare repos
 #
 
 RED = "\033[0;31m"
@@ -108,15 +109,18 @@ def main
       puts 'Photos'.in_red
     end
 
-    src = '/Users/eweb/projects/wbt.git'
-    dst = "/Volumes/#{drive}/projects/wbt.git"
-    if Dir.exist?(src)
-      puts 'wbt'.in_green
-      cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
-      puts cmd
-      system(cmd)
-    else
-      puts 'wbt'.in_red
+    bare_repos = %w[tbw]
+    bare_repos.each do |repo|
+      src = "/Users/eweb/projects/#{repo}.git"
+      dst = "/Volumes/#{drive}/projects/#{repo}.git"
+      if Dir.exist?(src)
+        puts repo.in_green
+        cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
+        puts cmd
+        system(cmd)
+      else
+        puts repo.in_red
+      end
     end
 
     src = '/Users/eweb/projects/acc'
