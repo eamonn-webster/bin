@@ -33,11 +33,12 @@
 # 29th Oct 2020  eweb     #0008 add colour
 #  4th Mar 2021  eweb     #0008 check dir before synching
 # 20th Oct 2021  eweb     #0008 bare repos
+#  2nd Nov 2021  eweb     #0008 dry up
 #
 
-RED = "\033[0;31m"
-GREEN = "\033[0;32m"
-NORM = "\033[0m"
+RED = "\033[0;31m".freeze
+GREEN = "\033[0;32m".freeze
+NORM = "\033[0m".freeze
 
 class String
   def in_red
@@ -55,7 +56,7 @@ def main
   elsif Dir.exist?('/Volumes/iomega1')
     drive = 'iomega1'
   else
-    puts 'Removeable drive not found'
+    puts 'Removable drive not found'
     exit
   end
 
@@ -76,35 +77,30 @@ def main
 
   dst = "/Volumes/#{drive}/iTunes"
 
-  rsync = '/usr/local/bin/rsync'
+  rsync = '/usr/local/bin/rsync --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store'
 
   if @back
-    cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store #{dst}/ #{src}"
-    puts cmd
-    system(cmd)
+    cmd = "#{rsync} #{dst}/ #{src}"
+    run(cmd)
     cmd.gsub!('iTunes', 'Own')
-    puts cmd
-    system(cmd)
+    run(cmd)
   else
     puts 'iTunes'.in_green
-    cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store --exclude 'Mobile Applications' --exclude 'Automatically Add to *.localized' --exclude 'Movies' --delete-during #{src}/ #{dst}"
-    puts cmd
-    system(cmd)
+    cmd = "#{rsync} --exclude 'Mobile Applications' --exclude 'Automatically Add to *.localized' --exclude 'Movies' --delete-during #{src}/ #{dst}"
+    run(cmd)
 
     puts 'Own'.in_green
     src = '/Users/eweb/Music/Own'
     dst = "/Volumes/#{drive}/Own"
-    cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store #{src}/ #{dst}"
-    puts cmd
-    system(cmd)
+    cmd = "#{rsync} #{src}/ #{dst}"
+    run(cmd)
 
     src = '/Users/eweb/Pictures/Photos Library.photoslibrary/Masters'
     dst = "/Volumes/#{drive}/Pictures/Masters"
     if Dir.exist?(src)
       puts 'Photos'.in_green
-      cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
-      puts cmd
-      system(cmd)
+      cmd = "#{rsync} --delete-during '#{src}/' '#{dst}'"
+      run(cmd)
     else
       puts 'Photos'.in_red
     end
@@ -115,9 +111,8 @@ def main
       dst = "/Volumes/#{drive}/projects/#{repo}.git"
       if Dir.exist?(src)
         puts repo.in_green
-        cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store --delete-during '#{src}/' '#{dst}'"
-        puts cmd
-        system(cmd)
+        cmd = "#{rsync} --delete-during '#{src}/' '#{dst}'"
+        run(cmd)
       else
         puts repo.in_red
       end
@@ -127,9 +122,8 @@ def main
     dst = "/Volumes/#{drive}/projects/acc"
     %w[ruby Accounts Shopping].each do |dir|
       puts dir.in_green
-      cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store '#{src}/#{dir}/tmp/metric_fu/' '#{dst}/#{dir}/tmp/metric_fu'"
-      puts cmd
-      system(cmd)
+      cmd = "#{rsync} '#{src}/#{dir}/tmp/metric_fu/' '#{dst}/#{dir}/tmp/metric_fu'"
+      run(cmd)
     end
 
     dirs = [["/Volumes/#{drive}/projects/acc", 'git@bitbucket.org:eamoon/acc.git'],
@@ -145,43 +139,30 @@ def main
     dirs.each do |dir, remote|
       puts dir.in_green
       if Dir.exist?(dir)
-        Dir.chdir(dir) do
-          puts 'git pull'
-          system('git pull')
-        end
+        run("git -C #{dir} pull")
       else
-        puts("git clone #{remote} #{dir}")
-        system("git clone #{remote} #{dir}")
+        run("git clone #{remote} #{dir}")
       end
     end
   end
 end
 
-def transfer_fu
-  transfer_fu_inner('/Volumes/eweb/projects/acc', '/Users/eweb/projects/acc', %w[ruby Accounts Shopping])
-  transfer_fu_inner('/Volumes/eweb/projects/Running', '/Users/eweb/projects/Running', %w[Running])
+def run(cmd)
+  puts(cmd)
+  system(cmd)
 end
 
-def transfer_fu_inner(src, dst, folders)
-  folders.each do |dir|
-    cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store '#{src}/#{dir}/tmp/metric_fu/' '#{dst}/#{dir}/tmp/metric_fu'"
-    puts cmd
-    system(cmd)
-  end
-end
-
-def get_music
-  drive = 'iomega1'
-  # src = "/Users/eweb/Music/iTunes"
-  # src = "/Volumes/Transcend/Music/iTunes"
-  # dst = "/Volumes/#{drive}/iTunes"
-
-  dst = '/Users/eweb/Music/iTunes'
-  src = "/Volumes/#{drive}/iTunes"
-  cmd = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store --exclude 'Mobile Applications' --exclude 'Not Added' --delete-during #{src}/ #{dst}"
-  puts cmd
-  # system(cmd)
-end
+# def get_music
+#   drive = 'iomega1'
+#   # src = "/Users/eweb/Music/iTunes"
+#   # src = "/Volumes/Transcend/Music/iTunes"
+#   # dst = "/Volumes/#{drive}/iTunes"
+#
+#   dst = '/Users/eweb/Music/iTunes'
+#   src = "/Volumes/#{drive}/iTunes"
+#   cmd = "#{rsync} --exclude 'Mobile Applications' --exclude 'Not Added' --delete-during #{src}/ #{dst}"
+#   # run(cmd)
+# end
 
 if $PROGRAM_NAME == __FILE__
   main
