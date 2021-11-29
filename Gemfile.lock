@@ -110,7 +110,7 @@ GEM
     nokogiri (1.12.5)
       mini_portile2 (~> 2.6.1)
       racc (~> 1.4)
-    parser (3.0.3.0)
+    parser (3.0.3.1)
       ast (~> 2.4.1)
     pdf-reader (2.6.0)
       Ascii85 (~> 1.0)
@@ -140,7 +140,7 @@ GEM
       puma
       websocket
     ruby-macho (2.5.1)
-    ruby-next-core (0.13.1)
+    ruby-next-core (0.13.2)
     ruby-rc4 (0.1.5)
     rubygems-bundler (1.4.5)
       bundler-unload (>= 1.0.2)
