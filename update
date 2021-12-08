@@ -9,6 +9,7 @@
 # Date:          Author:  Comments:
 #  5th Jun 2021  eweb     #0008 update after inactivity
 #  8th Oct 2021  eweb     #0008 get latest bundler & launch instaweb
+#  8th Dec 2021  eweb     #0008 don't launch instaweb if already running
 #
 
 # bash needed echo -e "..."
@@ -61,4 +62,4 @@ done
 # brew update
 # brew upgrade
 
-git -C ~/projects/acc instaweb
+(lsof -i :1234 || git -C ~/projects/acc instaweb)
