@@ -140,7 +140,7 @@ GEM
       puma
       websocket
     ruby-macho (2.5.1)
-    ruby-next-core (0.13.2)
+    ruby-next-core (0.13.3)
     ruby-rc4 (0.1.5)
     rubygems-bundler (1.4.5)
       bundler-unload (>= 1.0.2)
