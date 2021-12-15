@@ -26,7 +26,7 @@ gem 'nokogiri'
 # gem 'rubocop-performance'
 gem 'taglib-ruby'
 gem 'rest-client'
-gem 'pdf-reader'
+gem 'pdf-reader', '2.6.0'
 gem 'cocoapods'
 # gem 'xcode-install', require: false
 
