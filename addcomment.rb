@@ -117,6 +117,7 @@
 # 19th Dec 2019  eweb     #0008 handle sh files
 #  9th May 2021  eweb     #0008 treat .m as .cpp
 # 12th Sep 2021  eweb     #0008 don't create .old
+# 15th Dec 2021  eweb     #0008 files to ignore
 #
 
 # DONE change event if comment not present.
@@ -396,6 +397,10 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
     end
   end
 
+  def ignore_file?(file)
+    %w[R.java bb.yaml].include?(file)
+  end
+
   def determine_type(file)
     file_type = nil
     if @just_change_event
@@ -411,10 +416,8 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       file =~ /\.dsp$/ ||
       file =~ /\.dat$/
       print "Unhandled file type #{file}\n"
-    elsif file == 'R.java'
-      print "Uncommentable file #{file}\n"
-    elsif file == 'bb.yaml'
-      print "Uncommentable file #{file}\n"
+    elsif ignore_file?(file)
+      print "Ignoring file #{file}\n"
     elsif file =~ /\.cpp$/ ||
       file =~ /\.h$/ ||
       file =~ /\.m$/ ||
