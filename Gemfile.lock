@@ -78,7 +78,7 @@ GEM
     http-cookie (1.0.4)
       domain_name (~> 0.5)
     httpclient (2.8.3)
-    i18n (1.8.11)
+    i18n (1.9.0)
       concurrent-ruby (~> 1.0)
     io-console (0.5.11)
     irb (1.4.1)
@@ -119,7 +119,7 @@ GEM
       ruby-rc4
       ttfunk
     public_suffix (4.0.6)
-    puma (5.5.2)
+    puma (5.6.1)
       nio4r (~> 2.0)
     racc (1.6.0)
     rack (1.6.13)
@@ -195,4 +195,4 @@ DEPENDENCIES
   taglib-ruby
 
 BUNDLED WITH
-   2.3.5
+   2.3.6
