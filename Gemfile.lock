@@ -88,7 +88,7 @@ GEM
       anyway_config (>= 1.0)
     mail (2.7.1)
       mini_mime (>= 0.1.1)
-    mailcatcher (0.8.1)
+    mailcatcher (0.8.2)
       eventmachine (= 1.0.9.1)
       mail (~> 2.3)
       rack (~> 1.5)
