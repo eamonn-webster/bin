@@ -51,7 +51,7 @@ GEM
       public_suffix (~> 4.0)
       typhoeus (~> 1.0)
     cocoapods-deintegrate (1.0.5)
-    cocoapods-downloader (1.5.1)
+    cocoapods-downloader (1.6.1)
     cocoapods-plugins (1.0.0)
       nap
     cocoapods-search (1.0.1)
@@ -60,7 +60,7 @@ GEM
       netrc (~> 0.11)
     cocoapods-try (1.2.0)
     colored2 (3.1.2)
-    concurrent-ruby (1.1.9)
+    concurrent-ruby (1.1.10)
     daemons (1.4.1)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
@@ -195,4 +195,4 @@ DEPENDENCIES
   taglib-ruby
 
 BUNDLED WITH
-   2.3.9
+   2.3.10
