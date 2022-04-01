@@ -2,7 +2,7 @@
 #
 # File: addcomment.rb
 # Author: eweb
-# Copyright eweb, 2003-2021
+# Copyright eweb, 2003-2022
 # Contents: Perl script to add comments to source files
 #
 # Date:          Author:  Comments:
@@ -118,6 +118,7 @@
 #  9th May 2021  eweb     #0008 treat .m as .cpp
 # 12th Sep 2021  eweb     #0008 don't create .old
 # 15th Dec 2021  eweb     #0008 files to ignore
+#  1st Apr 2022  eweb     #0008 file not found
 #
 
 # DONE change event if comment not present.
@@ -607,6 +608,15 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
 
     @infile = ARGV[0]
 
+    if @infile.blank?
+      raise "No file given\n"
+      return
+    end
+
+    unless File.exist?(@infile)
+      raise "File '#{@infile}' not found\n"
+    end
+
     if @opts.key?('c')
       @comments = @opts['c']
     end
@@ -741,14 +751,6 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
 
   def main
     setup_options
-    # if @infile =~ %r{(/|\\)yui\1}
-    #   #print "Part of yui\n"
-    #   #@orig_author = "-"
-    # end
-
-    if @infile.blank?
-      raise "No file given\n"
-    end
 
     @infile = File.expand_path(@infile)
 
@@ -815,9 +817,9 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
 
     process_lines
     write_results
-  rescue StandardError
-    puts "Error processing file #{@file}"
-    raise
+  rescue StandardError => e
+    puts "Error processing file #{@file || @infile}: #{e}"
+    # raise
   end
 
   def process_lines
