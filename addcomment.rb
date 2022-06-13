@@ -459,6 +459,8 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       file_type = 'rb'
     elsif file =~ /\.pl$/ ||
       file =~ /\.sh$/ ||
+      file =~ /\.zshrc$/ ||
+      file =~ /\.zlogin$/ ||
       file =~ /\.properties$/ ||
       file =~ /\.properties.default$/ ||
       file =~ /\.lyt$/
