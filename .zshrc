@@ -54,7 +54,8 @@ export NVM_DIR="$HOME/.nvm"
 
 export PATH="$PATH:$HOME/bin"
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-export PATH="$PATH:$HOME/.rvm/bin"
+export PATH="$PATH:$HOME/bin:/usr/local/bin:$HOME/.rvm/bin"
+PS1="%n %1~ %* %# "
 
 # test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
