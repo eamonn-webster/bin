@@ -1,0 +1,3 @@
+---
+BUNDLE_BIN: "bin"
+BUNDLE_TAGLIB___RUBY: "--with-tag-dir=/opt/homebrew/opt/taglib"

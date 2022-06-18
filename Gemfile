@@ -1,7 +1,7 @@
 #
 # File: Gemfile
 # Author: eweb
-# Copyright eweb, 2016-2021
+# Copyright eweb, 2016-2022
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -24,6 +24,7 @@ gem 'irb'
 gem 'nokogiri'
 # gem 'rubocop'
 # gem 'rubocop-performance'
+# bundle config taglib-ruby --with-tag-dir=`brew --prefix taglib`
 gem 'taglib-ruby'
 gem 'rest-client'
 gem 'pdf-reader', '2.6.0'
