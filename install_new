@@ -1,0 +1,53 @@
+#!/usr/bin/env zsh
+
+#
+# File: install_new
+# Author: eweb
+# Copyright eweb, 2022-2022
+# Contents:
+#
+# Date:          Author:  Comments:
+# 18th Jun 2022  eweb     #0008 clone repos
+#
+
+(cd ~
+  git clone https://eamoon@bitbucket.org/eamoon/bin.git
+)
+
+mkdir -p ~/projects
+(cd ~/projects
+  git clone https://eamoon@bitbucket.org/eamoon/acc.git
+  git clone https://github.com/eamonn-webster/bacon-expect.git
+  git clone https://github.com/eamonn-webster/deep-cover.git
+  git clone https://github.com/eamonn-webster/flog.git
+  git clone https://github.com/eamonn-webster/metric_fu.git
+  git clone https://github.com/eamonn-webster/motion-cocoapods.git
+  git clone https://github.com/eamonn-webster/motion.h.git
+  git clone https://github.com/eamonn-webster/reek.git
+)
+
+mkdir -p ~/projects/qstream
+(cd ~/projects/qstream
+  git clone https://github.com/qstream/qs-core.git
+  git clone https://github.com/qstream/qs-core-components.git
+)
+
+mkdir -p ~/projects/quest
+(cd ~/projects/quest
+  git clone https://github.com/qstream/backend_testing.git
+  git clone https://github.com/qstream/database-schema.git
+  git clone https://github.com/qstream/delivery.git
+  git clone https://github.com/qstream/groups-pubsub.git
+  git clone https://github.com/qstream/notification_service.git
+  git clone https://github.com/qstream/push-notification-infrastructure.git
+  git clone https://github.com/qstream/qstream_mobile.git
+  git clone https://github.com/qstream/qstream_service.git
+  git clone https://github.com/qstream/quest-aws-terraform.git
+  git clone https://github.com/qstream/quest-infrastructure.git
+  git clone https://github.com/qstream/quest-web.git
+  git clone https://github.com/qstream/quest_service.git
+  git clone https://github.com/qstream/questions.git
+  git clone https://github.com/qstream/response_service.git
+  git clone https://github.com/qstream/users.git
+  git clone https://github.com/qstream/workflow.git
+)
