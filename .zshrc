@@ -7,6 +7,7 @@
 # Date:          Author:  Comments:
 #
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+export DISABLE_SPRING=YES
 export EDITOR=emacs
 
 autoload -Uz compinit && compinit
@@ -67,3 +68,7 @@ PS1="%n %1~ %* %# "
 # PR_TITLEBAR=''
 # set-window-title
 # add-zsh-hook precmd set-window-title
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
+[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
