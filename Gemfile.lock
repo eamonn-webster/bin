@@ -150,7 +150,7 @@ GEM
     rack-protection (3.0.4)
       rack
     rake (13.0.6)
-    reline (0.3.1)
+    reline (0.3.2)
       io-console (~> 0.5)
     rest-client (2.1.0)
       http-accept (>= 1.7.0, < 2.0)
