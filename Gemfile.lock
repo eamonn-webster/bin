@@ -76,7 +76,7 @@ GEM
     colored2 (3.1.2)
     concurrent-ruby (1.1.10)
     daemons (1.4.1)
-    date (3.3.2)
+    date (3.3.3)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
     escape (0.0.4)
