@@ -2,7 +2,7 @@
 #
 # File: synchmusic.rb
 # Author: eweb
-# Copyright eweb, 2012-2021
+# Copyright eweb, 2012-2022
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -34,6 +34,7 @@
 #  4th Mar 2021  eweb     #0008 check dir before synching
 # 20th Oct 2021  eweb     #0008 bare repos
 #  2nd Nov 2021  eweb     #0008 dry up
+# 29th Dec 2022  eweb     #0008 iterate to find drive and rsync
 #
 
 RED = "\033[0;31m".freeze
@@ -51,11 +52,11 @@ class String
 end
 
 def main
-  if Dir.exist?('/Volumes/IOMEGA0')
-    drive = 'IOMEGA0'
-  elsif Dir.exist?('/Volumes/iomega1')
-    drive = 'iomega1'
-  else
+  drive = %w[IOMEGA0 iomega1].find do |dr|
+    Dir.exist?("/Volumes/#{dr}")
+  end
+
+  unless drive
     puts 'Removable drive not found'
     exit
   end
@@ -77,7 +78,11 @@ def main
 
   dst = "/Volumes/#{drive}/iTunes"
 
-  rsync = '/usr/local/bin/rsync --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store'
+  rsync = %w[/opt/homebrew/bin/rsync /usr/local/bin/rsync].find do |path|
+    File.exist?(path)
+  end
+
+  rsync = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store"
 
   if @back
     cmd = "#{rsync} #{dst}/ #{src}"
