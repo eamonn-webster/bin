@@ -146,7 +146,7 @@ GEM
     puma (6.0.2)
       nio4r (~> 2.0)
     racc (1.6.2)
-    rack (2.2.5)
+    rack (2.2.6)
     rack-protection (3.0.5)
       rack
     rake (13.0.6)
@@ -223,4 +223,4 @@ DEPENDENCIES
   taglib-ruby
 
 BUNDLED WITH
-   2.4.3
+   2.4.4
