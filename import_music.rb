@@ -3,7 +3,7 @@
 #
 # File: import_music.rb
 # Author: eweb
-# Copyright eweb, 2018-2020
+# Copyright eweb, 2018-2023
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -16,6 +16,7 @@
 #  5th Sep 2020  eweb     #0008 output music items
 #  5th Sep 2020  eweb     #0007 turned onto a class
 #  8th Dec 2020  eweb     #0008 typo
+#  4th Feb 2023  eweb     #0008 brew unzip to correclty handle characters
 #
 
 class ImportMusic
@@ -49,7 +50,7 @@ class ImportMusic
       shell("mv #{downloads}/*\\ -\\ *.zip .")
       Dir['*.zip'].map do |z|
         b = File.basename(z, '.zip')
-        shell("unzip \"#{z}\" -d \"#{b}\"")
+        shell("#{unzip} \"#{z}\" -d \"#{b}\"")
         add_accounts_data(z, b)
       end
       shell('mv *.zip ..')
@@ -60,6 +61,10 @@ class ImportMusic
     end
 
     output_accounts_data
+  end
+
+  def unzip
+    '/opt/homebrew/opt/unzip/bin/unzip'
   end
 
   def output_accounts_data
