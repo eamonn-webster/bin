@@ -2,7 +2,7 @@
 #
 # File: synchmusic.rb
 # Author: eweb
-# Copyright eweb, 2012-2022
+# Copyright eweb, 2012-2023
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -35,6 +35,7 @@
 # 20th Oct 2021  eweb     #0008 bare repos
 #  2nd Nov 2021  eweb     #0008 dry up
 # 29th Dec 2022  eweb     #0008 iterate to find drive and rsync
+# 18th Feb 2023  eweb     #0008 rsync corrupt git repo
 #
 
 RED = "\033[0;31m".freeze
@@ -131,22 +132,26 @@ def main
       run(cmd)
     end
 
-    dirs = [["/Volumes/#{drive}/projects/acc", 'git@bitbucket.org:eamoon/acc.git'],
-            ["/Volumes/#{drive}/projects/Running", 'git@bitbucket.org:eamoon/running.git'],
-            ["/Volumes/#{drive}/accounts/master", 'git@bitbucket.org:eamoon/data.git'],
-            ["/Volumes/#{drive}/bin", 'git@bitbucket.org:eamoon/bin.git'],
-            ["/Volumes/#{drive}/projects/metric_fu", 'https://github.com/eamonn-webster/metric_fu.git'],
-            ["/Volumes/#{drive}/projects/flog", 'https://github.com/eamonn-webster/flog.git'],
-            # ["/Volumes/#{drive}/projects/wbt", "/Users/eweb/projects/wbt.git"]
-            ["/Volumes/#{drive}/projects/simway", 'git@bitbucket.org:eamoon/simway.git'],
-            ["/Volumes/#{drive}/projects/bacon-expect", 'https://github.com/eamonn-webster/bacon-expect.git']]
+    dirs = [["projects/acc", 'git@bitbucket.org:eamoon/acc.git'],
+            ["projects/Running", 'git@bitbucket.org:eamoon/running.git'],
+            ["accounts/master", 'git@bitbucket.org:eamoon/data.git'],
+            ["bin", 'git@bitbucket.org:eamoon/bin.git'],
+            ["projects/metric_fu", 'https://github.com/eamonn-webster/metric_fu.git'],
+            ["projects/flog", 'https://github.com/eamonn-webster/flog.git'],
+          # ["projects/tbw", "/Users/eweb/projects/tbw.git"]
+            ["projects/simway", 'git@bitbucket.org:eamoon/simway.git'],
+            ["projects/bacon-expect", 'https://github.com/eamonn-webster/bacon-expect.git']]
 
     dirs.each do |dir, remote|
-      puts dir.in_green
-      if Dir.exist?(dir)
-        run("git -C #{dir} pull")
+      full_dir = "/Volumes/#{drive}/#{dir}"
+      puts full_dir.in_green
+      if Dir.exist?(full_dir)
+        run("git -C #{full_dir} pull")
+        if $?.exitstatus != 0
+          fix_a_git(dir, rsync, drive)
+        end
       else
-        run("git clone #{remote} #{dir}")
+        run("git clone #{remote} #{full_dir}")
       end
     end
   end
@@ -168,6 +173,14 @@ end
 #   cmd = "#{rsync} --exclude 'Mobile Applications' --exclude 'Not Added' --delete-during #{src}/ #{dst}"
 #   # run(cmd)
 # end
+
+def fix_a_git(dir, rsync, drive)
+  rsync = "#{rsync} --delete-during"
+  src = "/Users/eweb/#{dir}/.git/"
+  dst = "/Volumes/#{drive}/#{dir}/.git"
+  run("#{rsync} #{src} #{dst}")
+  run("sed -i '' 's/filemode = true/filemode = false/g' #{dst}/config")
+end
 
 if $PROGRAM_NAME == __FILE__
   main
