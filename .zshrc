@@ -35,10 +35,10 @@ acc() {
 }
 
 frr() {
-  flog $*
   reek $*
   rubocop $*
 }
+  # flog $*
 
 kill_noted() {
   (cd `getconf DARWIN_USER_DIR` &&
