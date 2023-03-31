@@ -133,7 +133,7 @@ GEM
     nokogiri (1.14.2)
       mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
-    parser (3.2.1.1)
+    parser (3.2.2.0)
       ast (~> 2.4.1)
     pdf-reader (2.6.0)
       Ascii85 (~> 1.0)
