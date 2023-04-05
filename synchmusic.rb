@@ -36,6 +36,7 @@
 #  2nd Nov 2021  eweb     #0008 dry up
 # 29th Dec 2022  eweb     #0008 iterate to find drive and rsync
 # 18th Feb 2023  eweb     #0008 rsync corrupt git repo
+#  5th Apr 2023  eweb     #0008 accounts switch to main
 #
 
 RED = "\033[0;31m".freeze
@@ -134,7 +135,7 @@ def main
 
     dirs = [["projects/acc", 'git@bitbucket.org:eamoon/acc.git'],
             ["projects/Running", 'git@bitbucket.org:eamoon/running.git'],
-            ["accounts/master", 'git@bitbucket.org:eamoon/data.git'],
+            ["accounts/main", 'git@bitbucket.org:eamoon/data.git'],
             ["bin", 'git@bitbucket.org:eamoon/bin.git'],
             ["projects/metric_fu", 'https://github.com/eamonn-webster/metric_fu.git'],
             ["projects/flog", 'https://github.com/eamonn-webster/flog.git'],
