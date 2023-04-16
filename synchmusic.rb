@@ -133,22 +133,22 @@ def main
       run(cmd)
     end
 
-    dirs = [["projects/acc", 'git@bitbucket.org:eamoon/acc.git'],
-            ["projects/Running", 'git@bitbucket.org:eamoon/running.git'],
-            ["accounts/main", 'git@bitbucket.org:eamoon/data.git'],
-            ["bin", 'git@bitbucket.org:eamoon/bin.git'],
-            ["projects/metric_fu", 'https://github.com/eamonn-webster/metric_fu.git'],
-            ["projects/flog", 'https://github.com/eamonn-webster/flog.git'],
-          # ["projects/tbw", "/Users/eweb/projects/tbw.git"]
-            ["projects/simway", 'git@bitbucket.org:eamoon/simway.git'],
-            ["projects/bacon-expect", 'https://github.com/eamonn-webster/bacon-expect.git']]
+    dirs = [['projects/acc', 'git@bitbucket.org:eamoon/acc.git'],
+            ['projects/Running', 'git@bitbucket.org:eamoon/running.git'],
+            ['accounts/main', 'git@bitbucket.org:eamoon/data.git'],
+            ['bin', 'git@bitbucket.org:eamoon/bin.git'],
+            ['projects/metric_fu', 'https://github.com/eamonn-webster/metric_fu.git'],
+            ['projects/flog', 'https://github.com/eamonn-webster/flog.git'],
+            # ['projects/tbw', '/Users/eweb/projects/tbw.git'],
+            ['projects/simway', 'git@bitbucket.org:eamoon/simway.git'],
+            ['projects/bacon-expect', 'https://github.com/eamonn-webster/bacon-expect.git']]
 
     dirs.each do |dir, remote|
       full_dir = "/Volumes/#{drive}/#{dir}"
       puts full_dir.in_green
       if Dir.exist?(full_dir)
         run("git -C #{full_dir} pull")
-        if $?.exitstatus != 0
+        if $CHILD_STATUS.exitstatus != 0
           fix_a_git(dir, rsync, drive)
         end
       else
