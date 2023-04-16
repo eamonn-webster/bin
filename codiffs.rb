@@ -2,7 +2,7 @@
 #
 # File: codiffs.rb
 # Author:
-# Copyright eweb, 2012-2019
+# Copyright eweb, 2012-2023
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -29,22 +29,22 @@
 # 19th Nov 2017  eweb     #0008 git message change
 #  7th Apr 2018  eweb     #0007 rubocop
 #  1st Jan 2019  eweb     #0008 ignore temp emacs files
+# 16th Apr 2023  eweb     #0007 rubocop
 #
 
-def find_git(where = '.')
-  where = File.expand_path where
+def find_git(where)
+  where = File.expand_path(where)
   if File.directory?("#{where}/.git")
     where
-  elsif where == '/'
-  else
+  elsif where != '/'
     up = File.expand_path "#{where}/.."
-    find_git up if up != where
+    find_git(up) if up != where
   end
 end
 
 verbose = false
 
-project_root = find_git
+project_root = find_git('.')
 
 exit unless project_root
 
@@ -52,56 +52,56 @@ addcomment = 'addcomment.rb'
 
 Dir.chdir project_root
 
-script_file = project_root + '/cos.sh'
+script_file = "#{project_root}/cos.sh"
 
 changed_files = []
 
 IO.popen('git status') do |f|
   stage = nil
   f.each do |line|
-    line.chomp
-    #puts line
-    if line =~ /On branch (.*)/
-      # branch = $1
-    elsif line =~ /Your branch is up.to.date with '.+'/
-    elsif line =~ /Your branch is ahead of '.+'/
-    elsif line =~ /nothing to commit, working directory clean/
-    elsif line =~ /Changes to be committed:/
+    line.chomp!
+    ignores = ['On branch',
+               'Your branch is up to date with',
+               'Your branch is ahead of',
+               'nothing to commit, working directory clean',
+               'nothing to commit, working tree clean',
+              ' (use']
+    if line.empty?
+      # ignore
+    elsif ignores.any? { |ignore| line[ignore] }
+      puts "Ignoring '#{line}'" if verbose
+    elsif line['Changes to be committed:']
       stage = :staged
-    elsif line =~ /\tdeleted: +(.*)/
+    elsif /\tdeleted: +(.*)/.match?(line)
       # skip
     elsif line =~ /\tmodified: +(.*)/ ||
       line =~ /\ttypechange: +(.*)/ ||
       line =~ /\trenamed: +(?:.*) -> (.*)/ ||
       line =~ /\tnew file: +(.*)/
       file = $1
-      puts "Staged #{file}\n" if stage == :staged && verbose
-      puts "Unstaged #{file}\n" if stage == :unstaged && verbose
+      puts "Staged '#{file}'\n" if stage == :staged && verbose
+      puts "Unstaged '#{file}'\n" if stage == :unstaged && verbose
       changed_files << stage
       changed_files << file
-    elsif line =~ /Untracked files:/
+    elsif line['Untracked files:']
       stage = :untracked
-    elsif line =~ /Changes not staged for commit:/
+    elsif line['Changes not staged for commit:']
       stage = :unstaged
-    elsif line =~ /Unmerged paths:/
+    elsif line['Unmerged paths:']
       stage = :unmerged
-    elsif line =~ /\t(.*)\/$/
-      puts "Ignoring directory #{line}" if verbose
+    elsif /\t(.*)\/$/.match?(line)
+      puts "Ignoring directory '#{line}'" if verbose
     elsif line =~ /\t(.*)/
       file = $1
       if file['~$']
-        puts "Ignoring #{file}" # if verbose
+        puts "Ignoring '#{file}'" # if verbose
       else
-        puts "Untracked #{file}" if verbose
+        puts "Untracked '#{file}'" if verbose
         changed_files << stage
         changed_files << file
       end
-    elsif line =~ / \(use/
-    elsif line == "\n"
-    elsif line =~ /^[^#]/
-      puts "Unhandled #{line}"
     else
-      puts "Unhandled #{line}"
+      puts "Unhandled '#{line}'"
     end
   end
 end
@@ -132,7 +132,7 @@ if changed_files.length
     script.puts "pushd #{project_root} > /dev/null"
     stage =
       changed_files.each do |f|
-        if f.class == Symbol
+        if f.instance_of?(Symbol)
           script.puts "### #{f}" if stage != f
           stage = f
         elsif f
@@ -145,12 +145,12 @@ if changed_files.length
           if stage == :untracked
             # script.puts "#git add #{f}"
           end
-          if !comments.empty?
+          if comments.empty?
+            script.puts "#{addcomment} -c \"\" \"#{f}\""
+          else
             comments.each do |c|
               script.puts "##{addcomment} -c \"#{c}\" \"#{f}\""
             end
-          else
-            script.puts "#{addcomment} -c \"\" \"#{f}\""
           end
         end
       end
