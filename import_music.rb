@@ -16,7 +16,8 @@
 #  5th Sep 2020  eweb     #0008 output music items
 #  5th Sep 2020  eweb     #0007 turned onto a class
 #  8th Dec 2020  eweb     #0008 typo
-#  4th Feb 2023  eweb     #0008 brew unzip to correclty handle characters
+#  4th Feb 2023  eweb     #0008 brew unzip to correctly handle characters
+# 17th Apr 2023  eweb     #0007 rubocop
 #
 
 class ImportMusic
@@ -28,15 +29,19 @@ class ImportMusic
     dir = '/Volumes/Transcend/Music/iTunes'
     return dir if Dir.exist?(dir)
 
-    "#{ENV['HOME']}/Music/iTunes"
+    "#{Dir.home}/Music/iTunes"
   end
 
   def own_dir
-    "#{ENV['HOME']}/Music/Own"
+    "#{Dir.home}/Music/Own"
   end
 
   def downloads
-    "#{ENV['HOME']}/Downloads"
+    "#{Dir.home}/Downloads"
+  end
+
+  def auto_add_dir
+    "#{itunes_dir}/iTunes Media/Automatically Add to Music.localized/"
   end
 
   def shell(cmd)
@@ -46,7 +51,10 @@ class ImportMusic
 
   def import
     Dir.chdir("#{own_dir}/temp") do
-      puts Dir["#{downloads}/*\\ -\\ *.zip"]
+      zips = Dir["#{downloads}/*\\ -\\ *.zip"]
+      return puts 'no music zips found' if zips.empty?
+
+      puts zips
       shell("mv #{downloads}/*\\ -\\ *.zip .")
       Dir['*.zip'].map do |z|
         b = File.basename(z, '.zip')
@@ -55,7 +63,7 @@ class ImportMusic
       end
       shell('mv *.zip ..')
       Dir['*'].each do |f|
-        shell("mv \"#{f}\" #{itunes_dir}/iTunes\\ Media/Automatically\\ Add\\ to\\ Music.localized/")
+        shell("mv \"#{f}\" \"#{auto_add_dir}\"")
         sleep(5)
       end
     end
@@ -64,7 +72,7 @@ class ImportMusic
   end
 
   def unzip
-    '/opt/homebrew/opt/unzip/bin/unzip'
+    "#{`brew --prefix unzip`.chomp}/bin/unzip"
   end
 
   def output_accounts_data
