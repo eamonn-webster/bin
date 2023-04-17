@@ -133,6 +133,7 @@ GEM
     nokogiri (1.14.3)
       mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
+    parallel (1.22.1)
     parser (3.2.2.0)
       ast (~> 2.4.1)
     pdf-reader (2.6.0)
@@ -148,7 +149,9 @@ GEM
     rack (2.2.6.4)
     rack-protection (3.0.6)
       rack
+    rainbow (3.1.1)
     rake (13.0.6)
+    regexp_parser (2.7.0)
     reline (0.3.3)
       io-console (~> 0.5)
     rest-client (2.1.0)
@@ -157,6 +160,23 @@ GEM
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
     rexml (3.2.5)
+    rubocop (1.50.1)
+      json (~> 2.3)
+      parallel (~> 1.10)
+      parser (>= 3.2.0.0)
+      rainbow (>= 2.2.2, < 4.0)
+      regexp_parser (>= 1.8, < 3.0)
+      rexml (>= 3.2.5, < 4.0)
+      rubocop-ast (>= 1.28.0, < 2.0)
+      ruby-progressbar (~> 1.7)
+      unicode-display_width (>= 2.4.0, < 3.0)
+    rubocop-ast (1.28.0)
+      parser (>= 3.2.1.0)
+    rubocop-performance (1.17.1)
+      rubocop (>= 1.7.0, < 2.0)
+      rubocop-ast (>= 0.4.0)
+    rubocop-rake (0.6.0)
+      rubocop (~> 1.0)
     rubrowser (2.11)
       litecable
       parser
@@ -164,6 +184,7 @@ GEM
       websocket
     ruby-macho (2.5.1)
     ruby-next-core (0.15.3)
+    ruby-progressbar (1.13.0)
     ruby-rc4 (0.1.5)
     ruby2_keywords (0.0.5)
     rubygems-bundler (1.4.5)
@@ -191,6 +212,7 @@ GEM
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.8.2)
+    unicode-display_width (2.4.2)
     websocket (1.2.9)
     websocket-driver (0.7.5)
       websocket-extensions (>= 0.1.0)
@@ -216,6 +238,9 @@ DEPENDENCIES
   pdf-reader (= 2.6.0)
   rake
   rest-client
+  rubocop
+  rubocop-performance
+  rubocop-rake
   rubrowser
   rubygems-bundler
   taglib-ruby

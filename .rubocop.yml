@@ -9,13 +9,18 @@
 #  3rd Apr 2018  eweb     #0007 rubocop
 #  7th Apr 2018  eweb     #0007 rubocop
 # 16th Apr 2023  eweb     #0008 enable new cops
+# 17th Apr 2023  eweb     #0008 update
 #
 # https://github.com/bbatsov/rubocop/tree/master/config
 #
 # rubocop -DES -f html -o rubocop.html
 #
+require:
+  - rubocop-performance
+  - rubocop-rake
+
 AllCops:
-  TargetRubyVersion: 2.6
+  TargetRubyVersion: 2.7
   NewCops: enable
 
 Style/SafeNavigation:

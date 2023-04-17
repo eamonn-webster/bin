@@ -1,7 +1,7 @@
 #
 # File: Gemfile
 # Author: eweb
-# Copyright eweb, 2016-2022
+# Copyright eweb, 2016-2023
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -10,6 +10,7 @@
 # 26th Nov 2018  eweb     #0008 include metric_fu etc
 # 21st Dec 2020  eweb     #0008 executable-hooks
 # 21st Apr 2021  eweb     #0008 remove rubocop
+# 17th Apr 2023  eweb     #0008 rubocop
 #
 source 'https://rubygems.org'
 
@@ -19,16 +20,17 @@ gem 'bundler'
 gem 'rubygems-bundler'
 gem 'executable-hooks'
 gem 'rake'
-gem 'mailcatcher', github: 'BenTalagan/mailcatcher'
+gem 'mailcatcher', github: 'BenTalagan/mailcatcher', require: false
 gem 'irb'
-gem 'nokogiri'
-# gem 'rubocop'
-# gem 'rubocop-performance'
+gem 'nokogiri', require: false
+gem 'rubocop', require: false
+gem 'rubocop-performance', require: false
+gem 'rubocop-rake', require: false
 # bundle config taglib-ruby --with-tag-dir=`brew --prefix taglib`
-gem 'taglib-ruby'
-gem 'rest-client'
-gem 'pdf-reader', '2.6.0'
-gem 'cocoapods'
+gem 'taglib-ruby', require: false
+gem 'rest-client', require: false
+gem 'pdf-reader', '2.6.0', require: false
+gem 'cocoapods', require: false
 # gem 'xcode-install', require: false
 
 # gem 'metric_fu', github: 'eamonn-webster/metric_fu', require: false
