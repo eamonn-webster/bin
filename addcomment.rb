@@ -121,6 +121,7 @@
 #  1st Apr 2022  eweb     #0008 file not found
 # 17th Apr 2023  eweb     #0007 rubocop
 # 17th Apr 2023  eweb     #0007 input & output
+#  1st May 2023  eweb     #0008 Makefiles
 #
 
 # DONE change event if comment not present.
@@ -429,6 +430,9 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       file == 'Dockerfile'
       'rb'
     elsif file.end_with?('.pl', '.sh', '.zshrc', '.zlogin', '.properties', '.properties.default', '.lyt')
+      'pl'
+    elsif file == 'Makefile'
+      @tabs_allowed = true
       'pl'
     elsif file.end_with?('.tmpl')
       'tmpl'
