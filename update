@@ -12,6 +12,7 @@
 #  8th Dec 2021  eweb     #0008 don't launch instaweb if already running
 #  5th Apr 2023  eweb     #0008 accounts switch to main
 # 21st Apr 2023  eweb     #0008 handle upstream remotes
+# 21st Jun 2023  eweb     #0008 fetching and rebasing
 #
 
 # bash needed echo -e "..."
@@ -40,18 +41,18 @@ do
   echo "\033[32m$dir\033[0m" &&
   cd "$dir" &&
   test -d .git &&
-  git fetch --all &&
   if [[ -d .git/refs/remotes ]]; then
+    git fetch --all &&
     git pull
   fi
   if [[ -f .git/refs/remotes/upstream/main ]]; then
     git fetch upstream main:upstream
-    git rebase upstream
+    git rebase --autostash upstream
     # git push --force
   fi
   if [[ -f .git/refs/remotes/upstream/master ]]; then
     git fetch upstream master:upstream
-    git rebase upstream
+    git rebase --autostash upstream
     # git push --force
   fi
 done
