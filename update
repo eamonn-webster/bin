@@ -46,11 +46,13 @@ do
     git pull
   fi
   if [[ -f .git/refs/remotes/upstream/main ]]; then
+    git checkout main
     git fetch upstream main:upstream
     git rebase --autostash upstream
     # git push --force
   fi
   if [[ -f .git/refs/remotes/upstream/master ]]; then
+    git checkout master
     git fetch upstream master:upstream
     git rebase --autostash upstream
     # git push --force
