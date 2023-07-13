@@ -41,6 +41,15 @@ frr() {
 }
   # flog $*
 
+# needed to sudo because /usr/local is protected
+#$ arch -x86_64 zsh
+#$ cd /usr/local &&  mkdir homebrew
+#$ curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C homebrew
+
+ibrew() {
+  arch -x86_64 /usr/local/bin/brew $*
+}
+
 kill_noted() {
   (cd `getconf DARWIN_USER_DIR` &&
    rm -rf com.apple.notificationcenter)
