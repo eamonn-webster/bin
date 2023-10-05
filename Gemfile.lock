@@ -240,6 +240,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  activesupport (< 7.1.0)
   bundler
   cocoapods
   executable-hooks

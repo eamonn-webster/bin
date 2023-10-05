@@ -11,6 +11,7 @@
 # 21st Dec 2020  eweb     #0008 executable-hooks
 # 21st Apr 2021  eweb     #0008 remove rubocop
 # 17th Apr 2023  eweb     #0008 rubocop
+#  6th Oct 2023  eweb     #3511 activesupport 7.1.0 breaks cocoapods
 #
 source 'https://rubygems.org'
 
@@ -37,3 +38,7 @@ gem 'cocoapods', require: false
 # gem 'flog', github: 'eamonn-webster/flog', require: false
 # gem 'reek', require: false
 gem 'rubrowser', require: false
+
+# #3511 cocoapods 1.13.0 breaks with activesupport 7.1.0
+# NoMethodError: undefined method `deprecator' for ActiveSupport:Module
+gem 'activesupport', '< 7.1.0'
