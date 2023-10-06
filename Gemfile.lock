@@ -140,7 +140,7 @@ GEM
     parser (3.2.2.4)
       ast (~> 2.4.1)
       racc
-    pdf-reader (2.6.0)
+    pdf-reader (2.11.0)
       Ascii85 (~> 1.0)
       afm (~> 0.2.1)
       hashery (~> 2.0)
@@ -247,7 +247,7 @@ DEPENDENCIES
   irb
   mailcatcher!
   nokogiri
-  pdf-reader (= 2.6.0)
+  pdf-reader
   rake
   rest-client
   rubocop

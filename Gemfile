@@ -30,7 +30,7 @@ gem 'rubocop-rake', require: false
 # bundle config taglib-ruby --with-tag-dir=`brew --prefix taglib`
 gem 'taglib-ruby', require: false
 gem 'rest-client', require: false
-gem 'pdf-reader', '2.6.0', require: false
+gem 'pdf-reader', require: false
 gem 'cocoapods', require: false
 # gem 'xcode-install', require: false
 
