@@ -37,7 +37,10 @@
 # 29th Dec 2022  eweb     #0008 iterate to find drive and rsync
 # 18th Feb 2023  eweb     #0008 rsync corrupt git repo
 #  5th Apr 2023  eweb     #0008 accounts switch to main
+# 16th Oct 2023  eweb     #0008 need English for $CHILD_STATUS
 #
+
+require 'English'
 
 RED = "\033[0;31m".freeze
 GREEN = "\033[0;32m".freeze
