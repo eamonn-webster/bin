@@ -41,6 +41,12 @@ frr() {
 }
   # flog $*
 
+ave() {
+    profile=$1
+    shift
+    aws-vault exec $profile -t $(op item get 'Qstream AWS' --totp) $*
+}
+
 # needed to sudo because /usr/local is protected
 #$ arch -x86_64 zsh
 #$ cd /usr/local &&  mkdir homebrew
