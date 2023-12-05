@@ -100,7 +100,7 @@ GEM
     irb (1.10.0)
       rdoc
       reline (>= 0.3.8)
-    json (2.7.0)
+    json (2.7.1)
     language_server-protocol (3.17.0.3)
     litecable (0.8.1)
       anyway_config (>= 1.0)
@@ -155,7 +155,7 @@ GEM
       rack (~> 2.2, >= 2.2.4)
     rainbow (3.1.1)
     rake (13.1.0)
-    rdoc (6.6.0)
+    rdoc (6.6.1)
       psych (>= 4.0.0)
     regexp_parser (2.8.3)
     reline (0.4.1)
