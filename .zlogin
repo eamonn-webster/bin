@@ -7,4 +7,4 @@
 # Date:          Author:  Comments:
 #
 
-[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
+source "$(brew --prefix asdf)/libexec/asdf.sh"
