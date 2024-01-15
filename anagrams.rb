@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 #
 # File: anagrams.rb
 # Author: eweb
@@ -15,6 +17,8 @@ require 'tempfile'
 
 def anagrams(w, k = '')
   # fixed = k.chars.to_a
+  w = w.downcase
+  k = k.downcase
   g = k.chars.count { |c| c == '.' }
   if g.zero?
     g = w.size
