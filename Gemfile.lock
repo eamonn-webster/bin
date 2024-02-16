@@ -16,7 +16,9 @@ GEM
   remote: https://rubygems.org/
   specs:
     Ascii85 (1.1.0)
-    CFPropertyList (3.0.6)
+    CFPropertyList (3.0.7)
+      base64
+      nkf
       rexml
     activesupport (7.0.8)
       concurrent-ruby (~> 1.0, >= 1.0.2)
@@ -132,6 +134,7 @@ GEM
       net-protocol
     netrc (0.11.0)
     nio4r (2.7.0)
+    nkf (0.2.0)
     nokogiri (1.16.2)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
