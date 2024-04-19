@@ -196,7 +196,7 @@ GEM
       puma
       websocket
     ruby-macho (2.5.1)
-    ruby-next-core (1.0.2)
+    ruby-next-core (1.0.3)
     ruby-progressbar (1.13.0)
     ruby-rc4 (0.1.5)
     ruby2_keywords (0.0.5)
