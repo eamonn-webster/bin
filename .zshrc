@@ -89,8 +89,8 @@ export NVM_DIR="$HOME/.nvm"
 
 export DJANGO_SETTINGS_MODULE=questions.settings.development
 
-export PYENV_ROOT="$HOME/.pyenv"
-command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+# export PYENV_ROOT="$HOME/.pyenv"
+# command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+# eval "$(pyenv init -)"
 
 source "$(brew --prefix asdf)/libexec/asdf.sh"
