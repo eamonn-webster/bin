@@ -1,10 +1,11 @@
 #
 # File: .zshrc
 # Author: eweb
-# Copyright eweb, 2022-2022
+# Copyright eweb, 2022-2024
 # Contents:
 #
 # Date:          Author:  Comments:
+# 18th May 2024  eweb     #0008 p4merge
 #
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 export DISABLE_SPRING=YES
@@ -21,6 +22,10 @@ bindkey "[C" forward-word
 
 gitk() {
     `which git`k --all $1 &
+}
+
+p4merge() {
+    /Applications/p4merge.app/Contents/Resources/launchp4merge $* &
 }
 
 music_list() {
