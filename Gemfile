@@ -21,7 +21,7 @@ gem 'bundler'
 gem 'rubygems-bundler'
 gem 'executable-hooks'
 gem 'rake'
-gem 'mailcatcher', github: 'BenTalagan/mailcatcher', require: false
+gem 'mailcatcher', require: false
 gem 'irb'
 gem 'nokogiri', require: false
 gem 'rubocop', require: false
@@ -42,3 +42,5 @@ gem 'rubrowser', require: false
 # #3511 cocoapods 1.13.0 breaks with activesupport 7.1.0
 # NoMethodError: undefined method `deprecator' for ActiveSupport:Module
 gem 'activesupport', '< 7.1.0'
+
+gem "pronto-rubocop", "~> 0.11.5"

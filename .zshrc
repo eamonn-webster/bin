@@ -99,3 +99,4 @@ export DJANGO_SETTINGS_MODULE=questions.settings.development
 # eval "$(pyenv init -)"
 
 source "$(brew --prefix asdf)/libexec/asdf.sh"
+export PATH="/opt/homebrew/opt/imagemagick@6/bin:$PATH"
