@@ -32,15 +32,10 @@ gem 'taglib-ruby', require: false
 gem 'rest-client', require: false
 gem 'pdf-reader', require: false
 gem 'cocoapods', require: false
-# gem 'xcode-install', require: false
 
 # gem 'metric_fu', github: 'eamonn-webster/metric_fu', require: false
 # gem 'flog', github: 'eamonn-webster/flog', require: false
 # gem 'reek', require: false
 gem 'rubrowser', require: false
-
-# #3511 cocoapods 1.13.0 breaks with activesupport 7.1.0
-# NoMethodError: undefined method `deprecator' for ActiveSupport:Module
-gem 'activesupport', '< 7.1.0'
 
 gem "pronto-rubocop", "~> 0.11.5"
