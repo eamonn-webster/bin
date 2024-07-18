@@ -11,6 +11,7 @@ export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 export DISABLE_SPRING=YES
 export EDITOR=emacs
 export QUEST_DIR=~/projects/quest
+export JIRA_USER=eweb@qstream.com
 
 autoload -Uz compinit && compinit
 # autoload -Uz add-zsh-hook
