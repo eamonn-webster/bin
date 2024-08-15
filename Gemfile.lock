@@ -98,7 +98,7 @@ GEM
       terminal-table (>= 1.5.1)
     hashery (2.1.2)
     http-accept (1.7.0)
-    http-cookie (1.0.6)
+    http-cookie (1.0.7)
       domain_name (~> 0.5)
     httparty (0.22.0)
       csv
