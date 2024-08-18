@@ -38,6 +38,7 @@ done
 
 for dir in ~/projects/*
 do
+  test -d "$dir" &&
   echo "\033[32m$dir\033[0m" &&
   cd "$dir" &&
   test -d .git &&
@@ -61,6 +62,7 @@ done
 
 for dir in ~/projects/qstream/*
 do
+  test -d "$dir" &&
   echo "\033[32m$dir\033[0m" &&
   cd "$dir" &&
   test -d .git &&
@@ -70,6 +72,7 @@ done
 
 for dir in ~/projects/quest/*
 do
+  test -d "$dir" &&
   echo "\033[32m$dir\033[0m" &&
   cd "$dir" &&
   test -d .git &&
