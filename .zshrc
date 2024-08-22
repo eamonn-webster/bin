@@ -53,6 +53,39 @@ ave() {
     aws-vault exec $profile -t $(op item get 'Qstream AWS' --totp) $*
 }
 
+connect() {
+    case "$1" in
+    us01)
+	echo -en '\e]1;us01\e\\';
+        aws-vault exec quest_prod -- ~/projects/quest/workflow/bin/connect_db us01 5443;;
+    eu01)
+	echo -en '\e]1;eu01\e\\';
+	aws-vault exec quest_prod -- env AWS_REGION=eu-west-1 ~/projects/quest/workflow/bin/connect_db eu01 5442;;
+    us02)
+        aws-vault exec quest_prod -- ~/projects/quest/workflow/bin/connect_db us02 5444;;
+    dev01)
+	aws-vault exec quest_dev -- ~/projects/quest/workflow/bin/connect_db dev01 5440;;
+    pentest01)
+	aws-vault exec quest_dev -- ~/projects/quest/workflow/bin/connect_db pentest01 5441;;
+    load-test)
+	aws-vault exec quest_load -- ~/projects/quest/workflow/bin/connect_db load-test 5447;;
+    staging01)
+	aws-vault exec quest_staging -- ~/projects/quest/workflow/bin/connect_db staging01 5448;;
+    sales01)
+	aws-vault exec quest_sales -- ~/projects/quest/workflow/bin/connect_db sales01 5451;;
+    dev01-migration)
+	aws-vault exec quest_dev -- ~/projects/quest/workflow/bin/connect_db dev01 5451 -migration;;
+    us01-migration)
+	aws-vault exec quest_prod -- ~/projects/quest/workflow/bin/connect_db us01 5449 -migration;;
+    us01-migration)
+	aws-vault exec quest_prod -- ~/projects/quest/workflow/bin/connect_db us02 5450 -migration;;
+    eu01-migration)
+	aws-vault exec quest_prod -- env AWS_REGION=eu-west-1 ~/projects/quest/workflow/bin/connect_db eu01 5459 -migration;;
+    *)
+        echo "Usage: $0 {us01|us02|eu01|dev01|pentent01|load-test}";;
+    esac
+}
+
 # needed to sudo because /usr/local is protected
 #$ arch -x86_64 zsh
 #$ cd /usr/local &&  mkdir homebrew
