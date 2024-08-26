@@ -77,7 +77,7 @@ connect() {
 	aws-vault exec quest_dev -- ~/projects/quest/workflow/bin/connect_db dev01 5451 -migration;;
     us01-migration)
 	aws-vault exec quest_prod -- ~/projects/quest/workflow/bin/connect_db us01 5449 -migration;;
-    us01-migration)
+    us02-migration)
 	aws-vault exec quest_prod -- ~/projects/quest/workflow/bin/connect_db us02 5450 -migration;;
     eu01-migration)
 	aws-vault exec quest_prod -- env AWS_REGION=eu-west-1 ~/projects/quest/workflow/bin/connect_db eu01 5459 -migration;;
