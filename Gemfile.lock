@@ -115,7 +115,7 @@ GEM
     language_server-protocol (3.17.0.3)
     litecable (0.8.2)
       anyway_config (>= 1.0)
-    logger (1.6.0)
+    logger (1.6.1)
     mail (2.8.1)
       mini_mime (>= 0.1.1)
       net-imap
