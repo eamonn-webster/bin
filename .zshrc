@@ -134,3 +134,5 @@ export DJANGO_SETTINGS_MODULE=questions.settings.development
 
 source "$(brew --prefix asdf)/libexec/asdf.sh"
 export PATH="/opt/homebrew/opt/imagemagick@6/bin:$PATH"
+
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
