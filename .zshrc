@@ -132,6 +132,10 @@ export DJANGO_SETTINGS_MODULE=questions.settings.development
 # command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
 # eval "$(pyenv init -)"
 
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+
 source "$(brew --prefix asdf)/libexec/asdf.sh"
 export PATH="/opt/homebrew/opt/imagemagick@6/bin:$PATH"
 
