@@ -81,6 +81,8 @@ connect() {
 	aws-vault exec quest_prod -- ~/projects/quest/workflow/bin/connect_db us02 5450 -migration;;
     eu01-migration)
 	aws-vault exec quest_prod -- env AWS_REGION=eu-west-1 ~/projects/quest/workflow/bin/connect_db eu01 5459 -migration;;
+    quest-gcp)
+	aws-vault exec quest_prod -- ~/projects/quest/workflow/bin/connect_db us01 5453 -quest-gcp;;
     *)
         echo "Usage: $0 {us01|us02|eu01|dev01|pentent01|load-test}";;
     esac
