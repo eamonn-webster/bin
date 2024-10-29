@@ -28,7 +28,7 @@ gem 'rubocop', require: false
 gem 'rubocop-performance', require: false
 gem 'rubocop-rake', require: false
 # bundle config taglib-ruby --with-tag-dir=`brew --prefix taglib`
-gem 'taglib-ruby', require: false
+gem 'taglib-ruby', '< 2.0.0', require: false
 gem 'rest-client', require: false
 gem 'pdf-reader', require: false
 gem 'cocoapods', require: false

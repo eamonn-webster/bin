@@ -157,7 +157,7 @@ GEM
     net-smtp (0.5.0)
       net-protocol
     netrc (0.11.0)
-    nio4r (2.7.3)
+    nio4r (2.7.4)
     nkf (0.2.0)
     nokogiri (1.16.7)
       mini_portile2 (~> 2.8.2)
@@ -301,7 +301,7 @@ DEPENDENCIES
   rubocop-rake
   rubrowser
   rubygems-bundler
-  taglib-ruby
+  taglib-ruby (< 2.0.0)
 
 BUNDLED WITH
    2.5.22
