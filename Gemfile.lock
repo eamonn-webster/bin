@@ -1,7 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    Ascii85 (1.1.1)
+    Ascii85 (2.0.1)
     CFPropertyList (3.0.7)
       base64
       nkf
@@ -75,7 +75,7 @@ GEM
     connection_pool (2.4.1)
     csv (3.3.0)
     daemons (1.4.1)
-    date (3.3.4)
+    date (3.4.0)
     domain_name (0.6.20240107)
     drb (2.2.1)
     escape (0.0.4)
@@ -171,8 +171,8 @@ GEM
     parser (3.3.5.1)
       ast (~> 2.4.1)
       racc
-    pdf-reader (2.12.0)
-      Ascii85 (~> 1.0)
+    pdf-reader (2.13.0)
+      Ascii85 (>= 1.0, < 3.0, != 2.0.0)
       afm (~> 0.2.1)
       hashery (~> 2.0)
       ruby-rc4
@@ -221,7 +221,7 @@ GEM
       rubocop-ast (>= 1.32.2, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 3.0)
-    rubocop-ast (1.33.0)
+    rubocop-ast (1.33.1)
       parser (>= 3.3.1.0)
     rubocop-performance (1.22.1)
       rubocop (>= 1.48.1, < 2.0)
