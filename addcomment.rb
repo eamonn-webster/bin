@@ -2,7 +2,7 @@
 #
 # File: addcomment.rb
 # Author: eweb
-# Copyright eweb, 2003-2023
+# Copyright eweb, 2003-2024
 # Contents: Perl script to add comments to source files
 #
 # Date:          Author:  Comments:
@@ -122,6 +122,7 @@
 # 17th Apr 2023  eweb     #0007 rubocop
 # 17th Apr 2023  eweb     #0007 input & output
 #  1st May 2023  eweb     #0008 Makefiles
+# 24th Nov 2024  eweb     #0008 handle dart files
 #
 
 # DONE change event if comment not present.
@@ -351,7 +352,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
 
   def setup_for_type(type)
     case type
-    when 'c++'
+    when 'c++', 'dart'
       @multi_line_start = '/*'
       @multi_line_end = '*/'
       @multi_line_prefix = '  '
@@ -365,7 +366,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       @multi_line_end = '-->'
       @multi_line_prefix = '  '
       @very_first_line = /<?xml.*>/
-    when 'pl', 'rb'
+    when 'pl', 'rb', 'yaml'
       @single_line = '#'
       @very_first_line = '#!'
     when 'tmpl'
@@ -424,11 +425,15 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       'xml'
     elsif file.end_with?('.sql')
       'sql'
-    elsif file.end_with?('.rb', '.feature', '.rake', '.yml', '.yaml', '.reek', '.metrics', '.simplecov') ||
+    elsif file.end_with?('.yml', '.yaml')
+      'yaml'
+    elsif file.end_with?('.rb', '.feature', '.rake', '.reek', '.metrics', '.simplecov') ||
       file == 'Rakefile' ||
       file == 'Gemfile' ||
       file == 'Dockerfile'
       'rb'
+    elsif file.end_with?('.dart')
+      'dart'
     elsif file.end_with?('.pl', '.sh', '.zshrc', '.zlogin', '.properties', '.properties.default', '.lyt')
       'pl'
     elsif file == 'Makefile'
