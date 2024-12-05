@@ -60,14 +60,12 @@ do
   fi
 done
 
-for dir in ~/projects/qstream/*
+for dir in ~/projects/acc/*/
 do
-  test -d "$dir" &&
   echo "\033[32m$dir\033[0m" &&
   cd "$dir" &&
-  test -d .git &&
-  git fetch --all &&
-  git pull
+  test -f Gemfile &&
+  bundle --quiet
 done
 
 for dir in ~/projects/quest/*
@@ -80,12 +78,14 @@ do
   git pull
 done
 
-for dir in ~/projects/acc/*/
+for dir in ~/projects/qstream/*
 do
+  test -d "$dir" &&
   echo "\033[32m$dir\033[0m" &&
   cd "$dir" &&
-  test -f Gemfile &&
-  bundle --quiet
+  test -d .git &&
+  git fetch --all &&
+  git pull
 done
 
 # brew update
