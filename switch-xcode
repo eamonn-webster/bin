@@ -1,0 +1,31 @@
+#!/bin/sh
+
+#
+# File: switch-xcode
+# Author: eweb
+# Copyright eweb, 2024-2024
+# Contents:
+#
+# Date:          Author:  Comments:
+#  7th Dec 2024  eweb     #0008 switch xcode without sudo
+#
+
+xcver="-$1"
+if [ "$xcver" == "--" ]
+then
+  xcver=""
+fi
+
+
+if [ "$xcver" != "-" ]
+then
+  xcode="/Applications/Xcode${xcver}.app/Contents/Developer"
+
+  if [[ -d $xcode ]] ; then
+    sudo xcode-select -s $xcode
+  else
+    echo "xcode $xcode not found"
+  fi
+fi
+
+xcode-select -p
