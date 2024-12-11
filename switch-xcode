@@ -8,6 +8,7 @@
 #
 # Date:          Author:  Comments:
 #  7th Dec 2024  eweb     #0008 switch xcode without sudo
+# 11th Dec 2024  eweb     #0008 skip if no change
 #
 
 xcver="-$1"
@@ -21,7 +22,9 @@ if [ "$xcver" != "-" ]
 then
   xcode="/Applications/Xcode${xcver}.app/Contents/Developer"
 
-  if [[ -d $xcode ]] ; then
+  if [[ `xcode-select -p` == $xcode ]]; then
+    :
+  elif [[ -d $xcode ]] ; then
     sudo xcode-select -s $xcode
   else
     echo "xcode $xcode not found"
