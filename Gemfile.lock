@@ -6,7 +6,7 @@ GEM
       base64
       nkf
       rexml
-    activesupport (7.2.2)
+    activesupport (7.2.2.1)
       base64
       benchmark (>= 0.3)
       bigdecimal
@@ -161,7 +161,7 @@ GEM
     netrc (0.11.0)
     nio4r (2.7.4)
     nkf (0.2.0)
-    nokogiri (1.17.0)
+    nokogiri (1.17.1)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
     octokit (7.2.0)
