@@ -12,3 +12,5 @@ apktool
 /.idea/
 .DS_store
 bin
+credentials.json
+token.yaml
