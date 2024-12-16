@@ -7,7 +7,6 @@ require 'mime'
 require 'webrick'
 require 'nokogiri'
 require 'open-uri'
-
 # Configure Gmail API
 REDIRECT_URI = 'http://127.0.0.1:4567'.freeze
 APPLICATION_NAME = 'Gmail API Ruby'.freeze
@@ -85,9 +84,14 @@ def foo(message, gmail, message_id, output_dir)
       begin
         attachment_id = part.body.attachment_id
         attachment = gmail.get_user_message_attachment(user_id, message_id, attachment_id)
-        data = Base64.urlsafe_decode64(attachment.data)
         filename = part.filename || 'unknown_image'
         filepath = File.join(output_dir, filename)
+
+        begin
+          data = Base64.urlsafe_decode64(attachment.data)
+        rescue ArgumentError => e
+          data = attachment.data
+        end
 
         File.binwrite(filepath, data)
         puts "Downloaded: #{filepath}"
@@ -121,6 +125,9 @@ end
 def download_images(image_urls, output_dir)
   FileUtils.mkdir_p(output_dir) # Create directory if it doesn't exist
 
+  extension_map = {'image/jpeg' => '.jpg',
+                   'image/png' => '.png',
+                   'image/gif' => '.gif'}
   image_urls.each do |url|
     puts "Downloading: #{url}"
     file_name = File.basename(URI.parse(url).path)
@@ -134,11 +141,13 @@ def download_images(image_urls, output_dir)
       File.binwrite(file_path, image.read)
     end
     puts "Saved: #{file_path}"
-    if file_name.end_with?('.png')
-      type = `file -b --mime-type "#{file_path}"`.strip
-      if type == 'image/jpeg'
-        `mv "#{file_path}" "#{file_path.sub('.png', '.jpg')}"`
-      end
+    ext = File.extname(file_path)
+    type = `file -b --mime-type "#{file_path}"`.strip
+    new_suffix = extension_map[type]
+    new_file_path = "#{file_path.delete_suffix(ext)}#{new_suffix}"
+    if new_suffix && new_file_path != file_path
+      `mv "#{file_path}" "#{new_file_path}"`
+      puts "Saved: #{new_file_path}"
     end
   rescue StandardError => e
     puts "Failed to download #{url}: #{e.message}"
