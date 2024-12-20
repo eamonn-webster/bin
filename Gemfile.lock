@@ -123,7 +123,7 @@ GEM
     google-cloud-env (2.2.1)
       faraday (>= 1.0, < 3.a)
     google-logging-utils (0.1.0)
-    googleauth (1.12.0)
+    googleauth (1.12.2)
       faraday (>= 1.0, < 3.a)
       google-cloud-env (~> 2.2)
       google-logging-utils (~> 0.1)
@@ -143,16 +143,16 @@ GEM
     i18n (1.14.6)
       concurrent-ruby (~> 1.0)
     io-console (0.8.0)
-    irb (1.14.2)
+    irb (1.14.3)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
-    json (2.9.0)
+    json (2.9.1)
     jwt (2.9.3)
       base64
     language_server-protocol (3.17.0.3)
     litecable (0.8.2)
       anyway_config (>= 1.0)
-    logger (1.6.3)
+    logger (1.6.4)
     mail (2.8.1)
       mini_mime (>= 0.1.1)
       net-imap
@@ -226,7 +226,7 @@ GEM
     pronto-rubocop (0.11.5)
       pronto (~> 0.11.0)
       rubocop (>= 0.63.1, < 2.0)
-    psych (5.2.1)
+    psych (5.2.2)
       date
       stringio
     public_suffix (4.0.7)
@@ -239,7 +239,7 @@ GEM
       rack (~> 2.2, >= 2.2.4)
     rainbow (3.1.1)
     rake (13.2.1)
-    rdoc (6.9.1)
+    rdoc (6.10.0)
       psych (>= 4.0.0)
     regexp_parser (2.9.3)
     reline (0.6.0)
@@ -361,4 +361,4 @@ DEPENDENCIES
   webrick (~> 1.9)
 
 BUNDLED WITH
-   2.6.0
+   2.6.1
