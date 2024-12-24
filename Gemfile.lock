@@ -186,7 +186,7 @@ GEM
     nap (1.1.0)
     net-http (0.6.0)
       uri
-    net-imap (0.5.3)
+    net-imap (0.5.4)
       date
       net-protocol
     net-pop (0.1.2)
@@ -361,4 +361,4 @@ DEPENDENCIES
   webrick (~> 1.9)
 
 BUNDLED WITH
-   2.6.1
+   2.6.2
