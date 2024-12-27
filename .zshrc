@@ -99,7 +99,8 @@ ibrew() {
 
 kill_noted() {
   (cd `getconf DARWIN_USER_DIR` &&
-   rm -rf com.apple.notificationcenter)
+       rm -rf com.apple.notificationcenter)
+  rm -rf ~/Library/Group\ Containers/group.com.apple.usernoted/db2
   killall usernoted;
   killall NotificationCenter
 }
