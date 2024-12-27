@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require 'google/apis/gmail_v1'
 require 'googleauth'
 require 'googleauth/stores/file_token_store'
@@ -111,7 +113,10 @@ def extract_images_from_html(html_content, base_url = nil)
   doc.css('img').each do |img_tag|
     src = img_tag['src']
     next unless src # Skip if 'src' is nil
-    next if src.include?('.ru')
+    if src.include?('.ru')
+      puts "skipping #{src}"
+      next
+    end
 
     # Convert relative URLs to absolute if base_url is provided
     image_url = base_url ? URI.join(base_url, src).to_s : src

@@ -39,6 +39,6 @@ gem 'cocoapods', require: false
 gem 'rubrowser', require: false
 
 gem "pronto-rubocop", "~> 0.11.5"
-gem "google-api-client", "~> 0.53.0"
 gem "mime", "~> 0.4.4"
 gem "webrick", "~> 1.9"
+gem "google-apis-gmail_v1", "~> 0.41.0"
