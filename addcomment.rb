@@ -2,7 +2,7 @@
 #
 # File: addcomment.rb
 # Author: eweb
-# Copyright eweb, 2003-2024
+# Copyright eweb, 2003-2025
 # Contents: Perl script to add comments to source files
 #
 # Date:          Author:  Comments:
@@ -123,6 +123,7 @@
 # 17th Apr 2023  eweb     #0007 input & output
 #  1st May 2023  eweb     #0008 Makefiles
 # 24th Nov 2024  eweb     #0008 handle dart files
+#  6th Jan 2025  eweb     #0008 ignore jar files, downcase encoding
 #
 
 # DONE change event if comment not present.
@@ -415,7 +416,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       print "Can't comment images\n"
     elsif file.end_with?('.xlsx')
       print "Can't comment spreadsheets\n"
-    elsif file.end_with?('.dsw', '.dsp', '.dat')
+    elsif file.end_with?('.dsw', '.dsp', '.dat', '.jar')
       print "Unhandled file type #{file}\n"
     elsif ignore_file?(file)
       print "Ignoring file #{file}\n"
@@ -868,19 +869,19 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
         @bom = 1
       end
       if this_line =~ /<\?xml .+encoding='(.+)'.*\?>/
-        @encoding = $1
+        @encoding = $1.downcase
       end
       if this_line =~ /<\?xml .+encoding="(.+)".*\?>/
-        @encoding = $1
+        @encoding = $1.downcase
       end
       if @file_type == 'xml'
         @encoding ||= 'utf-8'
       end
       if this_line =~ /# -\*- coding: (.+) -\*-/
-        @encoding = $1
+        @encoding = $1.downcase
       end
       if this_line =~ /# coding: (.+)/
-        @encoding = $1
+        @encoding = $1.downcase
       end
     end
   end
