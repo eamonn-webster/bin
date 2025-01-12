@@ -1,5 +1,17 @@
 #!/usr/bin/env ruby
 
+# frozen_string_literal: true
+
+#
+# File: gmail_image_downloader.rb
+# Author: eamonn.webster@gmail.com
+# Copyright eweb, 2024-2025
+# Contents:
+#
+# Date:          Author:  Comments:
+# 12th Jan 2025  eweb     #0008 include duplicate deletion and rejects
+#
+
 require 'google/apis/gmail_v1'
 require 'googleauth'
 require 'googleauth/stores/file_token_store'
@@ -9,11 +21,13 @@ require 'mime'
 require 'webrick'
 require 'nokogiri'
 require 'open-uri'
+require 'digest'
+
 # Configure Gmail API
 REDIRECT_URI = 'http://127.0.0.1:4567'.freeze
 APPLICATION_NAME = 'Gmail API Ruby'.freeze
-CREDENTIALS_PATH = 'credentials.json'.freeze
-TOKEN_PATH = 'token.yaml'.freeze
+CREDENTIALS_PATH = "#{__dir__}/credentials.json".freeze
+TOKEN_PATH = "#{__dir__}/token.yaml".freeze
 SCOPE = Google::Apis::GmailV1::AUTH_GMAIL_READONLY
 
 # Start a local server to handle OAuth callback
@@ -113,7 +127,7 @@ def extract_images_from_html(html_content, base_url = nil)
   doc.css('img').each do |img_tag|
     src = img_tag['src']
     next unless src # Skip if 'src' is nil
-    if src.include?('.ru')
+    if src.include?('.ru') || src.include?('open.gif')
       puts "skipping #{src}"
       next
     end
@@ -137,7 +151,7 @@ def download_images(image_urls, output_dir)
     puts "Downloading: #{url}"
     file_name = File.basename(URI.parse(url).path)
     if file_name == 'user-files'
-      file_name = "user-files-#{rand(1000000)}.png"
+      file_name = "user-files-#{Time.now.to_f}.png"
     end
     file_path = File.join(output_dir, file_name)
 
@@ -159,26 +173,6 @@ def download_images(image_urls, output_dir)
   end
 end
 
-# # Main script
-# if ARGV.length < 1
-#   puts "Usage: ruby extract_images.rb <html_file_or_url>"
-#   exit
-# end
-#
-# input = ARGV[0]
-# base_url = nil
-# html_content = nil
-#
-# # Check if input is a local file or URL
-# if input =~ URI::DEFAULT_PARSER.make_regexp
-#   puts "Fetching HTML from URL: #{input}"
-#   html_content = URI.open(input).read
-#   base_url = input # Use URL as the base for relative paths
-# else
-#   puts "Reading HTML from file: #{input}"
-#   html_content = File.read(input)
-# end
-
 # Extract and download images
 def extract_images(html_content, output_dir)
   puts 'Extracting images...'
@@ -190,6 +184,80 @@ def extract_images(html_content, output_dir)
     puts "Found #{image_urls.length} images. Downloading..."
     download_images(image_urls, output_dir)
   end
+end
+
+# Function to calculate the hash of a file
+def file_hash(file_path)
+  Digest::MD5.file(file_path).hexdigest
+end
+
+# Function to remove duplicate images
+def remove_duplicate_images(folder_path, hashes)
+  puts "Scanning folder: #{folder_path}"
+  image_files = images_in_folder(folder_path)
+  puts "Found #{image_files.size} image files."
+
+  duplicates = find_duplicates(image_files, hashes)
+
+  remove_files(duplicates)
+end
+
+def find_duplicates(files, hashes)
+  duplicates = []
+  files.each do |file|
+    hash = file_hash(file)
+    if hashes.key?(hash) && hashes[hash] != file
+      duplicates << file
+      puts "Duplicate found: #{file} (matches #{hashes[hash]})"
+    elsif hashes[hash] != file
+      hashes[hash] = file
+    end
+  end
+  duplicates
+end
+
+def remove_rejects(folder_path)
+  files = images_in_folder(folder_path)
+  remove_files(files, quiet: true)
+end
+def images_in_folder(folder_path)
+  files = Dir.glob(File.join(folder_path, '*'))
+  files.select { |file| File.file?(file) && file =~ /\.(jpg|jpeg|png|gif|bmp|tiff)$/i }
+end
+def add_hashes_for_files(folder_path, hashes)
+  files = Dir.glob(File.join(folder_path, '*'))
+  image_files = files.select { |file| File.file?(file) && file =~ /\.(jpg|jpeg|png|gif|bmp|tiff)$/i }
+
+  image_files.each do |file|
+    hash = file_hash(file)
+    unless hashes.key?(hash)
+      hashes[hash] = file
+    end
+  end
+  hashes
+end
+def remove_files(files, quiet: false)
+  if files.empty?
+    # puts "No files to remove." unless quiet
+  else
+    puts "Removing files..."  unless quiet
+    files.each do |file|
+      File.delete(file)
+      puts "Deleted: #{file}" unless quiet
+    end
+  end
+end
+
+def load_hashes(path)
+  if File.exist?(path)
+    puts "loading #{path}"
+    JSON.load_file(path)
+  else
+    {}
+  end
+end
+def save_hashes(hashes, path)
+  File.write(path, hashes.to_json)
 end
 
 def main(argv)
@@ -208,9 +276,19 @@ def main(argv)
     puts 'No messages found with attachments.'
   else
     messages.each do |msg|
+      next unless msg
+
       puts "Processing message ID: #{msg.id}"
       download_attachments(gmail, msg.id, output_dir)
     end
+
+    hashes = load_hashes("#{output_dir}/rejects/rejects.json")
+    # puts "have #{hashes.size} rejects"
+    add_hashes_for_files("#{output_dir}/rejects", hashes)
+    # puts "adding rejected files now have #{hashes.size} rejects"
+    save_hashes(hashes,"#{output_dir}/rejects/rejects.json")
+    remove_duplicate_images(output_dir, hashes)
+    remove_rejects("#{output_dir}/rejects")
   end
 end
 
