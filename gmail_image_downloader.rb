@@ -10,6 +10,7 @@
 #
 # Date:          Author:  Comments:
 # 12th Jan 2025  eweb     #0008 include duplicate deletion and rejects
+# 16th Jan 2025  eweb     #0008 alway process files
 #
 
 require 'google/apis/gmail_v1'
@@ -281,15 +282,15 @@ def main(argv)
       puts "Processing message ID: #{msg.id}"
       download_attachments(gmail, msg.id, output_dir)
     end
-
-    hashes = load_hashes("#{output_dir}/rejects/rejects.json")
-    # puts "have #{hashes.size} rejects"
-    add_hashes_for_files("#{output_dir}/rejects", hashes)
-    # puts "adding rejected files now have #{hashes.size} rejects"
-    save_hashes(hashes,"#{output_dir}/rejects/rejects.json")
-    remove_duplicate_images(output_dir, hashes)
-    remove_rejects("#{output_dir}/rejects")
   end
+
+  hashes = load_hashes("#{output_dir}/rejects/rejects.json")
+  # puts "have #{hashes.size} rejects"
+  add_hashes_for_files("#{output_dir}/rejects", hashes)
+  # puts "adding rejected files now have #{hashes.size} rejects"
+  save_hashes(hashes,"#{output_dir}/rejects/rejects.json")
+  remove_duplicate_images(output_dir, hashes)
+  remove_rejects("#{output_dir}/rejects")
 end
 
 if __FILE__ == $PROGRAM_NAME
