@@ -124,6 +124,7 @@
 #  1st May 2023  eweb     #0008 Makefiles
 # 24th Nov 2024  eweb     #0008 handle dart files
 #  6th Jan 2025  eweb     #0008 ignore jar files, downcase encoding
+# 16th Jan 2025  eweb     #0008 handle frozen sting in separate comment block
 #
 
 # DONE change event if comment not present.
@@ -808,6 +809,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
     @in_comment = nil
     @line_type = nil
 
+    @previous_line = nil
     input.each_line do |this_line|
       start_of_header_line = Regexp.escape(@single_line || @multi_line_start)
       handle_encoding(this_line)
@@ -858,6 +860,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
         end
         output.print this_line
       end
+      @previous_line = this_line
     end
 
     display_state
@@ -1012,6 +1015,10 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       print_verbose_2 "found end of comments: #{this_line}"
     end
     @n_comments += 1
+    print_verbose_2 "@n_comments: #{@n_comments} @prev_line: #{@previous_line}"
+    if @n_comments == 2 && @previous_line =~ /# frozen_string_literal: true/
+      @n_comments -= 1
+    end
     # end of comment?
     if @in_history && !@has_comment
       print_verbose_2 "were in history && hasComment is false\n#{this_line}"
