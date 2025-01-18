@@ -125,6 +125,7 @@
 # 24th Nov 2024  eweb     #0008 handle dart files
 #  6th Jan 2025  eweb     #0008 ignore jar files, downcase encoding
 # 16th Jan 2025  eweb     #0008 handle frozen sting in separate comment block
+# 18th Jan 2025  eweb     #0008 ignore .idea folder
 #
 
 # DONE change event if comment not present.
@@ -406,6 +407,10 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
     %w[R.java bb.yaml].include?(file)
   end
 
+  def ignore_dir?(path)
+    path.include?('/.idea')
+  end
+
   def determine_type(file)
     return if @just_change_event
 
@@ -421,6 +426,8 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       print "Unhandled file type #{file}\n"
     elsif ignore_file?(file)
       print "Ignoring file #{file}\n"
+    elsif ignore_dir?(@path)
+      print "Ignoring files in #{@path}\n"
     elsif file.end_with?('.cpp', '.h', '.m', '.rh', '.inc', '.js', '.c', '.rc', '.rc2', '.lnt', '.css', '.rul', '.g', '.java', '.idl')
       'c++'
     elsif file.end_with?('.xml', '.xslt', '.dtd', '.jmx', '.tld', '.xsd', '.jrxml')
