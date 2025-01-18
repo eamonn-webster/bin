@@ -11,6 +11,7 @@
 # Date:          Author:  Comments:
 # 12th Jan 2025  eweb     #0008 include duplicate deletion and rejects
 # 16th Jan 2025  eweb     #0008 alway process files
+# 18th Jan 2025  eweb     #0008 reject html files
 #
 
 require 'google/apis/gmail_v1'
@@ -147,7 +148,8 @@ def download_images(image_urls, output_dir)
 
   extension_map = {'image/jpeg' => '.jpg',
                    'image/png' => '.png',
-                   'image/gif' => '.gif'}
+                   'image/gif' => '.gif',
+                   'text/html' => '.html' }
   image_urls.each do |url|
     puts "Downloading: #{url}"
     file_name = File.basename(URI.parse(url).path)
@@ -206,12 +208,13 @@ end
 def find_duplicates(files, hashes)
   duplicates = []
   files.each do |file|
+    base = File.basename(file)
     hash = file_hash(file)
-    if hashes.key?(hash) && hashes[hash] != file
+    if hashes.key?(hash) && hashes[hash] != base
       duplicates << file
-      puts "Duplicate found: #{file} (matches #{hashes[hash]})"
-    elsif hashes[hash] != file
-      hashes[hash] = file
+      puts "Duplicate found: #{base} (matches #{hashes[hash]})"
+    elsif hashes[hash] != base
+      hashes[hash] = base
     end
   end
   duplicates
@@ -221,10 +224,12 @@ def remove_rejects(folder_path)
   files = images_in_folder(folder_path)
   remove_files(files, quiet: true)
 end
+
 def images_in_folder(folder_path)
   files = Dir.glob(File.join(folder_path, '*'))
-  files.select { |file| File.file?(file) && file =~ /\.(jpg|jpeg|png|gif|bmp|tiff)$/i }
+  files.select { |file| File.file?(file) && file =~ /\.(jpg|jpeg|png|gif|bmp|tiff|html)$/i }
 end
+
 def add_hashes_for_files(folder_path, hashes)
   files = Dir.glob(File.join(folder_path, '*'))
   image_files = files.select { |file| File.file?(file) && file =~ /\.(jpg|jpeg|png|gif|bmp|tiff)$/i }
@@ -232,11 +237,12 @@ def add_hashes_for_files(folder_path, hashes)
   image_files.each do |file|
     hash = file_hash(file)
     unless hashes.key?(hash)
-      hashes[hash] = file
+      hashes[hash] = File.basename(file)
     end
   end
   hashes
 end
+
 def remove_files(files, quiet: false)
   if files.empty?
     # puts "No files to remove." unless quiet
