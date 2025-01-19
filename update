@@ -3,7 +3,7 @@
 #
 # File: update
 # Author: eweb
-# Copyright eweb, 2021-2023
+# Copyright eweb, 2021-2025
 # Contents: update the machine after a period of inactivity
 #
 # Date:          Author:  Comments:
@@ -13,6 +13,7 @@
 #  5th Apr 2023  eweb     #0008 accounts switch to main
 # 21st Apr 2023  eweb     #0008 handle upstream remotes
 # 21st Jun 2023  eweb     #0008 fetching and rebasing
+# 19th Jan 2025  eweb     #0008 disambiguate between branches and origins
 #
 
 # bash needed echo -e "..."
@@ -49,13 +50,13 @@ do
   if [[ -f .git/refs/remotes/upstream/main ]]; then
     git checkout main
     git fetch upstream main:upstream
-    git rebase --autostash upstream
+    git rebase --autostash heads/upstream
     # git push --force
   fi
   if [[ -f .git/refs/remotes/upstream/master ]]; then
     git checkout master
     git fetch upstream master:upstream
-    git rebase --autostash upstream
+    git rebase --autostash heads/upstream
     # git push --force
   fi
 done
