@@ -12,6 +12,7 @@
 # 12th Jan 2025  eweb     #0008 include duplicate deletion and rejects
 # 16th Jan 2025  eweb     #0008 alway process files
 # 18th Jan 2025  eweb     #0008 reject html files
+# 19th Jan 2025  eweb     #0008 force rejects
 #
 
 require 'google/apis/gmail_v1'
@@ -230,14 +231,18 @@ def images_in_folder(folder_path)
   files.select { |file| File.file?(file) && file =~ /\.(jpg|jpeg|png|gif|bmp|tiff|html)$/i }
 end
 
-def add_hashes_for_files(folder_path, hashes)
+def add_hashes_for_files(folder_path, hashes, force = false)
   files = Dir.glob(File.join(folder_path, '*'))
   image_files = files.select { |file| File.file?(file) && file =~ /\.(jpg|jpeg|png|gif|bmp|tiff)$/i }
 
   image_files.each do |file|
     hash = file_hash(file)
-    unless hashes.key?(hash)
-      hashes[hash] = File.basename(file)
+    if force
+      hashes[hash] = nil
+    else
+      unless hashes.key?(hash)
+        hashes[hash] = File.basename(file)
+      end
     end
   end
   hashes
@@ -292,11 +297,11 @@ def main(argv)
 
   hashes = load_hashes("#{output_dir}/rejects/rejects.json")
   # puts "have #{hashes.size} rejects"
-  add_hashes_for_files("#{output_dir}/rejects", hashes)
+  add_hashes_for_files("#{output_dir}/rejects", hashes, true)
+  remove_rejects("#{output_dir}/rejects")
   # puts "adding rejected files now have #{hashes.size} rejects"
   save_hashes(hashes,"#{output_dir}/rejects/rejects.json")
   remove_duplicate_images(output_dir, hashes)
-  remove_rejects("#{output_dir}/rejects")
 end
 
 if __FILE__ == $PROGRAM_NAME
