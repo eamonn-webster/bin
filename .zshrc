@@ -1,11 +1,12 @@
 #
 # File: .zshrc
 # Author: eweb
-# Copyright eweb, 2022-2024
+# Copyright eweb, 2022-2025
 # Contents:
 #
 # Date:          Author:  Comments:
 # 18th May 2024  eweb     #0008 p4merge
+#  8th Feb 2025  eweb     #0008 add asdf shims to path
 #
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 export DISABLE_SPRING=YES
@@ -135,11 +136,11 @@ export DJANGO_SETTINGS_MODULE=questions.settings.development
 # command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
 # eval "$(pyenv init -)"
 
+export PATH="/opt/homebrew/opt/imagemagick@6/bin:$PATH"
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export PATH=$PATH:$ANDROID_HOME/emulator
 export PATH=$PATH:$ANDROID_HOME/platform-tools
 
-source "$(brew --prefix asdf)/libexec/asdf.sh"
-export PATH="/opt/homebrew/opt/imagemagick@6/bin:$PATH"
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 
-export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
