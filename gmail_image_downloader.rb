@@ -13,6 +13,7 @@
 # 16th Jan 2025  eweb     #0008 alway process files
 # 18th Jan 2025  eweb     #0008 reject html files
 # 19th Jan 2025  eweb     #0008 force rejects
+# 19th Feb 2025  eweb     #0008 clear out rejects
 #
 
 require 'google/apis/gmail_v1'
@@ -222,13 +223,18 @@ def find_duplicates(files, hashes)
 end
 
 def remove_rejects(folder_path)
-  files = images_in_folder(folder_path)
+  files = files_in_folder(folder_path, 'rejects.json')
   remove_files(files, quiet: true)
 end
 
 def images_in_folder(folder_path)
   files = Dir.glob(File.join(folder_path, '*'))
   files.select { |file| File.file?(file) && file =~ /\.(jpg|jpeg|png|gif|bmp|tiff|html)$/i }
+end
+
+def files_in_folder(folder_path, except)
+  files = Dir.glob(File.join(folder_path, '*'), File::FNM_DOTMATCH)
+  files.select { |file| File.file?(file) && File.basename(file) != except }
 end
 
 def add_hashes_for_files(folder_path, hashes, force = false)
