@@ -15,7 +15,7 @@
 #
 # rubocop -DES -f html -o rubocop.html
 #
-require:
+plugins:
   - rubocop-performance
   - rubocop-rake
 
