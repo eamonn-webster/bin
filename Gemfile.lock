@@ -24,7 +24,7 @@ GEM
     algoliasearch (1.27.5)
       httpclient (~> 2.8, >= 2.8.3)
       json (>= 1.5.1)
-    anyway_config (2.7.1)
+    anyway_config (2.7.2)
       ruby-next-core (~> 1.0)
     ast (2.4.3)
     atomos (0.1.3)
