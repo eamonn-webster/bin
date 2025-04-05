@@ -404,7 +404,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
   end
 
   def ignore_file?(file)
-    %w[R.java bb.yaml].include?(file)
+    %w[R.java bb.yaml github.yaml gitlab.yaml].include?(file)
   end
 
   def ignore_dir?(path)
