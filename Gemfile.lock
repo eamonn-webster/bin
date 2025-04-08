@@ -84,7 +84,7 @@ GEM
       ffi (>= 1.15.0)
     eventmachine (1.2.7)
     executable-hooks (1.7.1)
-    faraday (2.12.2)
+    faraday (2.12.3)
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
