@@ -18,6 +18,8 @@
 
 # bash needed echo -e "..."
 
+asdf plugin update --all
+
 (cd ~/bin
  # gem update rubygems
  gem update --system
