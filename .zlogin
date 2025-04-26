@@ -8,5 +8,5 @@
 #  9th Feb 2025  eweb     #0008 add asdf shims to path
 #
 
-# export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
-eval "$(mise activate zsh)"
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+# eval "$(mise activate zsh)"
