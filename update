@@ -47,7 +47,7 @@ do
   test -d .git &&
   if [[ -d .git/refs/remotes ]]; then
     git fetch --all &&
-    git pull
+    git pull -p
   fi
   if [[ -f .git/refs/remotes/upstream/main ]]; then
     git checkout main
@@ -78,7 +78,7 @@ do
   cd "$dir" &&
   test -d .git &&
   git fetch --all &&
-  git pull
+  git pull -p
 done
 
 for dir in ~/projects/qstream/*
@@ -88,7 +88,7 @@ do
   cd "$dir" &&
   test -d .git &&
   git fetch --all &&
-  git pull
+  git pull -p
 done
 
 # brew update
