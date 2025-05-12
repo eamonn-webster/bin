@@ -140,10 +140,10 @@ GEM
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
-    json (2.11.3)
+    json (2.12.0)
     jwt (2.10.1)
       base64
-    language_server-protocol (3.17.0.4)
+    language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
     litecable (0.8.2)
       anyway_config (>= 1.0)
@@ -168,7 +168,7 @@ GEM
       mime-types-data (~> 3.2025, >= 3.2025.0507)
     mime-types-data (3.2025.0507)
     mini_mime (1.1.5)
-    mini_portile2 (2.8.8)
+    mini_portile2 (2.8.9)
     minitest (5.25.5)
     molinillo (0.8.0)
     multi_json (1.15.0)
@@ -227,7 +227,7 @@ GEM
     pronto-rubocop (0.11.6)
       pronto (~> 0.11.0)
       rubocop (>= 0.63.1, < 2.0)
-    psych (5.2.5)
+    psych (5.2.6)
       date
       stringio
     public_suffix (4.0.7)
