@@ -14,13 +14,20 @@
 # 21st Apr 2023  eweb     #0008 handle upstream remotes
 # 21st Jun 2023  eweb     #0008 fetching and rebasing
 # 19th Jan 2025  eweb     #0008 disambiguate between branches and origins
+# 22nd May 2025  eweb     #0008 update and upgrade brew
 #
 
 # bash needed echo -e "..."
 
-# asdf plugin update --all
+echo "\033[36mbrew\033[0m"
+brew update
+brew upgrade
+
+echo "\033[36masdf plugin update\033[0m"
+asdf plugin update --all
 
 (cd ~/bin
+ echo "\033[36mbundler\033[0m"
  # gem update rubygems
  gem update --system
  # rvm @global do gem update rubygems
@@ -90,8 +97,5 @@ do
   git fetch --all &&
   git pull -p
 done
-
-# brew update
-# brew upgrade
 
 (lsof -i :1234 || git -C ~/projects/acc instaweb)
