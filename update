@@ -23,8 +23,11 @@ echo "\033[36mbrew\033[0m"
 brew update
 brew upgrade
 
-echo "\033[36masdf plugin update\033[0m"
-asdf plugin update --all
+# echo "\033[36masdf plugin update\033[0m"
+# asdf plugin update --all
+
+echo "\033[36mmise upgrade\033[0m"
+mise upgrade
 
 (cd ~/bin
  echo "\033[36mbundler\033[0m"
