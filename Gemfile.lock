@@ -167,7 +167,7 @@ GEM
     mime-types (3.7.0)
       logger
       mime-types-data (~> 3.2025, >= 3.2025.0507)
-    mime-types-data (3.2025.0617)
+    mime-types-data (3.2025.0624)
     mini_mime (1.1.5)
     mini_portile2 (2.8.9)
     minitest (5.25.5)
@@ -285,7 +285,7 @@ GEM
       puma
       websocket
     ruby-macho (2.5.1)
-    ruby-next-core (1.1.1)
+    ruby-next-core (1.1.2)
     ruby-progressbar (1.13.0)
     ruby-rc4 (0.1.5)
     ruby2_keywords (0.0.5)
