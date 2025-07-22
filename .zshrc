@@ -7,6 +7,7 @@
 # Date:          Author:  Comments:
 # 18th May 2024  eweb     #0008 p4merge
 #  8th Feb 2025  eweb     #0008 add asdf shims to path
+# 22nd Jul 2025  eweb     #0008 comment out yarn and nvm 
 #
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 export DISABLE_SPRING=YES
@@ -109,8 +110,8 @@ kill_noted() {
 # function gitky() {  `which gitk` --all $1 & }
 
 export PROMPT='%u:%1d %*$ '
-export NVM_DIR="$HOME/.nvm"
-[ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"
+# export NVM_DIR="$HOME/.nvm"
+# [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"
 
 export PATH="$PATH:$HOME/bin:/usr/local/bin"
 PS1="%n %1~ %* %# "
@@ -126,9 +127,9 @@ PS1="%n %1~ %* %# "
 # set-window-title
 # add-zsh-hook precmd set-window-title
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
-[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+# export NVM_DIR="$HOME/.nvm"
+# [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
+# [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
 
 export DJANGO_SETTINGS_MODULE=questions.settings.development
 
@@ -137,7 +138,7 @@ export DJANGO_SETTINGS_MODULE=questions.settings.development
 # eval "$(pyenv init -)"
 
 export PATH="/opt/homebrew/opt/imagemagick@6/bin:$PATH"
-export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+# export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export PATH=$PATH:$ANDROID_HOME/emulator
 export PATH=$PATH:$ANDROID_HOME/platform-tools
