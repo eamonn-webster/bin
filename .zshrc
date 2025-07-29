@@ -7,7 +7,8 @@
 # Date:          Author:  Comments:
 # 18th May 2024  eweb     #0008 p4merge
 #  8th Feb 2025  eweb     #0008 add asdf shims to path
-# 22nd Jul 2025  eweb     #0008 comment out yarn and nvm 
+# 22nd Jul 2025  eweb     #0008 comment out yarn and nvm
+# 29th Jul 2025  eweb     #0008 mise intel & apple
 #
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 export DISABLE_SPRING=YES
@@ -144,4 +145,4 @@ export PATH=$PATH:$ANDROID_HOME/emulator
 export PATH=$PATH:$ANDROID_HOME/platform-tools
 
 # export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
-eval "$(/opt/homebrew/bin/mise activate zsh)"
+eval "$(mise activate zsh)"
