@@ -167,7 +167,7 @@ GEM
     mime-types (3.7.0)
       logger
       mime-types-data (~> 3.2025, >= 3.2025.0507)
-    mime-types-data (3.2025.0805)
+    mime-types-data (3.2025.0812)
     mini_mime (1.1.5)
     mini_portile2 (2.8.9)
     minitest (5.25.5)
@@ -244,7 +244,7 @@ GEM
     rdoc (6.14.2)
       erb
       psych (>= 4.0.0)
-    regexp_parser (2.11.1)
+    regexp_parser (2.11.2)
     reline (0.6.2)
       io-console (~> 0.5)
     representable (3.2.0)
