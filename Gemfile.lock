@@ -80,7 +80,7 @@ GEM
     drb (2.2.3)
     erb (5.0.2)
     escape (0.0.4)
-    ethon (0.16.0)
+    ethon (0.17.0)
       ffi (>= 1.15.0)
     eventmachine (1.2.7)
     faraday (2.13.4)
