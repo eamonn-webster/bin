@@ -135,6 +135,12 @@ def extract_images_from_html(html_content, base_url = nil)
       puts "skipping #{src}"
       next
     end
+    if img_tag['width'] == '1' || img_tag['height'] == '1'
+      puts img_tag
+      puts "skipping #{src}"
+      next
+    end
+    puts img_tag
 
     # Convert relative URLs to absolute if base_url is provided
     image_url = base_url ? URI.join(base_url, src).to_s : src
