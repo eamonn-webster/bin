@@ -135,7 +135,7 @@ def extract_images_from_html(html_content, base_url = nil)
       puts "skipping #{src}"
       next
     end
-    if img_tag['width'] == '1' || img_tag['height'] == '1'
+    if tiny_image?(img_tag)
       puts img_tag
       puts "skipping #{src}"
       next
@@ -148,6 +148,10 @@ def extract_images_from_html(html_content, base_url = nil)
   end
 
   image_urls
+end
+
+def tiny_image?(img_tag)
+  (img_tag['width'] && img_tag['width'].to_i < 10) || (img_tag['height'] && img_tag['height'].to_i < 10)
 end
 
 # Function to download images to a specified directory
