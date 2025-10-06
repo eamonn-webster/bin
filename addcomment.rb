@@ -126,6 +126,7 @@
 #  6th Jan 2025  eweb     #0008 ignore jar files, downcase encoding
 # 16th Jan 2025  eweb     #0008 handle frozen sting in separate comment block
 # 18th Jan 2025  eweb     #0008 ignore .idea folder
+#  6th Oct 2025  eweb     #0008 handle swift files
 #
 
 # DONE change event if comment not present.
@@ -400,6 +401,8 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       @single_line = "'"
     when 'sql'
       @single_line = '--'
+    when 'swift'
+      @single_line = '//'
     end
   end
 
@@ -466,6 +469,8 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       'bas'
     elsif file.end_with?('.applescript')
       'applescript'
+    elsif file.end_with?('.swift')
+      'swift'
     else
       first_line = File.open(@infile) { |fh| fh.readline.chomp }
       case first_line
