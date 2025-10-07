@@ -14,6 +14,7 @@
 # 18th Jan 2025  eweb     #0008 reject html files
 # 19th Jan 2025  eweb     #0008 force rejects
 # 19th Feb 2025  eweb     #0008 clear out rejects
+#  7th Oct 2025  eweb     #0008 ignore hosts that time out
 #
 
 require 'google/apis/gmail_v1'
@@ -33,6 +34,8 @@ APPLICATION_NAME = 'Gmail API Ruby'.freeze
 CREDENTIALS_PATH = "#{__dir__}/credentials.json".freeze
 TOKEN_PATH = "#{__dir__}/token.yaml".freeze
 SCOPE = Google::Apis::GmailV1::AUTH_GMAIL_READONLY
+
+@ignore_hosts = Set['piquile.com', 'rapurit.com', 'via.placeholder.com', 'ogdarcl.com', 'wigiala.com']
 
 # Start a local server to handle OAuth callback
 def start_local_server
@@ -131,7 +134,8 @@ def extract_images_from_html(html_content, base_url = nil)
   doc.css('img').each do |img_tag|
     src = img_tag['src']
     next unless src # Skip if 'src' is nil
-    if src.include?('.ru') || src.include?('open.gif')
+    if src.include?('.ru') || src.include?('open.gif') ||
+        @ignore_hosts.include?(URI.parse(src).host)
       puts "skipping #{src}"
       next
     end
@@ -171,7 +175,7 @@ def download_images(image_urls, output_dir)
     file_path = File.join(output_dir, file_name)
 
     # Open and save the file
-    URI.open(url) do |image|
+    URI.open(url, open_timeout: 2) do |image|
       File.binwrite(file_path, image.read)
     end
     puts "Saved: #{file_path}"
@@ -183,8 +187,11 @@ def download_images(image_urls, output_dir)
       `mv "#{file_path}" "#{new_file_path}"`
       puts "Saved: #{new_file_path}"
     end
+  rescue Net::OpenTimeout => e
+    @ignore_hosts << URI.parse(url).host
+    puts "Failed to download #{url}: #{e.class} #{e.message}"
   rescue StandardError => e
-    puts "Failed to download #{url}: #{e.message}"
+    puts "Failed to download #{url}: #{e.class} #{e.message}"
   end
 end
 
