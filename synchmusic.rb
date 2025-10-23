@@ -2,7 +2,7 @@
 #
 # File: synchmusic.rb
 # Author: eweb
-# Copyright eweb, 2012-2023
+# Copyright eweb, 2012-2025
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -38,6 +38,7 @@
 # 18th Feb 2023  eweb     #0008 rsync corrupt git repo
 #  5th Apr 2023  eweb     #0008 accounts switch to main
 # 16th Oct 2023  eweb     #0008 need English for $CHILD_STATUS
+# 23rd Oct 2025  eweb     #0008 find unlinked rsync
 #
 
 require 'English'
@@ -83,8 +84,19 @@ def main
 
   dst = "/Volumes/#{drive}/iTunes"
 
-  rsync = %w[/opt/homebrew/bin/rsync /usr/local/bin/rsync].find do |path|
-    File.exist?(path)
+  brew_home = `brew --prefix`.chomp
+
+  rsync = "#{brew_home}/bin/rsync"
+
+  unless File.exist?(rsync)
+    brew_ver = `brew info rsync --json | jq '.[].installed[0].version' --raw-output`.chomp
+    rsync = `brew --cellar rsync`.chomp + '/' + brew_ver + '/bin/' + 'rsync'
+    puts "Using: #{rsync}"
+  end
+
+  unless File.exist?(rsync)
+    puts "rsync #{rsync} not found"
+    exit
   end
 
   rsync = "#{rsync} --iconv=utf-8-mac,utf-8-mac -rtvi --exclude .DS_Store"
