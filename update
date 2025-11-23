@@ -15,6 +15,7 @@
 # 21st Jun 2023  eweb     #0008 fetching and rebasing
 # 19th Jan 2025  eweb     #0008 disambiguate between branches and origins
 # 22nd May 2025  eweb     #0008 update and upgrade brew
+# 23rd Nov 2025  eweb     #0008 bundle install less noise
 #
 
 # bash needed echo -e "..."
@@ -46,7 +47,7 @@ do
   git fetch --all &&
   git pull &&
   test -f Gemfile &&
-  bundle --quiet
+  bundle install --quiet
 done
 
 for dir in ~/projects/*
@@ -78,27 +79,21 @@ do
   echo "\033[32m$dir\033[0m" &&
   cd "$dir" &&
   test -f Gemfile &&
-  bundle --quiet
+  bundle install --quiet
 done
 
-for dir in ~/projects/quest/*
+for qdir in ~/projects/qstream ~/projects/quest
 do
-  test -d "$dir" &&
-  echo "\033[32m$dir\033[0m" &&
-  cd "$dir" &&
-  test -d .git &&
-  git fetch --all &&
-  git pull -p
-done
-
-for dir in ~/projects/qstream/*
-do
-  test -d "$dir" &&
-  echo "\033[32m$dir\033[0m" &&
-  cd "$dir" &&
-  test -d .git &&
-  git fetch --all &&
-  git pull -p
+  test -d $qdir &&
+  for dir in $qdir/*
+  do
+    test -d "$dir" &&
+    echo "\033[32m$dir\033[0m" &&
+    cd "$dir" &&
+    test -d .git &&
+    git fetch --all &&
+    git pull -p
+  done
 done
 
 (lsof -i :1234 || git -C ~/projects/acc instaweb)

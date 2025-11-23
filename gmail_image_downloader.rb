@@ -35,7 +35,7 @@ CREDENTIALS_PATH = "#{__dir__}/credentials.json".freeze
 TOKEN_PATH = "#{__dir__}/token.yaml".freeze
 SCOPE = Google::Apis::GmailV1::AUTH_GMAIL_READONLY
 
-@ignore_hosts = Set['piquile.com', 'rapurit.com', 'via.placeholder.com', 'ogdarcl.com', 'wigiala.com']
+@ignore_hosts = Set['piquile.com', 'rapurit.com', 'via.placeholder.com', 'ogdarcl.com', 'wigiala.com', 'email.juicyhookup.com']
 
 # Start a local server to handle OAuth callback
 def start_local_server
@@ -152,6 +152,9 @@ def extract_images_from_html(html_content, base_url = nil)
   end
 
   image_urls
+rescue => e
+  puts e.inspect
+  []
 end
 
 def tiny_image?(img_tag)
