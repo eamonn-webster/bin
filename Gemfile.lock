@@ -329,7 +329,7 @@ GEM
       unicode-emoji (~> 4.1)
     unicode-emoji (4.1.0)
     uri (1.1.1)
-    webrick (1.9.1)
+    webrick (1.9.2)
     websocket (1.2.11)
     websocket-driver (0.7.7)
       base64
@@ -366,4 +366,4 @@ DEPENDENCIES
   webrick (~> 1.9)
 
 BUNDLED WITH
-  4.0.0.beta1
+  4.0.0.beta2
