@@ -16,6 +16,7 @@
 # 19th Jan 2025  eweb     #0008 disambiguate between branches and origins
 # 22nd May 2025  eweb     #0008 update and upgrade brew
 # 23rd Nov 2025  eweb     #0008 bundle install less noise
+# 28th Nov 2025  eweb     #0008 update RubyMotion repos
 #
 
 # bash needed echo -e "..."
@@ -82,7 +83,7 @@ do
   bundle install --quiet
 done
 
-for qdir in ~/projects/qstream ~/projects/quest
+for qdir in ~/projects/qstream ~/projects/quest ~/projects/amirrajan
 do
   test -d $qdir &&
   for dir in $qdir/*
