@@ -2,7 +2,7 @@
 #
 # File: getlyric.rb
 # Author: eweb
-# Copyright eweb, 2013-2021
+# Copyright eweb, 2013-2025
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -25,6 +25,7 @@
 # 29th Nov 2020  eweb     #0008 genius first try 3 times
 #  9th May 2021  eweb     #0007 URI.open
 #  4th Jun 2021  eweb     #0008 trim hyphens
+#  1st Dec 2025  eweb     #0008 genius has changed format
 #
 require 'nokogiri'
 require 'open-uri'
@@ -231,16 +232,30 @@ def fetch_genius
   begin
     3.times.detect do
       doc = Nokogiri::HTML(URI.open(url))
-      lyric = doc.xpath("//div[@class='lyrics']").inner_text
-      if process_lyric(lyric)
+      lines = []
+      doc.xpath("//div[@id='lyrics-root']").children.each do |x|
+        if x.attribute('data-lyrics-container')&.value == 'true'
+          # puts x.inner_html
+          x.children.each do |y|
+            if y.is_a?(Nokogiri::XML::Text)
+              lines << y.inner_text
+            end
+          end
+        end
+      end
+
+      lyric = lines.join("\n")
+      if lyric && process_lyric(lyric)
         true
       else
         puts url
         false
+        true
       end
     end
   rescue StandardError => e
     puts e
+    # puts e.backtrace
   end
 end
 
