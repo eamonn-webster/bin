@@ -366,4 +366,4 @@ DEPENDENCIES
   webrick (~> 1.9)
 
 BUNDLED WITH
-  4.0.0.beta2
+  4.0.0
