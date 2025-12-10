@@ -71,7 +71,7 @@ GEM
     connection_pool (3.0.2)
     csv (3.3.5)
     daemons (1.4.1)
-    date (3.5.0)
+    date (3.5.1)
     declarative (0.0.20)
     domain_name (0.6.20240107)
     drb (2.2.3)
@@ -228,7 +228,7 @@ GEM
     pronto-rubocop (0.11.6)
       pronto (~> 0.11.0)
       rubocop (>= 0.63.1, < 2.0)
-    psych (5.2.6)
+    psych (5.3.0)
       date
       stringio
     public_suffix (4.0.7)
