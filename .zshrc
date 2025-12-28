@@ -28,6 +28,10 @@ gitk() {
     `which git`k --all $1 &
 }
 
+emacsw() {
+    open /Applications/Emacs.app --args --no-splash $*
+}
+
 p4merge() {
     /Applications/p4merge.app/Contents/Resources/launchp4merge $* &
 }
