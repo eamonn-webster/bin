@@ -108,7 +108,7 @@ GEM
       mini_mime (~> 1.1)
       representable (~> 3.0)
       retriable (~> 3.1)
-    google-apis-gmail_v1 (0.41.0)
+    google-apis-gmail_v1 (0.47.0)
       google-apis-core (>= 0.15.0, < 2.a)
     google-cloud-env (2.3.1)
       base64 (~> 0.2)
@@ -352,13 +352,13 @@ PLATFORMS
 
 DEPENDENCIES
   cocoapods
-  google-apis-gmail_v1 (~> 0.41.0)
+  google-apis-gmail_v1
   irb
   mailcatcher
-  mime (~> 0.4.4)
+  mime
   nokogiri
   pdf-reader
-  pronto-rubocop (~> 0.11.5)
+  pronto-rubocop
   rake
   rest-client
   rubocop
@@ -366,7 +366,7 @@ DEPENDENCIES
   rubocop-rake
   rubrowser
   taglib-ruby
-  webrick (~> 1.9)
+  webrick
 
 BUNDLED WITH
   4.0.3

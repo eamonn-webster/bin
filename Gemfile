@@ -33,7 +33,7 @@ gem 'cocoapods', require: false
 # gem 'reek', require: false
 gem 'rubrowser', require: false
 
-gem "pronto-rubocop", "~> 0.11.5"
-gem "mime", "~> 0.4.4"
-gem "webrick", "~> 1.9"
-gem "google-apis-gmail_v1", "~> 0.41.0"
+gem "pronto-rubocop", require: false
+gem "mime", require: false
+gem "webrick", require: false
+gem "google-apis-gmail_v1", require: false
