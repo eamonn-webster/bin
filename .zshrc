@@ -49,9 +49,9 @@ acc() {
 }
 
 frr() {
-  reek $*
   rubocop $*
 }
+  # reek $*
   # flog $*
 
 ave() {
