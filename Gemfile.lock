@@ -114,7 +114,7 @@ GEM
       base64 (~> 0.2)
       faraday (>= 1.0, < 3.a)
     google-logging-utils (0.2.0)
-    googleauth (1.16.0)
+    googleauth (1.16.1)
       faraday (>= 1.0, < 3.a)
       google-cloud-env (~> 2.2)
       google-logging-utils (~> 0.1)
@@ -126,7 +126,7 @@ GEM
     http-accept (1.7.0)
     http-cookie (1.1.0)
       domain_name (~> 0.5)
-    httparty (0.24.0)
+    httparty (0.24.2)
       csv
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
@@ -369,4 +369,4 @@ DEPENDENCIES
   webrick
 
 BUNDLED WITH
-  4.0.3
+  4.0.4
