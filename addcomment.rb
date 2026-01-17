@@ -2,7 +2,7 @@
 #
 # File: addcomment.rb
 # Author: eweb
-# Copyright eweb, 2003-2025
+# Copyright eweb, 2003-2026
 # Contents: Perl script to add comments to source files
 #
 # Date:          Author:  Comments:
@@ -127,6 +127,7 @@
 # 16th Jan 2025  eweb     #0008 handle frozen sting in separate comment block
 # 18th Jan 2025  eweb     #0008 ignore .idea folder
 #  6th Oct 2025  eweb     #0008 handle swift files
+# 17th Jan 2026  eweb     #0008 add support for python
 #
 
 # DONE change event if comment not present.
@@ -370,7 +371,7 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       @multi_line_end = '-->'
       @multi_line_prefix = '  '
       @very_first_line = /<?xml.*>/
-    when 'pl', 'rb', 'yaml'
+    when 'pl', 'rb', 'yaml', 'py'
       @single_line = '#'
       @very_first_line = '#!'
     when 'tmpl'
@@ -476,6 +477,8 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       case first_line
       when /^#!.+ruby/
         'rb'
+      when /^#!.+python/
+        'py'
       when /^#!.+perl/, /^#!.+bash/, /^#!.+sh/
         'pl'
       else
@@ -958,6 +961,8 @@ class CommentAdder # rubocop:disable Metrics/ClassLength
       if @bom
         # ignore
       elsif @file_type == 'rb'
+        # ignore
+      elsif @file_type == 'py'
         # ignore
       elsif @encoding == 'utf-8'
         # ignore
