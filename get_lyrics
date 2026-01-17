@@ -1,8 +1,21 @@
 #!/usr/bin/env python3
 
+#
+# File: get_lyrics
+# Author: eamonn.webster@gmail.com
+# Copyright eweb, 2026-2026
+# Contents:
+#
+# Date:          Author:  Comments:
+# 17th Jan 2026  eweb     #0008 get and embed lyrics from lrclib.net
+#
+
 import os
 import sys
 import requests
+import logging
+import threading
+from datetime import datetime
 from mutagen import File
 from mutagen.id3 import ID3, USLT
 from mutagen.mp4 import MP4
@@ -10,7 +23,35 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 
 SUPPORTED = (".mp3", ".flac", ".m4a", ".ogg", ".wav")
-MAX_WORKERS = 8
+MAX_WORKERS = 4
+LOG_FILE = f"embed_lyrics_{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.log"
+
+thread_local = threading.local()
+
+# ---------------- Logging ----------------
+
+logging.basicConfig(
+    filename=LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
+
+logging.info("==== Lyrics embedding started ====")
+
+# ---------------- Functions ----------------
+
+def get_session():
+    if not hasattr(thread_local, "session"):
+        session = requests.Session()
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=10,
+            pool_maxsize=10,
+            max_retries=3,
+        )
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
+        thread_local.session = session
+    return thread_local.session
 
 def get_tags(path):
     audio = File(path, easy=True)
@@ -28,13 +69,17 @@ def has_lyrics(path):
 
         if path.lower().endswith(".mp3"):
             tags = ID3(path)
-            return "USLT" in tags
+            for key in tags.keys():
+                if key.startswith("USLT"):
+                    return True
+            return False
         elif path.lower().endswith(".m4a"):
             audio = MP4(path)
             return "©lyr" in audio
         else:
             return "lyrics" in audio or "LYRICS" in audio
-    except:
+    except Exception as e:
+        logging.error(f"Failed reading lyrics tag: {path} - {e}")
         return False
 
 def fetch_lyrics(artist, title):
@@ -44,14 +89,16 @@ def fetch_lyrics(artist, title):
         "track_name": title
     }
 
-    try:
-        r = requests.get(url, params=params, timeout=10)
-        if r.status_code != 200:
-            return None
-        data = r.json()
-        return data.get("plainLyrics") or data.get("syncedLyrics")
-    except:
+    # try:
+    session = get_session()
+    r = session.get(url, params=params, timeout=10)
+    if r.status_code != 200:
         return None
+    data = r.json()
+    return data.get("plainLyrics") or data.get("syncedLyrics")
+    # except Exception as e:
+    #     logging.error(f"Fetch error for {artist} - {title}: {e}")
+    #     return None
 
 def embed_mp3(path, lyrics):
     audio = ID3(path)
@@ -78,26 +125,47 @@ def embed_lyrics(path, lyrics):
         embed_generic(path, lyrics)
 
 def process_file(path):
-    if has_lyrics(path):
-        return "skipped"
-
-    artist, title = get_tags(path)
-    if not artist or not title:
-        return "no_tags"
-
-    lyrics = fetch_lyrics(artist, title)
-    if not lyrics:
-        return "no_lyrics"
-
     try:
+        artist, title = get_tags(path)
+        if not artist or not title:
+            logging.warning(f"NO-TAGS: {path}")
+            return "no_tags"
+
+        # if title in ["Black Mountain Side", "White Summer", "White Summer/Black Mountain Side"]:
+        #     embed_lyrics(path, "Instrumental")
+
+        if has_lyrics(path):
+            logging.info(f"HAVE-LYRICS: {artist} - {title}")
+            return "skipped"
+
+        if title in ["Guitar Solo", "Organ Solo"]:
+            lyrics = "Instrumental"
+        elif title in ["Moby Dick", "Drum Solo"]:
+            lyrics = "Drum Solo"
+        else:
+            lyrics = fetch_lyrics(artist, title)
+
+        instrumental_artists = []
+        if not lyrics:
+            if artist in instrumental_artists:
+                lyrics = "Instrumental"
+        if not lyrics:
+            logging.info(f"NO-LYRICS: {artist} - {title}")
+            return "no_lyrics"
+
         embed_lyrics(path, lyrics)
+        logging.info(f"EMBEDDED: {artist} - {title}")
         return "embedded"
-    except:
+
+    except Exception as e:
+        logging.error(f"FAILED: {path} - {e}")
         return "failed"
+
+# ---------------- Main ----------------
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python embed_lyrics_mt.py <music_folder>")
+        print("Usage: embed_lyrics_mt.py <music_folder>")
         sys.exit(1)
 
     music_dir = sys.argv[1]
@@ -131,6 +199,8 @@ def main():
     print("\nDone!\n")
     for k, v in stats.items():
         print(f"{k:10}: {v}")
+
+    logging.info("==== Lyrics embedding finished ====")
 
 if __name__ == "__main__":
     main()
