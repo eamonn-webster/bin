@@ -3,7 +3,7 @@
 #
 # File: import_music.rb
 # Author: eweb
-# Copyright eweb, 2018-2023
+# Copyright eweb, 2018-2026
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -18,6 +18,7 @@
 #  8th Dec 2020  eweb     #0008 typo
 #  4th Feb 2023  eweb     #0008 brew unzip to correctly handle characters
 # 17th Apr 2023  eweb     #0007 rubocop
+# 17th Jan 2026  eweb     #0008 get lyrics
 #
 
 class ImportMusic
@@ -62,6 +63,7 @@ class ImportMusic
         add_accounts_data(z, b)
       end
       shell('mv *.zip ..')
+      shell('get_lyrics .')
       Dir['*'].each do |f|
         shell("mv \"#{f}\" \"#{auto_add_dir}\"")
         sleep(5)
