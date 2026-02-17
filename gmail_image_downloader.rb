@@ -10,8 +10,8 @@
 #
 # Date:          Author:  Comments:
 # 12th Jan 2025  eweb     #0008 include duplicate deletion and rejects
-# 16th Jan 2025  eweb     #0008 alway process files
-# 18th Jan 2025  eweb     #0008 reject html files
+# 16th Jan 2025  eweb     #0008 always process files
+# 18th Jan 2025  eweb     #0008 reject .html files
 # 19th Jan 2025  eweb     #0008 force rejects
 # 19th Feb 2025  eweb     #0008 clear out rejects
 #  7th Oct 2025  eweb     #0008 ignore hosts that time out
@@ -170,6 +170,8 @@ def download_images(image_urls, output_dir)
                    'image/gif' => '.gif',
                    'text/html' => '.html' }
   image_urls.each do |url|
+    next if url == ''
+
     puts "Downloading: #{url}"
     file_name = File.basename(URI.parse(url).path)
     if file_name == 'user-files'
@@ -299,7 +301,7 @@ def save_hashes(hashes, path)
 end
 
 def main(argv)
-  # Initialize the Gmail service
+  # Set up the Gmail service
   gmail = Google::Apis::GmailV1::GmailService.new
   gmail.client_options.application_name = APPLICATION_NAME
   gmail.authorization = authorize
@@ -313,10 +315,10 @@ def main(argv)
   if messages.empty?
     puts 'No messages found with attachments.'
   else
-    messages.each do |msg|
+    messages.each_with_index do |msg, index|
       next unless msg
 
-      puts "Processing message ID: #{msg.id}"
+      puts "Processing message #{index} ID: #{msg.id}"
       download_attachments(gmail, msg.id, output_dir)
     end
   end
