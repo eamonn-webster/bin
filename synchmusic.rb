@@ -2,7 +2,7 @@
 #
 # File: synchmusic.rb
 # Author: eweb
-# Copyright eweb, 2012-2025
+# Copyright eweb, 2012-2026
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -39,6 +39,7 @@
 #  5th Apr 2023  eweb     #0008 accounts switch to main
 # 16th Oct 2023  eweb     #0008 need English for $CHILD_STATUS
 # 23rd Oct 2025  eweb     #0008 find unlinked rsync
+# 25th Feb 2026  eweb     #0008 volume as arg, prompt to rsync git
 #
 
 require 'English'
@@ -57,8 +58,12 @@ class String
   end
 end
 
-def main
-  drive = %w[IOMEGA0 iomega1].find do |dr|
+def main(argv)
+  drives = %w[Data-1 IOMEGA0 iomega1]
+  if argv[0]
+    drives.unshift(argv[0])
+  end
+  drive = drives.find do |dr|
     Dir.exist?("/Volumes/#{dr}")
   end
 
@@ -191,6 +196,10 @@ end
 # end
 
 def fix_a_git(dir, rsync, drive)
+  print "fetch #{dir}? "
+  ch = STDIN.gets.chomp
+  return unless ch == "y"
+
   rsync = "#{rsync} --delete-during"
   src = "/Users/eweb/#{dir}/.git/"
   dst = "/Volumes/#{drive}/#{dir}/.git"
@@ -199,5 +208,5 @@ def fix_a_git(dir, rsync, drive)
 end
 
 if $PROGRAM_NAME == __FILE__
-  main
+  main(ARGV)
 end
