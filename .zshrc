@@ -152,3 +152,6 @@ alias emacs="emacs -nw"
 
 # export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 eval "$(mise activate zsh)"
+
+# Added by Antigravity
+export PATH="/Users/eweb/.antigravity/antigravity/bin:$PATH"
