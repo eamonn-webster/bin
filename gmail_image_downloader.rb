@@ -5,7 +5,7 @@
 #
 # File: gmail_image_downloader.rb
 # Author: eamonn.webster@gmail.com
-# Copyright eweb, 2024-2025
+# Copyright eweb, 2024-2026
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -15,6 +15,7 @@
 # 19th Jan 2025  eweb     #0008 force rejects
 # 19th Feb 2025  eweb     #0008 clear out rejects
 #  7th Oct 2025  eweb     #0008 ignore hosts that time out
+# 16th Mar 2026  eweb     #0008 page through results
 #
 
 require 'google/apis/gmail_v1'
@@ -77,8 +78,13 @@ end
 def fetch_messages(gmail, folder)
   query = "in:#{folder}"
   user_id = 'me'
+  messages = []
   result = gmail.list_user_messages(user_id, q: query)
-  result.messages || []
+  while result.next_page_token do
+    messages += result.messages
+    result = gmail.list_user_messages(user_id, q: query, page_token: result.next_page_token)
+  end
+  messages + (result.messages || [])
 end
 
 # Extract embedded images
