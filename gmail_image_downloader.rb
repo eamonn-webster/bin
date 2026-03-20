@@ -324,7 +324,7 @@ def main(argv)
     messages.each_with_index do |msg, index|
       next unless msg
 
-      puts "Processing message #{index} ID: #{msg.id}"
+      puts "Processing message #{index + 1} ID: #{msg.id}"
       download_attachments(gmail, msg.id, output_dir)
     end
   end
@@ -336,6 +336,7 @@ def main(argv)
   # puts "adding rejected files now have #{hashes.size} rejects"
   save_hashes(hashes,"#{output_dir}/rejects/rejects.json")
   remove_duplicate_images(output_dir, hashes)
+  FileUtils.touch("#{output_dir}/rejects")
 end
 
 if __FILE__ == $PROGRAM_NAME
