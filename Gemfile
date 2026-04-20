@@ -1,7 +1,7 @@
 #
 # File: Gemfile
 # Author: eweb
-# Copyright eweb, 2016-2023
+# Copyright eweb, 2016-2026
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -11,7 +11,6 @@
 # 21st Dec 2020  eweb     #0008 executable-hooks
 # 21st Apr 2021  eweb     #0008 remove rubocop
 # 17th Apr 2023  eweb     #0008 rubocop
-#  6th Oct 2023  eweb     #3511 activesupport 7.1.0 breaks cocoapods
 #
 source 'https://rubygems.org'
 
@@ -37,3 +36,6 @@ gem "pronto-rubocop", require: false
 gem "mime", require: false
 gem "webrick", require: false
 gem "google-apis-gmail_v1", require: false
+
+# #3724:acc point at a fork until it is fixed properly
+gem 'ttfunk', github: 'rubris-inc/ttfunk', branch: 'start-to-support-bigdecimal-4.1', require: false
