@@ -82,7 +82,7 @@ GEM
     declarative (0.0.20)
     domain_name (0.6.20240107)
     drb (2.2.3)
-    erb (6.0.3)
+    erb (6.0.4)
     escape (0.0.4)
     ethon (0.18.0)
       ffi (>= 1.15.0)
