@@ -37,5 +37,5 @@ gem "mime", require: false
 gem "webrick", require: false
 gem "google-apis-gmail_v1", require: false
 
-# #3724:acc point at a fork until it is fixed properly
-gem 'ttfunk', github: 'rubris-inc/ttfunk', branch: 'start-to-support-bigdecimal-4.1', require: false
+# #3724:acc point at branch until it is released properly
+gem 'ttfunk', github: 'prawnpdf/ttfunk', branch: 'master', require: false

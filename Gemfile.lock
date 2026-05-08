@@ -1,7 +1,7 @@
 GIT
-  remote: https://github.com/rubris-inc/ttfunk.git
-  revision: c155a8ee56955812af2fe425b7bc7fc3909ec7e3
-  branch: start-to-support-bigdecimal-4.1
+  remote: https://github.com/prawnpdf/ttfunk.git
+  revision: fb8a699581ceb0ee0b67649198642ee0e6b9fc7d
+  branch: master
   specs:
     ttfunk (1.8.0)
 
