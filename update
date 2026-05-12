@@ -3,7 +3,7 @@
 #
 # File: update
 # Author: eweb
-# Copyright eweb, 2021-2025
+# Copyright eweb, 2021-2026
 # Contents: update the machine after a period of inactivity
 #
 # Date:          Author:  Comments:
@@ -17,9 +17,21 @@
 # 22nd May 2025  eweb     #0008 update and upgrade brew
 # 23rd Nov 2025  eweb     #0008 bundle install less noise
 # 28th Nov 2025  eweb     #0008 update RubyMotion repos
+# 12th May 2026  eweb     #0008 verify ruby version
 #
 
 # bash needed echo -e "..."
+
+RUBY_VERSION=4.0.3
+
+running=$(ruby -e "print RUBY_VERSION")
+
+if [[ $running != $RUBY_VERSION ]] ; then
+  echo -en "\033[31m"
+  echo -en "Wrong Ruby, have $running need $RUBY_VERSION\n"
+  echo -en "\033[0m"
+  exit 1
+fi
 
 echo "\033[36mbrew\033[0m"
 brew update
