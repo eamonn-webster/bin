@@ -140,17 +140,16 @@ def extract_images_from_html(html_content, base_url = nil)
   doc.css('img').each do |img_tag|
     src = img_tag['src']
     next unless src # Skip if 'src' is nil
-    if src.include?('.ru') || src.include?('open.gif') ||
-        @ignore_hosts.include?(URI.parse(src).host)
-      puts "skipping #{src}"
+    if src.include?('open.gif') || @ignore_hosts.include?(URI.parse(src).host)
+      #puts "skipping #{src}"
       next
     end
     if tiny_image?(img_tag)
-      puts img_tag
-      puts "skipping #{src}"
+      # puts img_tag
+      #puts "skipping #{src}"
       next
     end
-    puts img_tag
+    # puts img_tag
 
     # Convert relative URLs to absolute if base_url is provided
     image_url = base_url ? URI.join(base_url, src).to_s : src
@@ -179,12 +178,9 @@ def download_images(image_urls, output_dir)
     next if url == ''
 
     puts "Downloading: #{url}"
-    file_name = File.basename(URI.parse(url).path)
-    if file_name == 'user-files'
-      file_name = "user-files-#{Time.now.to_f}.png"
-    end
+    ext = File.extname(URI.parse(url).path)
+    file_name = "image-#{Time.now.to_f}#{ext}"
     file_path = File.join(output_dir, file_name)
-
     # Open and save the file
     URI.open(url, open_timeout: 2) do |image|
       File.binwrite(file_path, image.read)
@@ -208,7 +204,7 @@ end
 
 # Extract and download images
 def extract_images(html_content, output_dir)
-  puts 'Extracting images...'
+  # puts 'Extracting images...'
   image_urls = extract_images_from_html(html_content, nil)
 
   if image_urls.empty?
