@@ -109,4 +109,4 @@ do
   done
 done
 
-(lsof -i :1234 || git -C ~/projects/acc instaweb)
+(lsof -i :1234 || git -C ~/projects/acc instaweb --start)
