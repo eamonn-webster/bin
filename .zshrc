@@ -15,6 +15,7 @@ export DISABLE_SPRING=YES
 export EDITOR=emacs
 export QUEST_DIR=~/projects/quest
 export JIRA_USER=eweb@qstream.com
+export GPG_TTY=$(tty)
 
 autoload -Uz compinit && compinit
 # autoload -Uz add-zsh-hook
