@@ -240,7 +240,7 @@ GEM
       date
       stringio
     public_suffix (4.0.7)
-    puma (8.0.1)
+    puma (8.0.2)
       nio4r (~> 2.0)
     racc (1.8.1)
     rack (2.2.23)
@@ -265,7 +265,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
-    retriable (3.6.1)
+    retriable (3.8.0)
     rexml (3.4.4)
     rubocop (1.86.2)
       json (~> 2.3)
