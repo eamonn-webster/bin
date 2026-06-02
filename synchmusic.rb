@@ -40,6 +40,7 @@
 # 16th Oct 2023  eweb     #0008 need English for $CHILD_STATUS
 # 23rd Oct 2025  eweb     #0008 find unlinked rsync
 # 25th Feb 2026  eweb     #0008 volume as arg, prompt to rsync git
+#  2nd Jun 2026  eweb     #0008 bitbucket is gone
 #
 
 require 'English'
@@ -153,14 +154,14 @@ def main(argv)
       run(cmd)
     end
 
-    dirs = [['projects/acc', 'git@bitbucket.org:eamoon/acc.git'],
-            ['projects/Running', 'git@bitbucket.org:eamoon/running.git'],
-            ['accounts/main', 'git@bitbucket.org:eamoon/data.git'],
-            ['bin', 'git@bitbucket.org:eamoon/bin.git'],
+    dirs = [['projects/acc', 'https://github.com/eamonn-webster/acc.git'],
+            ['projects/Running', 'https://github.com/eamonn-webster/running.git'],
+            ['accounts/main', 'https://github.com/eamonn-webster/data.git'],
+            ['bin', 'https://github.com/eamonn-webster/bin.git'],
             ['projects/metric_fu', 'https://github.com/eamonn-webster/metric_fu.git'],
-            ['projects/flog', 'https://github.com/eamonn-webster/flog.git'],
+            # ['projects/flog', 'https://github.com/eamonn-webster/flog.git'],
             # ['projects/tbw', '/Users/eweb/projects/tbw.git'],
-            ['projects/simway', 'git@bitbucket.org:eamoon/simway.git'],
+            ['projects/simway', 'https://github.com/eamonn-webster/simway.git'],
             ['projects/bacon-expect', 'https://github.com/eamonn-webster/bacon-expect.git']]
 
     dirs.each do |dir, remote|
