@@ -94,7 +94,7 @@ GEM
       logger
     faraday-follow_redirects (0.5.0)
       faraday (>= 1, < 3)
-    faraday-net_http (3.4.3)
+    faraday-net_http (3.4.4)
       net-http (~> 0.5)
     faye-websocket (0.11.4)
       eventmachine (>= 0.12.0)
@@ -236,7 +236,7 @@ GEM
     pronto-rubocop (0.11.6)
       pronto (~> 0.11.0)
       rubocop (>= 0.63.1, < 2.0)
-    psych (5.3.1)
+    psych (5.4.0)
       date
       stringio
     public_suffix (4.0.7)
