@@ -1,7 +1,7 @@
 #
 # File: .zshrc
 # Author: eweb
-# Copyright eweb, 2022-2025
+# Copyright eweb, 2022-2026
 # Contents:
 #
 # Date:          Author:  Comments:
@@ -9,6 +9,7 @@
 #  8th Feb 2025  eweb     #0008 add asdf shims to path
 # 22nd Jul 2025  eweb     #0008 comment out yarn and nvm
 # 29th Jul 2025  eweb     #0008 mise intel & apple
+#  4th Jun 2026  eweb     #0008 path for homebrew and mise
 #
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 export DISABLE_SPRING=YES
@@ -24,6 +25,14 @@ unsetopt ignoreeof
 
 bindkey "[D" backward-word
 bindkey "[C" forward-word
+
+if [[ $(uname -m) == "arm64" ]]; then
+    # Commands for Apple Silicon
+    eval $(/opt/homebrew/bin/brew shellenv)
+else
+    # Commands for Intel
+    eval $(/usr/local/bin/brew shellenv)
+fi
 
 gitk() {
     `which git`k --all $1 &
@@ -52,8 +61,6 @@ acc() {
 frr() {
   rubocop $*
 }
-  # reek $*
-  # flog $*
 
 ave() {
     profile=$1
@@ -64,43 +71,40 @@ ave() {
 connect() {
     case "$1" in
     us01)
-	echo -en '\e]1;us01\e\\';
+        echo -en '\e]1;us01\e\\';
         aws-vault exec quest_prod -- ~/projects/quest/workflow/bin/connect_db us01 5443;;
     eu01)
-	echo -en '\e]1;eu01\e\\';
-	aws-vault exec quest_prod -- env AWS_REGION=eu-west-1 ~/projects/quest/workflow/bin/connect_db eu01 5442;;
+        echo -en '\e]1;eu01\e\\';
+        aws-vault exec quest_prod -- env AWS_REGION=eu-west-1 ~/projects/quest/workflow/bin/connect_db eu01 5442;;
     us02)
         aws-vault exec quest_prod -- ~/projects/quest/workflow/bin/connect_db us02 5444;;
     dev01)
-	aws-vault exec quest_dev -- ~/projects/quest/workflow/bin/connect_db dev01 5440;;
+        aws-vault exec quest_dev -- ~/projects/quest/workflow/bin/connect_db dev01 5440;;
     pentest01)
-	aws-vault exec quest_dev -- ~/projects/quest/workflow/bin/connect_db pentest01 5441;;
+        aws-vault exec quest_dev -- ~/projects/quest/workflow/bin/connect_db pentest01 5441;;
     load-test)
-	aws-vault exec quest_load -- ~/projects/quest/workflow/bin/connect_db load-test 5447;;
+        aws-vault exec quest_load -- ~/projects/quest/workflow/bin/connect_db load-test 5447;;
     staging01)
-	aws-vault exec quest_staging -- ~/projects/quest/workflow/bin/connect_db staging01 5448;;
+        aws-vault exec quest_staging -- ~/projects/quest/workflow/bin/connect_db staging01 5448;;
     sales01)
-	aws-vault exec quest_sales -- ~/projects/quest/workflow/bin/connect_db sales01 5451;;
+        aws-vault exec quest_sales -- ~/projects/quest/workflow/bin/connect_db sales01 5451;;
     dev01-migration)
-	aws-vault exec quest_dev -- ~/projects/quest/workflow/bin/connect_db dev01 5451 -migration;;
+        aws-vault exec quest_dev -- ~/projects/quest/workflow/bin/connect_db dev01 5451 -migration;;
     us01-migration)
-	aws-vault exec quest_prod -- ~/projects/quest/workflow/bin/connect_db us01 5449 -migration;;
+        aws-vault exec quest_prod -- ~/projects/quest/workflow/bin/connect_db us01 5449 -migration;;
     us02-migration)
-	aws-vault exec quest_prod -- ~/projects/quest/workflow/bin/connect_db us02 5450 -migration;;
+        aws-vault exec quest_prod -- ~/projects/quest/workflow/bin/connect_db us02 5450 -migration;;
     eu01-migration)
-	aws-vault exec quest_prod -- env AWS_REGION=eu-west-1 ~/projects/quest/workflow/bin/connect_db eu01 5459 -migration;;
+        aws-vault exec quest_prod -- env AWS_REGION=eu-west-1 ~/projects/quest/workflow/bin/connect_db eu01 5459 -migration;;
     quest-gcp)
-	aws-vault exec quest_prod -- ~/projects/quest/workflow/bin/connect_db us01 5453 -quest-gcp;;
+        aws-vault exec quest_prod -- ~/projects/quest/workflow/bin/connect_db us01 5453 -quest-gcp;;
     *)
         echo "Usage: $0 {us01|us02|eu01|dev01|pentent01|load-test}";;
     esac
 }
 
-# needed to sudo because /usr/local is protected
-#$ arch -x86_64 zsh
-#$ cd /usr/local &&  mkdir homebrew
-#$ curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C homebrew
-
+# to install intel brew on silicon
+# arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ibrew() {
   arch -x86_64 /usr/local/bin/brew $*
 }
@@ -113,46 +117,17 @@ kill_noted() {
   killall NotificationCenter
 }
 
-# function gitky() {  `which gitk` --all $1 & }
-
 export PROMPT='%u:%1d %*$ '
-# export NVM_DIR="$HOME/.nvm"
-# [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"
 
-export PATH="$PATH:$HOME/bin:/usr/local/bin"
+export PATH="$HOME/bin:$PATH"
 PS1="%n %1~ %* %# "
-
-# test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
-
-# set-window-title() {
-#   window_title="\e]0;${PWD##*/}\a"
-#   echo -ne "$window_title"
-# }
-
-# PR_TITLEBAR=''
-# set-window-title
-# add-zsh-hook precmd set-window-title
-
-# export NVM_DIR="$HOME/.nvm"
-# [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
-# [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
 
 export DJANGO_SETTINGS_MODULE=questions.settings.development
 
-# export PYENV_ROOT="$HOME/.pyenv"
-# command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-# eval "$(pyenv init -)"
-
-export PATH="/opt/homebrew/opt/imagemagick@6/bin:$PATH"
-# export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export PATH=$PATH:$ANDROID_HOME/emulator
 export PATH=$PATH:$ANDROID_HOME/platform-tools
 
 alias emacs="emacs -nw"
 
-# export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 eval "$(mise activate zsh)"
-
-# Added by Antigravity
-export PATH="/Users/eweb/.antigravity/antigravity/bin:$PATH"
