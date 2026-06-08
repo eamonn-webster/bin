@@ -107,7 +107,7 @@ GEM
     gitlab (4.20.1)
       httparty (~> 0.20)
       terminal-table (>= 1.5.1)
-    google-apis-core (1.1.0)
+    google-apis-core (1.2.0)
       addressable (~> 2.8, >= 2.8.7)
       faraday (~> 2.13)
       faraday-follow_redirects (~> 0.3)
