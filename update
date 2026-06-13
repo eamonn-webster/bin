@@ -35,7 +35,7 @@ fi
 
 echo "\033[36mbrew\033[0m"
 brew update
-brew upgrade
+brew upgrade --no-ask
 
 # echo "\033[36masdf plugin update\033[0m"
 # asdf plugin update --all
