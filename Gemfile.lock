@@ -238,9 +238,6 @@ GEM
       pronto (~> 0.11.0)
       rubocop (>= 0.63.1, < 2.0)
     pstore (0.2.1)
-    psych (5.4.0)
-      date
-      stringio
     public_suffix (4.0.7)
     puma (8.0.2)
       nio4r (~> 2.0)
@@ -251,9 +248,14 @@ GEM
       rack (~> 2.2, >= 2.2.4)
     rainbow (3.1.1)
     rake (13.4.2)
-    rdoc (7.2.0)
+    rbs (4.0.3)
+      logger
+      prism (>= 1.6.0)
+      tsort
+    rdoc (8.0.0)
       erb
-      psych (>= 4.0.0)
+      prism (>= 1.6.0)
+      rbs (>= 4.0.0)
       tsort
     regexp_parser (2.12.0)
     reline (0.6.3)
@@ -315,7 +317,6 @@ GEM
       tilt (~> 2.0)
     sqlite3 (1.7.3)
       mini_portile2 (~> 2.8.0)
-    stringio (3.2.0)
     taglib-ruby (2.0.0)
     terminal-table (4.0.0)
       unicode-display_width (>= 1.1.1, < 4)
