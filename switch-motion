@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+#
+# File: switch-motion
+# Author: eweb
+# Copyright eweb, 2026-2026
+# Contents:
+#
+# Date:          Author:  Comments:
+# 27th Jun 2026  eweb     #0008 switch ruby motion version
+#
+
+def main(argv)
+  versions = {}
+  current = nil
+  lines = `rg Version /Library/RubyMotion*/lib/motion/version.rb`
+  lines.each_line do |line|
+    match = line.match(%r{(/Library/RubyMotion(.*))/lib/motion/version.rb:\s+Version = "([0-9.]+)"})
+    if match.nil?
+      puts("mismatch #{line}")
+    else
+      versions[match[2]] = match[3]
+      if match[2] == ''
+        current = match[3]
+        puts "* #{match[3]} at #{match[1]}"
+      end
+    end
+  end
+  desired = argv.shift
+  if desired
+    if desired == current
+      puts 'no change'
+    elsif current && versions[desired]
+      puts "switching from #{current} to #{desired}"
+      system("sudo mv /Library/RubyMotion /Library/RubyMotion#{versions[current]}#{current}")
+      system("sudo mv /Library/RubyMotion#{versions[desired]} /Library/RubyMotion")
+    end
+  end
+end
+
+if $PROGRAM_NAME == __FILE__
+  main(ARGV)
+end
