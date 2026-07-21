@@ -18,6 +18,7 @@
 # 23rd Nov 2025  eweb     #0008 bundle install less noise
 # 28th Nov 2025  eweb     #0008 update RubyMotion repos
 # 12th May 2026  eweb     #0008 verify ruby version
+# 21st Jul 2026  eweb     #0008 use mise directly
 #
 
 # bash needed echo -e "..."
@@ -40,7 +41,8 @@ brew upgrade --no-ask
 # echo "\033[36masdf plugin update\033[0m"
 # asdf plugin update --all
 
-echo "\033[36mmise upgrade\033[0m"
+echo "\033[36mmise\033[0m"
+mise self-update
 mise upgrade
 
 (cd ~/bin

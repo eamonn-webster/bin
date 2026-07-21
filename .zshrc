@@ -10,6 +10,7 @@
 # 22nd Jul 2025  eweb     #0008 comment out yarn and nvm
 # 29th Jul 2025  eweb     #0008 mise intel & apple
 #  4th Jun 2026  eweb     #0008 path for homebrew and mise
+# 21st Jul 2026  eweb     #0008 use mise directly
 #
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 export DISABLE_SPRING=YES
@@ -130,4 +131,4 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 
 alias emacs="emacs -nw"
 
-eval "$(mise activate zsh)"
+eval "$(/Users/eweb/.local/bin/mise activate zsh)"
