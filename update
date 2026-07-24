@@ -42,7 +42,6 @@ brew upgrade --no-ask
 # asdf plugin update --all
 
 echo "\033[36mmise\033[0m"
-mise self-update
 mise upgrade
 
 (cd ~/bin

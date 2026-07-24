@@ -131,4 +131,4 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 
 alias emacs="emacs -nw"
 
-eval "$(/Users/eweb/.local/bin/mise activate zsh)"
+eval "$(mise activate zsh)"
