@@ -140,6 +140,7 @@ def extract_images_from_html(html_content, base_url = nil)
   doc.css('img').each do |img_tag|
     src = img_tag['src']
     next unless src # Skip if 'src' is nil
+    next unless src.start_with?('http')
     if src.include?('open.gif') || @ignore_hosts.include?(URI.parse(src).host)
       #puts "skipping #{src}"
       next
