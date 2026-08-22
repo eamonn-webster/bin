@@ -23,7 +23,7 @@
 
 # bash needed echo -e "..."
 
-RUBY_VERSION=4.0.5
+RUBY_VERSION=4.0.6
 
 running=$(ruby -e "print RUBY_VERSION")
 
