@@ -235,13 +235,13 @@ end
 def find_duplicates(files, hashes)
   duplicates = []
   files.each do |file|
-    base = File.basename(file)
     hash = file_hash(file)
-    if hashes.key?(hash) && hashes[hash] != base
+    if hashes.key?(hash) && hashes[hash] != file
       duplicates << file
-      puts "Duplicate found: #{base} (matches #{hashes[hash]})"
-    elsif hashes[hash] != base
-      hashes[hash] = base
+      puts "Duplicate found: #{file} (matches #{hashes[hash]})"
+      `touch "#{hashes[hash]}"`
+    elsif hashes[hash] != file
+      hashes[hash] = file
     end
   end
   duplicates
