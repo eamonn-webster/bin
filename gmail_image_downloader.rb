@@ -239,7 +239,7 @@ def find_duplicates(files, hashes)
     if hashes.key?(hash) && hashes[hash] != file
       duplicates << file
       puts "Duplicate found: #{file} (matches #{hashes[hash]})"
-      `touch "#{hashes[hash]}"`
+      `touch "#{hashes[hash]}"` if hashes[hash]
     elsif hashes[hash] != file
       hashes[hash] = file
     end
