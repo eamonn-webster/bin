@@ -79,7 +79,7 @@ GEM
     daemons (1.4.1)
     date (3.5.1)
     declarative (0.0.20)
-    domain_name (0.6.20260829)
+    domain_name (0.6.20260902)
     drb (2.2.3)
     erb (6.0.7)
     ethon (0.18.0)
