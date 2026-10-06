@@ -101,6 +101,9 @@ def download_attachments(gmail, message_id, output_dir)
   else
     foo(message, gmail, message_id, output_dir)
   end
+rescue StandardError => e
+  puts("Error: #{e.class} #{e.message}")
+  :error
 end
 
 def foo(message, gmail, message_id, output_dir)
@@ -142,12 +145,12 @@ def extract_images_from_html(html_content, base_url = nil)
     next unless src # Skip if 'src' is nil
     next unless src.start_with?('http')
     if src.include?('open.gif') || @ignore_hosts.include?(URI.parse(src).host)
-      #puts "skipping #{src}"
+      # puts "skipping #{src}"
       next
     end
     if tiny_image?(img_tag)
       # puts img_tag
-      #puts "skipping #{src}"
+      # puts "skipping #{src}"
       next
     end
     # puts img_tag
@@ -174,7 +177,7 @@ def download_images(image_urls, output_dir)
   extension_map = {'image/jpeg' => '.jpg',
                    'image/png' => '.png',
                    'image/gif' => '.gif',
-                   'text/html' => '.html' }
+                   'text/html' => '.html'}
   image_urls.each do |url|
     next if url == ''
 
@@ -283,7 +286,7 @@ def remove_files(files, quiet: false)
   if files.empty?
     # puts "No files to remove." unless quiet
   else
-    puts "Removing files..."  unless quiet
+    puts "Removing files..." unless quiet
     files.each do |file|
       File.delete(file)
       puts "Deleted: #{file}" unless quiet
@@ -299,6 +302,7 @@ def load_hashes(path)
     {}
   end
 end
+
 def save_hashes(hashes, path)
   File.write(path, hashes.to_json)
 end
@@ -315,14 +319,29 @@ def main(argv)
   puts 'Fetching messages with attachments...'
   messages = fetch_messages(gmail, folder)
 
+  errors = 0
   if messages.empty?
     puts 'No messages found with attachments.'
   else
+    messages_processed = load_hashes("#{output_dir}/processed.json")
     messages.each_with_index do |msg, index|
       next unless msg
 
+      if messages_processed.key?(msg.id)
+        puts "Skipped processed message #{index + 1} ID: #{msg.id}"
+        next
+      end
+
       puts "Processing message #{index + 1} ID: #{msg.id}"
-      download_attachments(gmail, msg.id, output_dir)
+      if download_attachments(gmail, msg.id, output_dir) == :error
+        errors += 1
+      else
+        messages_processed[msg.id] = nil
+        save_hashes(messages_processed, "#{output_dir}/processed.json")
+      end
+    end
+    if errors.zero?
+      File.delete("#{output_dir}/processed.json")
     end
   end
 
@@ -331,7 +350,7 @@ def main(argv)
   add_hashes_for_files("#{output_dir}/rejects", hashes, true)
   remove_rejects("#{output_dir}/rejects")
   # puts "adding rejected files now have #{hashes.size} rejects"
-  save_hashes(hashes,"#{output_dir}/rejects/rejects.json")
+  save_hashes(hashes, "#{output_dir}/rejects/rejects.json")
   remove_duplicate_images(output_dir, hashes)
   FileUtils.touch("#{output_dir}/rejects")
 end
