@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 #
-# File: get_lyrics
+# File: get_lyrics.py
 # Author: eamonn.webster@gmail.com
 # Copyright eweb, 2026-2026
 # Contents:
 #
 # Date:          Author:  Comments:
 # 17th Jan 2026  eweb     #0008 get and embed lyrics from lrclib.net
+# 10th Oct 2026  eweb     #0008 improved logging
 #
 
 import os
@@ -21,10 +22,11 @@ from mutagen.id3 import ID3, USLT
 from mutagen.mp4 import MP4
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
+from pathlib import Path
 
 SUPPORTED = (".mp3", ".flac", ".m4a", ".ogg", ".wav")
 MAX_WORKERS = 4
-LOG_FILE = f"embed_lyrics_{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.log"
+LOG_FILE = Path.home() / 'music-lists' / f"embed_lyrics_{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.log"
 
 thread_local = threading.local()
 
@@ -173,6 +175,7 @@ def main():
         print("Invalid folder")
         sys.exit(1)
 
+    logging.info(f"Scanning: {os.path.realpath(music_dir)}")
     files = []
     for root, _, filenames in os.walk(music_dir):
         for f in filenames:
@@ -199,6 +202,7 @@ def main():
     print("\nDone!\n")
     for k, v in stats.items():
         print(f"{k:10}: {v}")
+        logging.info(f"{k:10}: {v}")
 
     logging.info("==== Lyrics embedding finished ====")
 
