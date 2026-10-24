@@ -16,6 +16,7 @@
 # 19th Feb 2025  eweb     #0008 clear out rejects
 #  7th Oct 2025  eweb     #0008 ignore hosts that time out
 # 16th Mar 2026  eweb     #0008 page through results
+# 24th Oct 2026  eweb     #0008 don't lose decimal time if no extension
 #
 
 require 'google/apis/gmail_v1'
@@ -191,6 +192,10 @@ def download_images(image_urls, output_dir)
     end
     puts "Saved: #{file_path}"
     ext = File.extname(file_path)
+    # don't lose decimal time if no extension
+    if ext =~ /^\.[0-9]+$/
+      ext = ''
+    end
     type = `file -b --mime-type "#{file_path}"`.strip
     new_suffix = extension_map[type]
     new_file_path = "#{file_path.delete_suffix(ext)}#{new_suffix}"
