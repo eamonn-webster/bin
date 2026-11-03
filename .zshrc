@@ -11,6 +11,7 @@
 # 29th Jul 2025  eweb     #0008 mise intel & apple
 #  4th Jun 2026  eweb     #0008 path for homebrew and mise
 # 21st Jul 2026  eweb     #0008 use mise directly
+#  3rd Nov 2026  eweb     #0008 resign for git
 #
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 export DISABLE_SPRING=YES
@@ -37,6 +38,11 @@ fi
 
 gitk() {
     `which git`k --all $1 &
+}
+
+resign() {
+    export GPG_TTY=$(tty)
+    printf 'Unlock Git signing key\n' | gpg --local-user $(git config user.signingkey) --clearsign >/dev/null
 }
 
 emacsw() {
