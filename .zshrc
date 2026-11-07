@@ -12,6 +12,7 @@
 #  4th Jun 2026  eweb     #0008 path for homebrew and mise
 # 21st Jul 2026  eweb     #0008 use mise directly
 #  3rd Nov 2026  eweb     #0008 resign for git
+#  7th Nov 2026  eweb     #0008 mise activate
 #
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 export DISABLE_SPRING=YES
@@ -127,4 +128,8 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 
 alias emacs="emacs -nw"
 
-eval "$(mise activate zsh)"
+if [[ $(uname -m) == "arm64" ]]; then
+    eval "$(mise activate zsh)"
+else
+    eval "$(/Users/eweb/.local/bin/mise activate zsh)"
+fi
