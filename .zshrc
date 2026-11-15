@@ -13,6 +13,7 @@
 # 21st Jul 2026  eweb     #0008 use mise directly
 #  3rd Nov 2026  eweb     #0008 resign for git
 #  7th Nov 2026  eweb     #0008 mise activate
+# 15th Nov 2026  eweb     #0008 no repeats in history
 #
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 export DISABLE_SPRING=YES
@@ -24,6 +25,7 @@ export GPG_TTY=$(tty)
 autoload -Uz compinit && compinit
 # autoload -Uz add-zsh-hook
 
+setopt HIST_IGNORE_DUPS
 unsetopt ignoreeof
 
 bindkey "[D" backward-word
