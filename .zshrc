@@ -14,6 +14,7 @@
 #  3rd Nov 2026  eweb     #0008 resign for git
 #  7th Nov 2026  eweb     #0008 mise activate
 # 15th Nov 2026  eweb     #0008 dev_deploy
+# 15th Nov 2026  eweb     #0008 claude accounts
 # 15th Nov 2026  eweb     #0008 no repeats in history
 #
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
@@ -151,3 +152,13 @@ if [[ $(uname -m) == "arm64" ]]; then
 else
     eval "$(/Users/eweb/.local/bin/mise activate zsh)"
 fi
+
+export PATH="$HOME/.local/bin:$PATH"
+
+# Use the work Claude account when the Git identity is the work email
+claude() {
+  case "$(git config user.email 2>/dev/null)" in
+    eweb@qstream.com) CLAUDE_CONFIG_DIR=~/.claude-work command claude "$@" ;;
+    *)                command claude "$@" ;;
+  esac
+}
