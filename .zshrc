@@ -13,6 +13,7 @@
 # 21st Jul 2026  eweb     #0008 use mise directly
 #  3rd Nov 2026  eweb     #0008 resign for git
 #  7th Nov 2026  eweb     #0008 mise activate
+# 15th Nov 2026  eweb     #0008 dev_deploy
 # 15th Nov 2026  eweb     #0008 no repeats in history
 #
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
@@ -115,6 +116,21 @@ kill_noted() {
   rm -rf ~/Library/Group\ Containers/group.com.apple.usernoted/db2
   killall usernoted;
   killall NotificationCenter
+}
+
+# dev_deploy [branch]: force-push branch (default: current) to origin/dev01
+dev_deploy() {
+  local branch=${1:-$(git branch --show-current)}
+  if [[ -z $branch ]]; then
+    echo "dev_deploy: not on a branch; name one" >&2; return 1
+  fi
+  git rev-parse --verify --quiet "refs/heads/$branch" >/dev/null || {
+    echo "dev_deploy: no local branch '$branch'" >&2; return 1
+  }
+  git fetch --quiet origin dev01 || return 1
+  local old=$(git rev-parse origin/dev01)
+  echo "dev01: ${old:0:9} -> $(git rev-parse --short "$branch") ($branch)"
+  git push --force-with-lease="dev01:$old" origin "refs/heads/${branch}:refs/heads/dev01"
 }
 
 export PROMPT='%u:%1d %*$ '
