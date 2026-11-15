@@ -3,13 +3,21 @@
 #
 # File: switch-xcode
 # Author: eweb
-# Copyright eweb, 2024-2024
+# Copyright eweb, 2024-2026
 # Contents:
 #
 # Date:          Author:  Comments:
 #  7th Dec 2024  eweb     #0008 switch xcode without sudo
 # 11th Dec 2024  eweb     #0008 skip if no change
+# 15th Nov 2026  eweb     #0008 setup instructions
 #
+
+# to set up to run without password
+# `sudo EDITOR=vim visudo`
+# and add
+# `<username> ALL=(ALL) NOPASSWD: /path/to/xcode-select`
+# e.g.
+# `eweb ALL=(ALL) NOPASSWD: /usr/bin/xcode-select`
 
 xcver="-$1"
 if [ "$xcver" == "--" ]
